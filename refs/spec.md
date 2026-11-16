@@ -181,3 +181,9 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 ## v2.7 update
 - PH3 = 20 (ruler photo). Flange A front face s=11.5, mating s=19.5. Front brace tie row s=-12.5 (A), rear s=+28 (B).
 - Width: 90 front blade and tail (Mudhugger-like), 82 under the brace and through the leg zone (s -15..+60), short transitions.
+
+## v2.8 (Mudhugger-style flush leg sheets)
+- 82 under the brace (saddle unchanged); 97 leg zone, front and tail (outer |y| 48.5 = lower-leg inner-face plane −1.5).
+- Flat 2.5 mm vertical sheets flush with the wall, s 17..73, D to 135; slot pairs at D 90/110/125; relies on plastic flex.
+- Seal window s 25..65 × D 12..84 through the wall and sheet; 8 mm strips fore and aft.
+- Clearance max/Assegai: A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94. B 208.5×149.6 on its side.

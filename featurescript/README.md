@@ -96,3 +96,11 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Width: 90 mm front blade and tail like the Mudhugger EVO/FRX, 82 mm under the brace and through the leg zone (s -15..+60),
   transitions 90->86->82 (s -70..-15) and 82->88->90 (s +60..+129).
 - Tyre clearance A 8.69 / B 8.50 mm (69.2 tyre). A 181.5 x 90 x 71.1, B 207.5 x 97 x 149.6 - both fit 250.
+
+## v2.8 changes - Mudhugger-style flush leg sheets
+- Leg mounts simplified: flat 2.5 mm vertical sheets carry on flush from the guard side wall in the lower-leg inner-face plane (outer |y| 48.5), s 17..73 (56 wide, centred on the leg at s 45), down to 135 mm below the brace. Strap slot pairs at 90/110/125 mm. The design relies on the plastic flexing.
+- A rectangular seal-bulge window (s 25..65, 12..84 mm below the brace) goes through the wall and sheet, leaving 8 mm strips in front and behind.
+- Because the sheet is flush with the inner-leg plane, the guard is wider round the tyre: 97 mm in the leg zone, front and tail (v2.7: 82 / 90). The saddle under the brace is unchanged (82 mm, 60 top flat).
+- Tyre clearance (69.2 max / Assegai): A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94 (v2.7: A 8.69/10.22, B 8.50/10.04).
+- A 181.5 x 97.1 x 71.1; B 208.5 x 98.5 x 149.6 (208.5 x 149.6 on its side, so it fits the P1S).
+- Files: `mudguard_v2.8.fs`, `render_view_v2.8.fs`, `verification_v2.8.txt`, `renders/mudguard_v2.8_*`.
