@@ -104,3 +104,11 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Tyre clearance (69.2 max / Assegai): A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94 (v2.7: A 8.69/10.22, B 8.50/10.04).
 - A 181.5 x 97.1 x 71.1; B 208.5 x 98.5 x 149.6 (208.5 x 149.6 on its side, so it fits the P1S).
 - Files: `mudguard_v2.8.fs`, `render_view_v2.8.fs`, `verification_v2.8.txt`, `renders/mudguard_v2.8_*`.
+
+## v2.9 changes - longer rear
+- The rear segment behind the brace goes from 240 to 315 mm (arc from the brace centre). The front stays at 165, giving rear:front 1.91, close to the Mudhugger EVO's 1.84 but with a total of 480 rather than 525.
+- 315 is the longest tail that still lets B print on its side (-Y down, sheets and flange as before), turned about 27° on the bed: footprint 244.0 x 241.3, height 98.5. 320 mm would need 248.4.
+- Parts: A 181.5 x 97.1 x 71.1 (arc 184.5); B 265.5 x 98.5 x 149.6 (arc 295.5).
+- Widths, sheets, window, ties, flange and clearances are unchanged from v2.8.
+- Down-tube clearance at full compression is only an estimate (~20 mm nominal at s 93-168 behind the brace). Check on the bike. The extra length beyond 240 curves away from the frame.
+- Files: `mudguard_v2.9.fs`, `verification_v2.9.txt`, `renders/mudguard_v2.9_*`.

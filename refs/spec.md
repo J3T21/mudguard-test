@@ -187,3 +187,8 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - Flat 2.5 mm vertical sheets flush with the wall, s 17..73, D to 135; slot pairs at D 90/110/125; relies on plastic flex.
 - Seal window s 25..65 × D 12..84 through the wall and sheet; 8 mm strips fore and aft.
 - Clearance max/Assegai: A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94. B 208.5×149.6 on its side.
+
+## v2.9 (longer rear)
+- tailLen 315 (was 240), frontLen 165: rear:front 1.91. Total arc 480. Part arcs: A 184.5, B 295.5.
+- B prints on its side (-Y down), rotated ~27° in the bed plane: 244.0 × 241.3, H 98.5. 320 would give 248.4 (too tight).
+- Down-tube gap at bottom-out is estimated at ~20 mm nominal (range 2–39) at s ≈ 93–168; check on the bike.

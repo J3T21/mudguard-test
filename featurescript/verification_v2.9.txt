@@ -1,0 +1,21 @@
+Mudguard v2.9 verification (Onshape FeatureScript std 3112, test_feature + create_geometry)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/67af2d9d82f97b859a57a83a/e/5b67a4974a5ea64603396eec
+
+Change from v2.8: rear (behind the brace) lengthened to the most B can take while printing on its side (-Y down).
+  frontLen 165 (unchanged), tailLen 240 -> 315 (arc on the top centreline from the brace centre). Ratio 1.91 (Mudhugger EVO 185/340 = 1.84).
+  Total arc 480 (v2.8: 405). The tail taper is rescaled over the longer tail: width 97 constant; depth 31 -> 28 -> 25 -> 22 at the tip.
+  Everything else is as v2.8: 82 under the brace, 97 leg zone/front/tail, flush sheets s 17..73 to D135, window s 25..65 x D 12..84, ties, flange.
+Part arcs: A s -165..19.5 = 184.5; B s 19.5..315 = 295.5
+Solids 2 (A=1, B=1), A/B interfere 0
+A bbox 181.5 x 97.1 x 71.1 mm, 69.0 cm3; on its side it fits as modelled (181.5 x 71.1, H 97.1)
+B bbox 265.5 x 98.5 x 149.6 mm, 112.5 cm3
+  On its side (-Y face down, the established orientation), rotated about 27 deg in the bed plane: footprint 244.0 x 241.3, H 98.5 -> fits the 250 bed with ~6 mm margin
+  Length sweep (B min-square footprint on its side): tail 300 -> 236.7; 315 -> 244.0; 320 -> 248.4 (too tight). 315 chosen.
+Tyre clearance [69.2 max / Assegai]: A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94 (unchanged from v2.8)
+Legs: clashes 0/0, min dist A 5.66 / B 0.59 (window bottom edge)
+Tie slots all clear; wing slots 12/12; bolts 0 hits; flange/tie cutter 8.67/5.61; groove-nut 1.25; root fillet ok
+Down tube at full compression (ESTIMATE; no frame geometry measured):
+  axle-to-crown 562-582 minus 160 travel, offset 44, lower cup 15, head angle 63.5-64.5, down-tube underside 40-50 deg below horizontal.
+  Guard outer surface (R ~396) to down-tube underside line: min gap 1.7-39 mm, nominal (571 A2C, 64.5 HTA, 45 deg DT) ~20 mm,
+  closest at s ~93-168 behind the brace. That zone was already covered by v2.8 (240), so the extra length past s 240 diverges from the frame and adds no risk.
+  The guard sits ~21 mm proud of the tyre crown, so if the tyre has under ~25 mm to the down tube at bottom-out, it can touch. CHECK ON THE BIKE (let the air out and compress fully with the guard fitted).
