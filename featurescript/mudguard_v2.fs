@@ -65,9 +65,9 @@ function buildStations(def is map) returns array
         [-15, wB, dB, 19, 6, ww],
         [0, wB, dB, 19, 6, ww],
         [15, wB, dB, 19, 6, ww],
-        [lo - 15, 82, 26, 19, 6, ww],
-        [lo, 84, 26, 19, 6, ww],
-        [lo + 15, 84, 26, 19, 6, ww],
+        [lo - 15, (wB + def.legZoneWidth / millimeter) / 2, 26, 19, 6, ww],
+        [lo, def.legZoneWidth / millimeter, 26, 19, 6, ww],
+        [lo + 15, def.legZoneWidth / millimeter, 26, 19, 6, ww],
         [100, 83, 25, 19, 6, w0],
         [135, 82, 24, 19, 6, w0],
         [165, 80, 22, 19, 6, w0]
@@ -246,13 +246,39 @@ function sideFit(context is Context, q is Query) returns map
              "minSquare" : { "ang" : bestSq.ang, "L" : bestSq.L, "W" : bestSq.W, "H" : bestSq.H } };
 }
 
+// Measured lower legs (James, v2.5): inner-face half-gap = legGapUpper/2 at legTaperTop, PH2/2 at legTaperEnd and below,
+// linear between and extrapolated above; centre |y| = PH2/2 + PH6/2; axis along Z through (xC, +/-yLeg). grow = radial offset.
+function makeLegs(context is Context, lid is Id, definition is map, xC is number, zB is number, grow is number, sides is array) returns array
+{
+    const mm = millimeter;
+    const dT0 = definition.legTaperTop / mm;
+    const dT1 = definition.legTaperEnd / mm;
+    const kT = (definition.ph2 - definition.legGapUpper) / mm / 2 / (dT1 - dT0);
+    const yLeg = definition.ph2 / mm / 2 + definition.ph6 / mm / 2;
+    const r1 = definition.ph6 / mm / 2 + grow;
+    const r0 = yLeg - (definition.ph2 / mm / 2 - kT * dT1) + grow; // radius at D = 0 (extrapolated)
+    var out = [];
+    for (var sg in sides)
+    {
+        const id2 = lid + ("L" ~ (sg + 1));
+        const lpl = plane(vector(xC, sg * yLeg, 0) * mm, vector(1, 0, 0), vector(0, 1, 0));
+        const lsk = newSketchOnPlane(context, id2 + "sk", { "sketchPlane" : lpl });
+        skPolyline(lsk, "pl", { "points" : [vector(0, zB) * mm, vector(r0, zB) * mm, vector(r1, zB - dT1) * mm,
+                    vector(r1, zB - 200) * mm, vector(0, zB - 200) * mm, vector(0, zB) * mm] });
+        skSolve(lsk);
+        opRevolve(context, id2 + "rv", { "entities" : qSketchRegion(id2 + "sk"), "axis" : line(vector(xC, sg * yLeg, 0) * mm, vector(0, 0, 1)), "angleForward" : 360 * degree });
+        out = append(out, qCreatedBy(id2 + "rv", EntityType.BODY));
+    }
+    return out;
+}
+
 annotation { "Feature Type Name" : "Mudguard V2 (Fox AWL 36)" }
 export const mudguardV2 = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
         annotation { "Name" : "PH1 axle to brace underside" }
         isLength(definition.ph1, { (millimeter) : [300, 395, 500] } as LengthBoundSpec);
-        annotation { "Name" : "PH2 inner leg face-to-face" }
+        annotation { "Name" : "PH2 inner leg face-to-face (at/below taper end, measured 100 @ 90 below brace)" }
         isLength(definition.ph2, { (millimeter) : [80, 100, 140] } as LengthBoundSpec);
         annotation { "Name" : "PH3 brace fore-aft depth" }
         isLength(definition.ph3, { (millimeter) : [10, 22, 40] } as LengthBoundSpec);
@@ -260,8 +286,16 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.ph4, { (millimeter) : [10, 25, 60] } as LengthBoundSpec);
         annotation { "Name" : "PH5 brace underside flat (top flat width)" }
         isLength(definition.ph5, { (millimeter) : [40, 60, 70] } as LengthBoundSpec);
-        annotation { "Name" : "PH6 lower-leg OD" }
+        annotation { "Name" : "PH6 lower-leg OD at the wing ties (measured 45 @ 90 below brace)" }
         isLength(definition.ph6, { (millimeter) : [30, 45, 60] } as LengthBoundSpec);
+        annotation { "Name" : "Inner leg face-to-face at taper top (measured 85 @ 40 below brace)" }
+        isLength(definition.legGapUpper, { (millimeter) : [60, 85, 140] } as LengthBoundSpec);
+        annotation { "Name" : "Leg taper top, below brace underside" }
+        isLength(definition.legTaperTop, { (millimeter) : [0, 40, 100] } as LengthBoundSpec);
+        annotation { "Name" : "Leg taper end, below brace underside" }
+        isLength(definition.legTaperEnd, { (millimeter) : [20, 90, 150] } as LengthBoundSpec);
+        annotation { "Name" : "Guard width at the legs (s = wing centre +/-15)" }
+        isLength(definition.legZoneWidth, { (millimeter) : [60, 76, 90] } as LengthBoundSpec);
         annotation { "Name" : "PH7 brace tilt (not yet used)" }
         isAngle(definition.ph7, { (degree) : [-30, 0, 30] } as AngleBoundSpec);
         annotation { "Name" : "Tyre radius" }
@@ -316,26 +350,28 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.wingThk, { (millimeter) : [1.5, 2.5, 5] } as LengthBoundSpec);
         annotation { "Name" : "Wing paddle width" }
         isLength(definition.wingWidth, { (millimeter) : [20, 40, 70] } as LengthBoundSpec);
-        annotation { "Name" : "Wing root front (s rel. centre)" }
-        isLength(definition.wingRootFront, { (millimeter) : [-40, -24, -10] } as LengthBoundSpec);
-        annotation { "Name" : "Wing root rear (s rel. centre)" }
-        isLength(definition.wingRootRear, { (millimeter) : [10, 32, 40] } as LengthBoundSpec);
+        annotation { "Name" : "Wing root front (s rel. leg axis)" }
+        isLength(definition.wingRootFront, { (millimeter) : [-40, 5, 30] } as LengthBoundSpec);
+        annotation { "Name" : "Wing root rear (s rel. leg axis)" }
+        isLength(definition.wingRootRear, { (millimeter) : [10, 40, 60] } as LengthBoundSpec);
         annotation { "Name" : "Wing top edge depth below guard top" }
         isLength(definition.wingRootDepth, { (millimeter) : [5, 12, 30] } as LengthBoundSpec);
-        annotation { "Name" : "Wing flare end depth" }
-        isLength(definition.wingFlareDepth, { (millimeter) : [15, 37, 60] } as LengthBoundSpec);
-        annotation { "Name" : "Wing tip depth below guard top" }
-        isLength(definition.wingTipDepth, { (millimeter) : [60, 112, 160] } as LengthBoundSpec);
+        annotation { "Name" : "Wing rear strip straight to depth (below guard top)" }
+        isLength(definition.wingFlareDepth, { (millimeter) : [15, 60, 100] } as LengthBoundSpec);
+        annotation { "Name" : "Wing full width from, below brace underside" }
+        isLength(definition.wingNeckDepth, { (millimeter) : [40, 78, 120] } as LengthBoundSpec);
+        annotation { "Name" : "Wing tip, below brace underside" }
+        isLength(definition.wingTipDepth, { (millimeter) : [60, 135, 180] } as LengthBoundSpec);
         annotation { "Name" : "Wing tip corner radius" }
         isLength(definition.wingCornerR, { (millimeter) : [1, 8, 15] } as LengthBoundSpec);
         annotation { "Name" : "Wing joggle bottom depth" }
         isLength(definition.wingJoggleDepth, { (millimeter) : [15, 28, 40] } as LengthBoundSpec);
-        annotation { "Name" : "Wing slot row 1 depth" }
-        isLength(definition.wingRow1, { (millimeter) : [20, 48, 150] } as LengthBoundSpec);
-        annotation { "Name" : "Wing slot row 2 depth" }
-        isLength(definition.wingRow2, { (millimeter) : [20, 74, 150] } as LengthBoundSpec);
-        annotation { "Name" : "Wing slot row 3 depth" }
-        isLength(definition.wingRow3, { (millimeter) : [20, 100, 150] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 1, below brace underside" }
+        isLength(definition.wingRow1, { (millimeter) : [20, 85, 170] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 2, below brace underside" }
+        isLength(definition.wingRow2, { (millimeter) : [20, 110, 170] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 3, below brace underside" }
+        isLength(definition.wingRow3, { (millimeter) : [20, 125, 170] } as LengthBoundSpec);
         annotation { "Name" : "Wing slot pair pitch" }
         isLength(definition.wingSlotPitch, { (millimeter) : [10, 22, 34] } as LengthBoundSpec);
         annotation { "Name" : "Strap channel on tyre side", "Default" : true }
@@ -397,22 +433,31 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         opBoolean(context, id + "bossCut", { "targets" : fboss, "tools" : big, "operationType" : BooleanOperationType.SUBTRACTION });
         adds = append(adds, fboss);
 
-        // ---------- 4. integral flat leg wings (EVO style) ----------
-        // One flat plate per side, parallel to the wheel plane (world XZ), outer (leg-side) face at
-        // |y| = PH2/2 - padThk, thickness wingThk; joined to the side wall by a wedge joggle (19 deg wall -> vertical wing).
-        const wc = definition.legTieOffset / mm;                  // wing centre s
+        // ---------- 4. integral flat leg wings (EVO style), v2.5: fitted to James's measured legs ----------
+        // Flat plate per side, parallel to the wheel plane, leg-side face at |y| = PH2/2 - padThk (the constant-gap
+        // region >= legTaperEnd below the brace). Above that the measured leg tapers inwards (85 apart at 40 below),
+        // so the plate is relieved around the leg (leg cone + padThk) and connects to the guard BEHIND the leg.
+        const wc = definition.legTieOffset / mm;                  // wing centre s = leg axis
         const thC = (wc / R) * radian;
         const xC = -R * sin(thC);
         const zTop = R * cos(thC);
         const wT = definition.wingThk / mm;
-        const yo = definition.ph2 / mm / 2 - definition.padThk / mm; // leg-side face
+        const pad = definition.padThk / mm;
+        const yo = definition.ph2 / mm / 2 - pad;                     // leg-side face
         const yi = yo - wT;                                           // tyre-side face
+        const dT0 = definition.legTaperTop / mm;
+        const dT1 = definition.legTaperEnd / mm;
+        const kT = (definition.ph2 - definition.legGapUpper) / mm / 2 / (dT1 - dT0); // inner-face half-gap change per mm
+        const yLeg = definition.ph2 / mm / 2 + definition.ph6 / mm / 2; // leg centre |y|
+        const zB = zTop + pad;                                        // brace underside at the leg
         const hw = definition.wingWidth / mm / 2;
-        const rootF = definition.wingRootFront / mm;                  // s of root front (rel. to centre, negative)
+        const rootF = definition.wingRootFront / mm;                  // su of root front (rel. to leg axis)
         const rootR = definition.wingRootRear / mm;
-        const dRoot = definition.wingRootDepth / mm;                  // top edge depth
-        const dFlare = definition.wingFlareDepth / mm;                // where the flare meets the straight edge
-        const dTip = definition.wingTipDepth / mm;
+        const dRoot = definition.wingRootDepth / mm;                  // top edge depth below guard top
+        const dKnee = definition.wingFlareDepth / mm;                 // rear strip straight down to here (below guard top)
+        const dNeck = definition.wingNeckDepth / mm - pad;            // full paddle width from here down
+        const dTip = definition.wingTipDepth / mm - pad;              // inputs are below brace underside
+        const dRows = [definition.wingRow1 / mm - pad, definition.wingRow2 / mm - pad, definition.wingRow3 / mm - pad];
         const rc = definition.wingCornerR / mm;
         var wingBodies = [];
         var wingCuts = [];
@@ -425,35 +470,31 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             const pl = plane(vector(xC, yPl, 0) * mm, vector(0, 1, 0), vector(-1, 0, 0));
             const sk = newSketchOnPlane(context, wid + "sk", { "sketchPlane" : pl });
             const P = function(su, dv) { return vector(su, zTop - dv) * mm; };
-            // flare arcs: tangent to the straight edge at (+-hw, dFlare), through the root corner
-            const aF = abs(-rootF - hw);       // lateral flare at front
-            const aR = abs(rootR - hw);
-            const dd = dFlare - dRoot;
-            const rF = (aF * aF + dd * dd) / (2 * aF);
-            const rR = (aR * aR + dd * dd) / (2 * aR);
-            const phF = asin(dd / rF) / 2;
-            const phR = asin(dd / rR) / 2;
-            const midF = P(-hw - rF * (1 - cos(phF)), dFlare - rF * sin(phF));
-            const midR = P(hw + rR * (1 - cos(phR)), dFlare - rR * sin(phR));
             const c45 = cos(45 * degree);
             skLineSegment(sk, "top", { "start" : P(rootF, dRoot), "end" : P(rootR, dRoot) });
-            skArc(sk, "flR", { "start" : P(rootR, dRoot), "mid" : midR, "end" : P(hw, dFlare) });
-            skLineSegment(sk, "rear", { "start" : P(hw, dFlare), "end" : P(hw, dTip - rc) });
+            skLineSegment(sk, "rs", { "start" : P(rootR, dRoot), "end" : P(rootR, dKnee) });
+            skLineSegment(sk, "rk", { "start" : P(rootR, dKnee), "end" : P(hw, dNeck) });
+            skLineSegment(sk, "rear", { "start" : P(hw, dNeck), "end" : P(hw, dTip - rc) });
             skArc(sk, "cR", { "start" : P(hw, dTip - rc), "mid" : P(hw - rc + rc * c45, dTip - rc + rc * c45), "end" : P(hw - rc, dTip) });
             skLineSegment(sk, "tip", { "start" : P(hw - rc, dTip), "end" : P(-hw + rc, dTip) });
             skArc(sk, "cF", { "start" : P(-hw + rc, dTip), "mid" : P(-hw + rc - rc * c45, dTip - rc + rc * c45), "end" : P(-hw, dTip - rc) });
-            skLineSegment(sk, "front", { "start" : P(-hw, dTip - rc), "end" : P(-hw, dFlare) });
-            skArc(sk, "flF", { "start" : P(-hw, dFlare), "mid" : midF, "end" : P(rootF, dRoot) });
+            skLineSegment(sk, "front", { "start" : P(-hw, dTip - rc), "end" : P(-hw, dNeck) });
+            // front edge: diagonal into the leg relief (avoids a thin horn in front of the leg), then up to the root
+            skLineSegment(sk, "fk", { "start" : P(-hw, dNeck), "end" : P(-0.3 * hw, dNeck - 12) });
+            skLineSegment(sk, "fk2", { "start" : P(-0.3 * hw, dNeck - 12), "end" : P(rootF, dRoot) });
             skSolve(sk);
             const wq = extrudeSk(context, wid + "ex", wid + "sk", vector(0, 1, 0), wT);
             // joggle: wedge between the side wall and the wing's tyre-side face (void trims the inside later)
-            const jq = mkBox(context, wid + "jog", vector(xC - rootR, sg * 30, zTop - (definition.wingJoggleDepth / mm)),
+            const jq = mkBox(context, wid + "jog", vector(xC - rootR, sg * 25, zTop - (definition.wingJoggleDepth / mm)),
                 vector(xC - rootF, sg * (yi + 0.01), zTop - dRoot));
+            // leg relief: measured leg + padThk
+            const rel = makeLegs(context, wid + "rel", definition, xC, zB, pad, [sg]);
+            opBoolean(context, wid + "relCut", { "targets" : qUnion([wq, jq]), "tools" : qUnion(rel), "operationType" : BooleanOperationType.SUBTRACTION });
             wingBodies = append(wingBodies, wq);
             wingBodies = append(wingBodies, jq);
             // tie slots (long side along the leg) and strap channels on the tyre side
             var k2 = 0;
-            for (var rowD in [definition.wingRow1 / mm, definition.wingRow2 / mm, definition.wingRow3 / mm])
+            for (var rowD in dRows)
             {
                 for (var sp in [-definition.wingSlotPitch / mm / 2, definition.wingSlotPitch / mm / 2])
                 {
@@ -684,7 +725,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         var totSl = 0;
         for (var sg in [-1, 1])
         {
-            for (var rowD in [definition.wingRow1 / mm, definition.wingRow2 / mm, definition.wingRow3 / mm])
+            for (var rowD in dRows)
             {
                 for (var sp in [-definition.wingSlotPitch / mm / 2, definition.wingSlotPitch / mm / 2])
                 {
@@ -700,20 +741,28 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             }
         }
         println("wing slots open: " ~ openSl ~ "/" ~ totSl);
-        println("wing faces |y|: tyre side " ~ yi ~ ", leg side " ~ yo ~ "; tip z=" ~ roundToPrecision(zTop - dTip, 1) ~ " (" ~ (dTip - dRoot) ~ " mm wing below its root)");
+        println("wing faces |y|: tyre side " ~ yi ~ ", leg side " ~ yo ~ "; tip z=" ~ roundToPrecision(zTop - dTip, 1) ~ " (D=" ~ (dTip + pad) ~ " below brace)");
+        const legQs = makeLegs(context, id + "legchk", definition, xC, zB, 0, [-1, 1]);
+        const legTy = makeTyres(context, id + "tyres3", definition);
+        println("leg model (measured taper): centre |y|=" ~ yLeg ~ ", min dist guard A/B to legs: " ~ roundToPrecision(evDistance(context, { "side0" : qA, "side1" : qUnion(legQs) }).distance / mm, 2) ~ "/" ~
+            roundToPrecision(evDistance(context, { "side0" : qB, "side1" : qUnion(legQs) }).distance / mm, 2) ~
+            " ; legs to tyre [max, Assegai]: " ~ roundToPrecision(evDistance(context, { "side0" : qUnion(legQs), "side1" : legTy[0] }).distance / mm, 2) ~ "/" ~
+            roundToPrecision(evDistance(context, { "side0" : qUnion(legQs), "side1" : legTy[1] }).distance / mm, 2) ~
+            " ; B/legs interfere: " ~ size(evCollision(context, { "tools" : qB, "targets" : qUnion(legQs) })));
+        opDeleteBodies(context, id + "legsDel", { "entities" : qUnion(concatenateArrays([legQs, legTy])) });
         println("R_top=" ~ R ~ " inner top (waist)=" ~ (R - ww) ~ " tyre+clr=" ~ ((definition.tyreRadius + definition.clearance) / mm));
         println("sM(mating s)=" ~ sM ~ " sFront=" ~ sF);
     }, {
             "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 22 * millimeter, "ph4" : 25 * millimeter,
-            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "ph7" : 0 * degree,
+            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "legGapUpper" : 85 * millimeter, "legTaperTop" : 40 * millimeter, "legTaperEnd" : 90 * millimeter, "legZoneWidth" : 76 * millimeter, "ph7" : 0 * degree,
             "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "maxTyreWidth" : 69.2 * millimeter, "tyreWidth" : 63.5 * millimeter, "padThk" : 1.5 * millimeter,
             "frontLen" : 165 * millimeter, "tailLen" : 240 * millimeter, "legTieOffset" : 45 * millimeter,
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
             "braceTieFront" : 14 * millimeter, "braceTieRear" : 29 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
-            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "wingThk" : 2.5 * millimeter, "wingWidth" : 40 * millimeter, "wingRootFront" : -24 * millimeter, "wingRootRear" : 32 * millimeter,
-            "wingRootDepth" : 12 * millimeter, "wingFlareDepth" : 37 * millimeter, "wingTipDepth" : 112 * millimeter, "wingCornerR" : 8 * millimeter,
-            "wingJoggleDepth" : 28 * millimeter, "wingRow1" : 48 * millimeter, "wingRow2" : 74 * millimeter, "wingRow3" : 100 * millimeter,
+            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "wingThk" : 2.5 * millimeter, "wingWidth" : 40 * millimeter, "wingRootFront" : 5 * millimeter, "wingRootRear" : 40 * millimeter, "wingNeckDepth" : 78 * millimeter,
+            "wingRootDepth" : 12 * millimeter, "wingFlareDepth" : 60 * millimeter, "wingTipDepth" : 135 * millimeter, "wingCornerR" : 8 * millimeter,
+            "wingJoggleDepth" : 28 * millimeter, "wingRow1" : 85 * millimeter, "wingRow2" : 110 * millimeter, "wingRow3" : 125 * millimeter,
             "wingSlotPitch" : 22 * millimeter, "strapChannel" : true, "tieCutDepth" : 20 * millimeter, "teardropAngle" : 90 * degree,
             "addRib" : true, "addFillets" : true
         });

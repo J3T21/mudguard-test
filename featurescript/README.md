@@ -5,7 +5,8 @@ FeatureScript (Onshape, std 3112) built with the Onshape FeatureScript MCP.
 - `mudguard_v2.fs` – production feature **Mudguard V2 (Fox AWL 36)**; every parameter has a default.
 - `mudguard_v2.1.fs` – same as mudguard_v2.fs (v2.1 snapshot); `mudguard_v2.0.fs` – first version.
 - `stage1_shell.fs` – stage-1 shell-only test feature (intermediate).
-- Onshape v2.4 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/f7a8708351f8db57d71d95a0/e/5b67a4974a5ea64603396eec
+- Onshape v2.5 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/cebfd1f1e404c8fa591d005d/e/5b67a4974a5ea64603396eec
+- Onshape v2.4: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/f7a8708351f8db57d71d95a0/e/5b67a4974a5ea64603396eec
 - Onshape v2.3: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/6e34d14a5ae5e724004e2dd1/e/5b67a4974a5ea64603396eec
 - Onshape v2.2: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/9f4eddef365d02564c3ecaad/e/5b67a4974a5ea64603396eec
 - Onshape (older): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/5ce0853d809914970d796e9a/e/5b67a4974a5ea64603396eec (v2.1; v2.0 in workspace 626735a52f1ff5d642470481)
@@ -67,3 +68,14 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
   move with the tie row), i.e. 16 mm behind the rear tie row.
 - Bounding boxes: A 182.5 x 110.2 x 72.9, B 206.4 x 97.0 x 128.0 - both fit 250 on their side without rotation.
 - render_view_v2.4.fs = behind/below render wrapper.
+
+## v2.5 changes - fitted to James's measured legs
+- Leg model from measurements (below the brace underside): inner gap 85 @ 40 mm, 100 @ 90 mm and below; OD 60 / 45;
+  centre spacing 145. New params legGapUpper (85), legTaperTop (40), legTaperEnd (90); PH2 = 100, PH6 = 45.
+- Wings: still flat 2.5 mm plates at |y| 46.0-48.5, centred on the leg axis (s+45). Slot rows now 85 / 110 / 125 mm
+  below the brace (params are measured from the brace underside), tip 135 mm. Above ~75 mm the plate is relieved
+  around the tapered leg (+1.5 mm pad) and joins the guard through a strip behind the leg (root s+50..+85).
+  A tilted paddle following the taper was tried first but left only 5.4 mm to a 69.2 mm tyre at the ~50 mm pinch.
+- Guard width at the legs 84 -> 76 (legZoneWidth) so the walls clear the 85 mm gap.
+- Clearances: wings 11.4 / 14.25, part B min 9.09 / 10.31 (max tyre / Assegai). B 206.4 x 149.5 x 97 - fits on its side.
+- Brace geometry unchanged (photos not available to the build agent) - see refs/fork_photos.md.
