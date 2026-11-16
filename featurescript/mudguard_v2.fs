@@ -194,6 +194,27 @@ function fmtBox(b is Box3d) returns string
 // Lay the part on its side (world Y vertical) and rotate it in the XZ plane (i.e. on the bed).
 // Reports the as-modelled side footprint (ang 0), the minimum-area footprint and the smallest
 // square it fits in (for diagonal placement on the 256 x 256 bed).
+// Two tyre envelopes (torus about the axle, Y axis): [max-width tyre, actual tyre]; crown radius = tyreRadius.
+function makeTyres(context is Context, tid is Id, definition is map) returns array
+{
+    var out = [];
+    var i = 0;
+    for (var W in [definition.maxTyreWidth / millimeter, definition.tyreWidth / millimeter])
+    {
+        const r = W / 2;
+        const zc = definition.tyreRadius / millimeter - r;
+        const pl = plane(vector(0, 0, 0) * millimeter, vector(1, 0, 0), vector(0, 1, 0));
+        const sk = newSketchOnPlane(context, tid + ("sk" ~ i), { "sketchPlane" : pl });
+        skCircle(sk, "c", { "center" : vector(0, zc) * millimeter, "radius" : r * millimeter });
+        skSolve(sk);
+        opRevolve(context, tid + ("rv" ~ i), { "entities" : qSketchRegion(tid + ("sk" ~ i)),
+                    "axis" : line(vector(0, 0, 0) * millimeter, vector(0, 1, 0)), "angleForward" : 360 * degree });
+        out = append(out, qCreatedBy(tid + ("rv" ~ i), EntityType.BODY));
+        i += 1;
+    }
+    return out;
+}
+
 function sideFit(context is Context, q is Query) returns map
 {
     var bestSq = { "m" : inf };
@@ -240,6 +261,10 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isAngle(definition.ph7, { (degree) : [-30, 0, 30] } as AngleBoundSpec);
         annotation { "Name" : "Tyre radius" }
         isLength(definition.tyreRadius, { (millimeter) : [300, 375, 420] } as LengthBoundSpec);
+        annotation { "Name" : "Max tyre width (Fox spec)" }
+        isLength(definition.maxTyreWidth, { (millimeter) : [40, 69.2, 90] } as LengthBoundSpec);
+        annotation { "Name" : "Actual tyre width (Assegai 2.5)" }
+        isLength(definition.tyreWidth, { (millimeter) : [40, 63.5, 90] } as LengthBoundSpec);
         annotation { "Name" : "Tyre clearance" }
         isLength(definition.clearance, { (millimeter) : [5, 16, 40] } as LengthBoundSpec);
         annotation { "Name" : "Brace pad thickness" }
@@ -248,7 +273,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.frontLen, { (millimeter) : [150, 240, 300] } as LengthBoundSpec);
         annotation { "Name" : "Tail length (arc)" }
         isLength(definition.tailLen, { (millimeter) : [100, 165, 220] } as LengthBoundSpec);
-        annotation { "Name" : "Leg tie offset (arc, behind brace)" }
+        annotation { "Name" : "Wing centre s (leg tie offset behind brace)" }
         isLength(definition.legTieOffset, { (millimeter) : [30, 45, 70] } as LengthBoundSpec);
         annotation { "Name" : "Wall" }
         isLength(definition.wall, { (millimeter) : [1.2, 2.5, 5] } as LengthBoundSpec);
@@ -280,8 +305,34 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.nutThk, { (millimeter) : [4, 4.5, 5.5] } as LengthBoundSpec);
         annotation { "Name" : "Brace tie slot cut depth below outer top" }
         isLength(definition.tieCutDepth, { (millimeter) : [5, 20, 30] } as LengthBoundSpec);
-        annotation { "Name" : "Ear root fillet radius" }
-        isLength(definition.earFillet, { (millimeter) : [0, 0, 6] } as LengthBoundSpec);
+        annotation { "Name" : "Wing thickness" }
+        isLength(definition.wingThk, { (millimeter) : [1.5, 2.5, 5] } as LengthBoundSpec);
+        annotation { "Name" : "Wing paddle width" }
+        isLength(definition.wingWidth, { (millimeter) : [20, 40, 70] } as LengthBoundSpec);
+        annotation { "Name" : "Wing root front (s rel. centre)" }
+        isLength(definition.wingRootFront, { (millimeter) : [-40, -24, -10] } as LengthBoundSpec);
+        annotation { "Name" : "Wing root rear (s rel. centre)" }
+        isLength(definition.wingRootRear, { (millimeter) : [10, 32, 40] } as LengthBoundSpec);
+        annotation { "Name" : "Wing top edge depth below guard top" }
+        isLength(definition.wingRootDepth, { (millimeter) : [5, 12, 30] } as LengthBoundSpec);
+        annotation { "Name" : "Wing flare end depth" }
+        isLength(definition.wingFlareDepth, { (millimeter) : [15, 37, 60] } as LengthBoundSpec);
+        annotation { "Name" : "Wing tip depth below guard top" }
+        isLength(definition.wingTipDepth, { (millimeter) : [60, 112, 160] } as LengthBoundSpec);
+        annotation { "Name" : "Wing tip corner radius" }
+        isLength(definition.wingCornerR, { (millimeter) : [1, 8, 15] } as LengthBoundSpec);
+        annotation { "Name" : "Wing joggle bottom depth" }
+        isLength(definition.wingJoggleDepth, { (millimeter) : [15, 28, 40] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 1 depth" }
+        isLength(definition.wingRow1, { (millimeter) : [20, 48, 150] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 2 depth" }
+        isLength(definition.wingRow2, { (millimeter) : [20, 74, 150] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot row 3 depth" }
+        isLength(definition.wingRow3, { (millimeter) : [20, 100, 150] } as LengthBoundSpec);
+        annotation { "Name" : "Wing slot pair pitch" }
+        isLength(definition.wingSlotPitch, { (millimeter) : [10, 22, 34] } as LengthBoundSpec);
+        annotation { "Name" : "Strap channel on tyre side", "Default" : true }
+        definition.strapChannel is boolean;
         annotation { "Name" : "Teardrop tip angle (0 = radially out, 90 = +Y side up)" }
         isAngle(definition.teardropAngle, { (degree) : [-180, 90, 180] } as AngleBoundSpec);
         annotation { "Name" : "Spine rib", "Default" : true }
@@ -338,42 +389,92 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         opBoolean(context, id + "bossCut", { "targets" : fboss, "tools" : big, "operationType" : BooleanOperationType.SUBTRACTION });
         adds = append(adds, fboss);
 
-        // ---------- 4. leg ears (saddles cupping the lower legs) ----------
-        const lo = definition.legTieOffset / mm;
-        const thL = (lo / R) * radian;
-        const xL = -R * sin(thL);
-        const cth = cos(thL);
-        const yLeg = definition.ph2 / mm / 2 + definition.ph6 / mm / 2;
-        const rs = definition.ph6 / mm / 2 + 1.5;
-        const zTop = ((R - (-4)) * cth);
-        const zBot = ((R - (26)) * cth);
-        var earSlots = [];
-        var e = 0;
+        // ---------- 4. integral flat leg wings (EVO style) ----------
+        // One flat plate per side, parallel to the wheel plane (world XZ), outer (leg-side) face at
+        // |y| = PH2/2 - padThk, thickness wingThk; joined to the side wall by a wedge joggle (19 deg wall -> vertical wing).
+        const wc = definition.legTieOffset / mm;                  // wing centre s
+        const thC = (wc / R) * radian;
+        const xC = -R * sin(thC);
+        const zTop = R * cos(thC);
+        const wT = definition.wingThk / mm;
+        const yo = definition.ph2 / mm / 2 - definition.padThk / mm; // leg-side face
+        const yi = yo - wT;                                           // tyre-side face
+        const hw = definition.wingWidth / mm / 2;
+        const rootF = definition.wingRootFront / mm;                  // s of root front (rel. to centre, negative)
+        const rootR = definition.wingRootRear / mm;
+        const dRoot = definition.wingRootDepth / mm;                  // top edge depth
+        const dFlare = definition.wingFlareDepth / mm;                // where the flare meets the straight edge
+        const dTip = definition.wingTipDepth / mm;
+        const rc = definition.wingCornerR / mm;
+        var wingBodies = [];
+        var wingCuts = [];
+        var wi = 0;
         for (var sg in [-1, 1])
         {
-            const eid = id + ("ear" ~ e);
-            const sb = mkBox(context, eid + "sb", vector(xL - 20, sg * 30, zBot), vector(xL + 20, sg * yLeg, zTop));
-            fCylinder(context, eid + "co", { "bottomCenter" : vector(xL, sg * yLeg, zBot - 1) * mm, "topCenter" : vector(xL, sg * yLeg, zTop + 1) * mm, "radius" : (rs + 3) * mm });
-            const co = qCreatedBy(eid + "co", EntityType.BODY);
-            opBoolean(context, eid + "int", { "tools" : qUnion([sb, co]), "operationType" : BooleanOperationType.INTERSECTION });
-            const b1 = mkBox(context, eid + "b1", vector(xL - 20, sg * 30, ((R - (7)) * cth)), vector(xL + 20, sg * (yLeg - rs + 1), ((R - (2)) * cth)));
-            const b2 = mkBox(context, eid + "b2", vector(xL - 20, sg * 30, ((R - (26)) * cth)), vector(xL + 20, sg * (yLeg - rs + 1), ((R - (17)) * cth)));
-            const sadQ = qContainsPoint(qAllModifiableSolidBodies(), vector(xL, sg * (yLeg - rs - 1.5), (zTop + zBot) / 2) * mm);
-            const earQ = qUnion([sadQ, b1, b2]);
-            opBoolean(context, eid + "un", { "tools" : earQ, "operationType" : BooleanOperationType.UNION });
-            fCylinder(context, eid + "ci", { "bottomCenter" : vector(xL, sg * yLeg, zBot - 5) * mm, "topCenter" : vector(xL, sg * yLeg, zTop + 5) * mm, "radius" : rs * mm });
-            const earQ2 = qContainsPoint(qAllModifiableSolidBodies(), vector(xL, sg * (yLeg - rs - 1.5), (zTop + zBot) / 2) * mm);
-            opBoolean(context, eid + "cup", { "targets" : earQ2, "tools" : qCreatedBy(eid + "ci", EntityType.BODY), "operationType" : BooleanOperationType.SUBTRACTION });
-            adds = append(adds, qContainsPoint(qAllModifiableSolidBodies(), vector(xL, sg * (yLeg - rs - 1.5), (zTop + zBot) / 2) * mm));
-            for (var dx in [-16, 16])
+            const wid = id + ("wing" ~ wi);
+            // sketch plane: normal +Y, sketch u = s - wc (rearward = -X), v = world Z
+            const yPl = (sg > 0) ? yi : -yo;
+            const pl = plane(vector(xC, yPl, 0) * mm, vector(0, 1, 0), vector(-1, 0, 0));
+            const sk = newSketchOnPlane(context, wid + "sk", { "sketchPlane" : pl });
+            const P = function(su, dv) { return vector(su, zTop - dv) * mm; };
+            // flare arcs: tangent to the straight edge at (+-hw, dFlare), through the root corner
+            const aF = abs(-rootF - hw);       // lateral flare at front
+            const aR = abs(rootR - hw);
+            const dd = dFlare - dRoot;
+            const rF = (aF * aF + dd * dd) / (2 * aF);
+            const rR = (aR * aR + dd * dd) / (2 * aR);
+            const phF = asin(dd / rF) / 2;
+            const phR = asin(dd / rR) / 2;
+            const midF = P(-hw - rF * (1 - cos(phF)), dFlare - rF * sin(phF));
+            const midR = P(hw + rR * (1 - cos(phR)), dFlare - rR * sin(phR));
+            const c45 = cos(45 * degree);
+            skLineSegment(sk, "top", { "start" : P(rootF, dRoot), "end" : P(rootR, dRoot) });
+            skArc(sk, "flR", { "start" : P(rootR, dRoot), "mid" : midR, "end" : P(hw, dFlare) });
+            skLineSegment(sk, "rear", { "start" : P(hw, dFlare), "end" : P(hw, dTip - rc) });
+            skArc(sk, "cR", { "start" : P(hw, dTip - rc), "mid" : P(hw - rc + rc * c45, dTip - rc + rc * c45), "end" : P(hw - rc, dTip) });
+            skLineSegment(sk, "tip", { "start" : P(hw - rc, dTip), "end" : P(-hw + rc, dTip) });
+            skArc(sk, "cF", { "start" : P(-hw + rc, dTip), "mid" : P(-hw + rc - rc * c45, dTip - rc + rc * c45), "end" : P(-hw, dTip - rc) });
+            skLineSegment(sk, "front", { "start" : P(-hw, dTip - rc), "end" : P(-hw, dFlare) });
+            skArc(sk, "flF", { "start" : P(-hw, dFlare), "mid" : midF, "end" : P(rootF, dRoot) });
+            skSolve(sk);
+            const wq = extrudeSk(context, wid + "ex", wid + "sk", vector(0, 1, 0), wT);
+            // joggle: wedge between the side wall and the wing's tyre-side face (void trims the inside later)
+            const jq = mkBox(context, wid + "jog", vector(xC - rootR, sg * 30, zTop - (definition.wingJoggleDepth / mm)),
+                vector(xC - rootF, sg * (yi + 0.01), zTop - dRoot));
+            wingBodies = append(wingBodies, wq);
+            wingBodies = append(wingBodies, jq);
+            // tie slots (long side along the leg) and strap channels on the tyre side
+            var k2 = 0;
+            for (var rowD in [definition.wingRow1 / mm, definition.wingRow2 / mm, definition.wingRow3 / mm])
             {
-                earSlots = append(earSlots, mkBox(context, eid + ("sl" ~ (dx + 16)),
-                            vector(xL + dx - 1.2, sg * 44, ((R - (15)) * cth)), vector(xL + dx + 1.2, sg * (yLeg + 1), ((R - (9)) * cth))));
+                for (var sp in [-definition.wingSlotPitch / mm / 2, definition.wingSlotPitch / mm / 2])
+                {
+                    wingCuts = append(wingCuts, mkBox(context, wid + ("sl" ~ k2), vector(xC - sp - 1.2, sg * (yi - 1), zTop - rowD - 3),
+                                vector(xC - sp + 1.2, sg * (yo + 1), zTop - rowD + 3)));
+                    k2 += 1;
+                }
+                if (definition.strapChannel)
+                {
+                    const hp = definition.wingSlotPitch / mm / 2;
+                    wingCuts = append(wingCuts, mkBox(context, wid + ("ch" ~ k2), vector(xC - hp, sg * (yi - 1), zTop - rowD - 2.75),
+                                vector(xC + hp, sg * (yi + 0.8), zTop - rowD + 2.75)));
+                }
             }
-            e += 1;
+            wi += 1;
         }
-
+        // per-side clearance of the bare wing plates to the tyre (torus) - measured before merging
+        const tyreQs = makeTyres(context, id + "tyres", definition);
+        var wingClr = [];
+        for (var q in [wingBodies[0], wingBodies[2]])
+        {
+            wingClr = append(wingClr, [roundToPrecision(evDistance(context, { "side0" : q, "side1" : tyreQs[0] }).distance / mm, 2),
+                        roundToPrecision(evDistance(context, { "side0" : q, "side1" : tyreQs[1] }).distance / mm, 2)]);
+        }
+        println("wing plate to tyre clearance per side [maxTyre69.2, Assegai63.5] (-Y, +Y): " ~ toString(wingClr));
+        opDeleteBodies(context, id + "tyresDel", { "entities" : qUnion(tyreQs) });
+        adds = concatenateArrays([adds, wingBodies]);
         opBoolean(context, id + "merge", { "tools" : qUnion(adds), "operationType" : BooleanOperationType.UNION });
+
         // ---------- 5. split just behind the brace ----------
         const sF = definition.ph3 / mm / 2 + definition.padThk / mm; // A flange front face
         const tA = definition.flangeAThk / mm;
@@ -465,56 +566,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         qA = bodyAt(context, pA);
         qB = bodyAt(context, pB);
         const fin = loftStations(context, id + "in", st, "in", 0);
-        opBoolean(context, id + "hollow", { "targets" : qUnion([qA, qB]), "tools" : qUnion(concatenateArrays([[fin], tieSlots])),
-                    "operationType" : BooleanOperationType.SUBTRACTION });
-
-        // ---------- 9b. leg ear root fillets (bridge faces meeting the outer shell) ----------
-        if (definition.earFillet > 0.01 * mm)
-        {
-            const bridgeFaces = qUnion([qCreatedBy(id + "ear0", EntityType.FACE), qCreatedBy(id + "ear1", EntityType.FACE)]);
-            const shellFaces = qCreatedBy(id + "out", EntityType.FACE);
-            const earEdges = qIntersection([qAdjacent(bridgeFaces, AdjacencyType.EDGE, EntityType.EDGE),
-                        qAdjacent(shellFaces, AdjacencyType.EDGE, EntityType.EDGE)]);
-            const nEar = size(evaluateQuery(context, earEdges));
-            var earOk = false;
-            try silent
-            {
-                opFillet(context, id + "earFil", { "entities" : earEdges, "radius" : definition.earFillet });
-                earOk = true;
-            }
-            println("ear root fillet edges=" ~ nEar ~ " ok=" ~ earOk);
-            if (!earOk && nEar > 0)
-            {
-                // retry edge by edge: R, then 3/4 R, then R/2; keep whatever works
-                var nGood = 0;
-                var ei = 0;
-                var used = [];
-                for (var ed in evaluateQuery(context, earEdges))
-                {
-                    var done = false;
-                    for (var f in [1, 0.75, 0.5, 0.25])
-                    {
-                        if (!done)
-                        {
-                            try silent
-                            {
-                                opFillet(context, id + ("earFilE" ~ ei ~ "_" ~ round(f * 100)), { "entities" : ed, "radius" : definition.earFillet * f });
-                                done = true;
-                                used = append(used, roundToPrecision(definition.earFillet * f / mm, 1));
-                            }
-                        }
-                    }
-                    if (done)
-                        nGood += 1;
-                    ei += 1;
-                }
-                println("ear fillet radii used: " ~ toString(used));
-                println("ear root fillet per-edge ok=" ~ nGood ~ "/" ~ nEar);
-            }
-        }
-
-        // ear tie slots cut after the ear fillets
-        opBoolean(context, id + "earSlotCut", { "targets" : qUnion([bodyAt(context, pA), bodyAt(context, pB)]), "tools" : qUnion(earSlots),
+        opBoolean(context, id + "hollow", { "targets" : qUnion([qA, qB]), "tools" : qUnion(concatenateArrays([[fin], tieSlots, wingCuts])),
                     "operationType" : BooleanOperationType.SUBTRACTION });
 
         // ---------- 10. identify parts, fillets, names ----------
@@ -611,16 +663,47 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             }
             println(line_);
         }
+        const tyre2 = makeTyres(context, id + "tyres2", definition);
+        println("min clearance to tyre [maxTyre, Assegai]: A=" ~ roundToPrecision(evDistance(context, { "side0" : qA, "side1" : tyre2[0] }).distance / mm, 2) ~ "/" ~
+            roundToPrecision(evDistance(context, { "side0" : qA, "side1" : tyre2[1] }).distance / mm, 2) ~ " B=" ~
+            roundToPrecision(evDistance(context, { "side0" : qB, "side1" : tyre2[0] }).distance / mm, 2) ~ "/" ~
+            roundToPrecision(evDistance(context, { "side0" : qB, "side1" : tyre2[1] }).distance / mm, 2));
+        opDeleteBodies(context, id + "tyres2Del", { "entities" : qUnion(tyre2) });
+        // wing slots: lateral rays through each slot centre
+        var openSl = 0;
+        var totSl = 0;
+        for (var sg in [-1, 1])
+        {
+            for (var rowD in [definition.wingRow1 / mm, definition.wingRow2 / mm, definition.wingRow3 / mm])
+            {
+                for (var sp in [-definition.wingSlotPitch / mm / 2, definition.wingSlotPitch / mm / 2])
+                {
+                    const org = vector(xC - sp, sg * (yi - 3), zTop - rowD) * mm;
+                    const hits = evRaycast(context, { "entities" : qB, "ray" : line(org, vector(0, sg, 0)), "closest" : true });
+                    var blocked = false;
+                    if (size(hits) > 0)
+                        blocked = hits[0].distance < (wT + 4) * mm;
+                    if (!blocked)
+                        openSl += 1;
+                    totSl += 1;
+                }
+            }
+        }
+        println("wing slots open: " ~ openSl ~ "/" ~ totSl);
+        println("wing faces |y|: tyre side " ~ yi ~ ", leg side " ~ yo ~ "; tip z=" ~ roundToPrecision(zTop - dTip, 1) ~ " (" ~ (dTip - dRoot) ~ " mm wing below its root)");
         println("R_top=" ~ R ~ " inner top (waist)=" ~ (R - ww) ~ " tyre+clr=" ~ ((definition.tyreRadius + definition.clearance) / mm));
         println("sM(mating s)=" ~ sM ~ " sFront=" ~ sF);
     }, {
             "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 22 * millimeter, "ph4" : 25 * millimeter,
             "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "ph7" : 0 * degree,
-            "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "padThk" : 1.5 * millimeter,
+            "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "maxTyreWidth" : 69.2 * millimeter, "tyreWidth" : 63.5 * millimeter, "padThk" : 1.5 * millimeter,
             "frontLen" : 240 * millimeter, "tailLen" : 165 * millimeter, "legTieOffset" : 45 * millimeter,
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
             "braceTieS" : 14 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
-            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "earFillet" : 0 * millimeter, "tieCutDepth" : 20 * millimeter, "teardropAngle" : 90 * degree,
+            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "wingThk" : 2.5 * millimeter, "wingWidth" : 40 * millimeter, "wingRootFront" : -24 * millimeter, "wingRootRear" : 32 * millimeter,
+            "wingRootDepth" : 12 * millimeter, "wingFlareDepth" : 37 * millimeter, "wingTipDepth" : 112 * millimeter, "wingCornerR" : 8 * millimeter,
+            "wingJoggleDepth" : 28 * millimeter, "wingRow1" : 48 * millimeter, "wingRow2" : 74 * millimeter, "wingRow3" : 100 * millimeter,
+            "wingSlotPitch" : 22 * millimeter, "strapChannel" : true, "tieCutDepth" : 20 * millimeter, "teardropAngle" : 90 * degree,
             "addRib" : true, "addFillets" : true
         });

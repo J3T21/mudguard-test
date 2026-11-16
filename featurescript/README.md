@@ -5,6 +5,7 @@ FeatureScript (Onshape, std 3112) built with the Onshape FeatureScript MCP.
 - `mudguard_v2.fs` – production feature **Mudguard V2 (Fox AWL 36)**; every parameter has a default.
 - `mudguard_v2.1.fs` – same as mudguard_v2.fs (v2.1 snapshot); `mudguard_v2.0.fs` – first version.
 - `stage1_shell.fs` – stage-1 shell-only test feature (intermediate).
+- Onshape v2.3: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/6e34d14a5ae5e724004e2dd1/e/5b67a4974a5ea64603396eec
 - Onshape v2.2: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/9f4eddef365d02564c3ecaad/e/5b67a4974a5ea64603396eec
 - Onshape (older): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/5ce0853d809914970d796e9a/e/5b67a4974a5ea64603396eec (v2.1; v2.0 in workspace 626735a52f1ff5d642470481)
 
@@ -12,7 +13,7 @@ Coordinates: origin = axle, +Z along stanchion, +X forward, Y lateral; s = arc l
 centreline, s=0 brace centreline, s<0 forward. Outer top radius = PH1 - padThk (393.5).
 
 Outputs two parts: **Guard Front A** (blade + brace saddle + 8 mm flange with captive M3 nyloc slots and
-alignment groove) and **Guard Rear B** (leg ears + tail + 4 mm flange with tongue and gussets).
+alignment groove) and **Guard Rear B** (integral flat leg wings + tail + 4 mm flange with tongue and gussets).
 Mating plane at s = PH3/2 + padThk + flangeAThk = 20.5 mm. 3x M3 teardrop holes at y = -15/0/+15,
 7 mm above the outer top surface.
 
@@ -35,3 +36,15 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 ## v2.2 changes
 - Brace tie slot cut depth is now parameter tieCutDepth (default 20 mm): full 6 mm slot open through the R6 corner at both rows (verified by radial ray traces); 4 mm clear of flange A.
 - Ear root fillets disabled (earFillet = 0): leg-ear saddles are being replaced by flat zip-tie wings in the next revision.
+
+## v2.3 changes – integral flat leg wings (replaces the leg-ear saddles)
+- One flat 2.5 mm wing per side (wingThk), parallel to the wheel, centred s=+45 (legTieOffset), leg-side face at
+  |y| = PH2/2 - padThk (48.5), tyre-side face 46.0. Paddle 40 wide (s+25..+65), root s+21..+77 at d=12, tip d=112,
+  i.e. 100 mm of wing below the root. Joined to the 19 deg side wall by a solid wedge joggle (d 12..28).
+- Tie slots 6.0 x 2.4 (long side along the leg) at s+34/+56, rows d 48/74/100 (use 48 and 100, 74 spare),
+  0.8 mm strap channels on the tyre side. Put zip-tie heads on the rear-outboard side of the leg.
+- All wing values are parameters (wingThk, wingWidth, wingRootFront/Rear, wingRootDepth, wingFlareDepth,
+  wingTipDepth, wingCornerR, wingJoggleDepth, wingRow1-3, wingSlotPitch, strapChannel).
+- Tyre clearance to the wing plates 11.4 mm (69.2 mm max tyre) / 14.25 mm (63.5 mm Assegai) per side.
+- Print B on its side (one wing flat on the bed, -Y down), supports under the shell and the upper wing.
+- render_view_v2.3.fs = wrapper feature that rotates the model 135 deg for the behind/below renders.
