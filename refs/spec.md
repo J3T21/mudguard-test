@@ -177,3 +177,7 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - guardWidth = frontWidth = tailWidth = 82 (max allowed at the leg axis: 85 gap - 2 x 1.5). Walls 32 deep under brace/legs (top flat = PH5 60).
 - Leg gap above 40 mm below the brace ASSUMED = 85 (legGapTop) - confirm on the bike; the old extrapolated taper would limit width to 80.
 - Research table: width_research_v2.6.md.
+
+## v2.7 update
+- PH3 = 20 (ruler photo). Flange A front face s=11.5, mating s=19.5. Front brace tie row s=-12.5 (A), rear s=+28 (B).
+- Width: 90 front blade and tail (Mudhugger-like), 82 under the brace and through the leg zone (s -15..+60), short transitions.

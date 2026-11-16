@@ -73,7 +73,8 @@ function buildStations(def is map) returns array
         [lo - 15, W, dB, 19, 6, ww],
         [lo, W, dB, 19, 6, ww],
         [lo + 15, W, dB, 19, 6, ww],
-        [100, (W + Wt) / 2, 28, 19, 6, w0],
+        [lo + 35, (W + 3 * Wt) / 4, 30, 19, 6, w0],               // just behind the leg zone: short transition
+        [100, Wt, 28, 19, 6, w0],
         [135, Wt, 25, 19, 6, w0],
         [165, Wt, 22, 19, 6, w0]
     ];
@@ -286,7 +287,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         annotation { "Name" : "PH2 inner leg face-to-face (at/below taper end, measured 100 @ 90 below brace)" }
         isLength(definition.ph2, { (millimeter) : [80, 100, 140] } as LengthBoundSpec);
         annotation { "Name" : "PH3 brace fore-aft depth" }
-        isLength(definition.ph3, { (millimeter) : [10, 22, 40] } as LengthBoundSpec);
+        isLength(definition.ph3, { (millimeter) : [10, 20, 40] } as LengthBoundSpec);
         annotation { "Name" : "PH4 brace back-face height" }
         isLength(definition.ph4, { (millimeter) : [10, 25, 60] } as LengthBoundSpec);
         annotation { "Name" : "PH5 brace underside flat (top flat width)" }
@@ -304,9 +305,9 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         annotation { "Name" : "Guard width under brace and between legs" }
         isLength(definition.guardWidth, { (millimeter) : [66, 82, 100] } as LengthBoundSpec);
         annotation { "Name" : "Front blade width" }
-        isLength(definition.frontWidth, { (millimeter) : [66, 82, 130] } as LengthBoundSpec);
+        isLength(definition.frontWidth, { (millimeter) : [66, 90, 130] } as LengthBoundSpec);
         annotation { "Name" : "Tail width" }
-        isLength(definition.tailWidth, { (millimeter) : [66, 82, 130] } as LengthBoundSpec);
+        isLength(definition.tailWidth, { (millimeter) : [66, 90, 130] } as LengthBoundSpec);
         annotation { "Name" : "PH7 brace tilt (not yet used)" }
         isAngle(definition.ph7, { (degree) : [-30, 0, 30] } as AngleBoundSpec);
         annotation { "Name" : "Tyre radius" }
@@ -334,9 +335,9 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         annotation { "Name" : "Tip kicker angle" }
         isAngle(definition.kickAngle, { (degree) : [0, 12, 30] } as AngleBoundSpec);
         annotation { "Name" : "Brace tie front row (distance forward of brace centre)" }
-        isLength(definition.braceTieFront, { (millimeter) : [8, 14, 40] } as LengthBoundSpec);
+        isLength(definition.braceTieFront, { (millimeter) : [8, 12.5, 40] } as LengthBoundSpec);
         annotation { "Name" : "Brace tie rear row (s behind brace centre, part B)" }
-        isLength(definition.braceTieRear, { (millimeter) : [8, 29, 60] } as LengthBoundSpec);
+        isLength(definition.braceTieRear, { (millimeter) : [8, 28, 60] } as LengthBoundSpec);
         annotation { "Name" : "Brace tie y (+/-)" }
         isLength(definition.braceTieY, { (millimeter) : [15, 30, 35] } as LengthBoundSpec);
         annotation { "Name" : "Flange width" }
@@ -764,12 +765,12 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         println("R_top=" ~ R ~ " inner top (waist)=" ~ (R - ww) ~ " tyre+clr=" ~ ((definition.tyreRadius + definition.clearance) / mm));
         println("sM(mating s)=" ~ sM ~ " sFront=" ~ sF);
     }, {
-            "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 22 * millimeter, "ph4" : 25 * millimeter,
-            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "legGapUpper" : 85 * millimeter, "legTaperTop" : 40 * millimeter, "legTaperEnd" : 90 * millimeter, "legGapTop" : 85 * millimeter, "guardWidth" : 82 * millimeter, "frontWidth" : 82 * millimeter, "tailWidth" : 82 * millimeter, "ph7" : 0 * degree,
+            "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 20 * millimeter, "ph4" : 25 * millimeter,
+            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "legGapUpper" : 85 * millimeter, "legTaperTop" : 40 * millimeter, "legTaperEnd" : 90 * millimeter, "legGapTop" : 85 * millimeter, "guardWidth" : 82 * millimeter, "frontWidth" : 90 * millimeter, "tailWidth" : 90 * millimeter, "ph7" : 0 * degree,
             "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "maxTyreWidth" : 69.2 * millimeter, "tyreWidth" : 63.5 * millimeter, "padThk" : 1.5 * millimeter,
             "frontLen" : 165 * millimeter, "tailLen" : 240 * millimeter, "legTieOffset" : 45 * millimeter,
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
-            "braceTieFront" : 14 * millimeter, "braceTieRear" : 29 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
+            "braceTieFront" : 12.5 * millimeter, "braceTieRear" : 28 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
             "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "wingThk" : 2.5 * millimeter, "wingWidth" : 40 * millimeter, "wingRootFront" : 5 * millimeter, "wingRootRear" : 40 * millimeter, "wingNeckDepth" : 78 * millimeter,
             "wingRootDepth" : 12 * millimeter, "wingFlareDepth" : 60 * millimeter, "wingTipDepth" : 135 * millimeter, "wingCornerR" : 8 * millimeter,

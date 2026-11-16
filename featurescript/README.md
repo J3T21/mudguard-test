@@ -5,7 +5,8 @@ FeatureScript (Onshape, std 3112) built with the Onshape FeatureScript MCP.
 - `mudguard_v2.fs` – production feature **Mudguard V2 (Fox AWL 36)**; every parameter has a default.
 - `mudguard_v2.1.fs` – same as mudguard_v2.fs (v2.1 snapshot); `mudguard_v2.0.fs` – first version.
 - `stage1_shell.fs` – stage-1 shell-only test feature (intermediate).
-- Onshape v2.6 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/c72993a9e3ca77a1844350a9/e/5b67a4974a5ea64603396eec
+- Onshape v2.7 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/3305653c27a2034bd2967e06/e/5b67a4974a5ea64603396eec
+- Onshape v2.6: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/c72993a9e3ca77a1844350a9/e/5b67a4974a5ea64603396eec
 - Onshape v2.5: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/cebfd1f1e404c8fa591d005d/e/5b67a4974a5ea64603396eec
 - Onshape v2.4: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/f7a8708351f8db57d71d95a0/e/5b67a4974a5ea64603396eec
 - Onshape v2.3: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/6e34d14a5ae5e724004e2dd1/e/5b67a4974a5ea64603396eec
@@ -88,3 +89,10 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Leg model: gap held at 85 from the brace underside to 40 mm down (new param legGapTop, an assumption - confirm on the bike).
 - Clearances: A 8.28, B 8.72 mm to a 69.2 mm tyre; wings 11.4. A 182.5 x 82 x 71.1, B 206.6 x 97 x 149.5 - both fit 250.
 - Reference widths: refs/width_research_v2.6.md.
+
+## v2.7 changes
+- PH3 (brace fore-aft depth) 22 -> 20 from James's ruler photo; flange stack moves 1 mm forward (mating plane s=19.5).
+- Front brace tie row moved back to s=-12.5 (slot edge 1.3 mm ahead of the brace face); rear row s=+28.
+- Width: 90 mm front blade and tail like the Mudhugger EVO/FRX, 82 mm under the brace and through the leg zone (s -15..+60),
+  transitions 90->86->82 (s -70..-15) and 82->88->90 (s +60..+129).
+- Tyre clearance A 8.69 / B 8.50 mm (69.2 tyre). A 181.5 x 90 x 71.1, B 207.5 x 97 x 149.6 - both fit 250.
