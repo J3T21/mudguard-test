@@ -1,15 +1,15 @@
-Joint test coupon from v2.11.1 (rib off). Feature "Mudguard joint test coupon v2.11.1" (mudguardJointCoupon) = mudguardV2 + two radial-plane trims
-Onshape (own branched workspace of the mudguard doc; the MCP cannot create a new document or named version):
-  https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/12295830145b40df97e8c231/e/5b67a4974a5ea64603396eec
-Coupon A (front piece, brace end): s -25 .. rear edge (includes front tie row -12.5, step faces s 7, flange A + nut slots + groove)
-  bbox 45.2 x 83.4 x 46.9 mm, 17.22 cm3; flat cut face at s -25: 3.61 cm2
-Coupon B (rear piece front): front edge (ears s 7, rear tie row +12.5, flange B, tongue, gussets) .. s +80 (past the sheet ends at 73)
-  full flush leg sheets, seal windows, 3 strap-slot rows to 135 mm below the brace
-  bbox 73.0 x 98.5 x 149.6 mm, 38.07 cm3; flat cut face at s 80: 7.91 cm2 (7 regions, U-section)
-Checks: 2 solids (1 + 1); A/B interfere 0, abut 121 (they mate)
-  bolt axes y -15/0/15: 0 hits through the flange stack (holes aligned); control rays 4 mm off: 4 hits each
-  tie slots s -12.5 and +12.5: all 6 y-samples per row open; wing/strap slots 12/12 open
-Print estimate (PETG 1.27 g/cm3): A ~22 g, B ~48 g, ~70 g parts + ~10-20 g supports; P1S standard PETG ~1 h (A) + ~2-2.5 h (B)
-Orientation: as the full parts (on its side, -Y down), so the layer direction and support pattern match the real print.
-  B on its side: 149.6 x 73.0 footprint, 98.5 tall. A on its side: 46.9 x 45.2, 83.4 tall.
-  For a quick fit-only check A can stand on its flat s=-25 cut face (46 tall, few supports), but the layers then lie parallel to the flange (not representative for strength).
+Joint test coupon from v2.11.1 (rib off), rev 2: coupon B extended so the whole leg sheet and seal window are intact
+Feature "Mudguard joint test coupon v2.11.1" (mudguardJointCoupon) = mudguardV2 + two radial-plane trims (cutA -25, cutB +115)
+Onshape (new branched workspace; create_geometry always branches, so the earlier coupon ws 12295830145b40df97e8c231 still has the s +80 cut):
+  https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/af67272cd0b1dfb0885ee86d/e/5b67a4974a5ea64603396eec
+Why s 115: the leg sheets are vertical in world Z (x = xC +- 28, xC = -44.9) and tip at z 257.4. A radial cut tilts, so the sheet's rear-bottom corner (x -72.9) sits at s-equivalent ~108.6.
+  The old s 80 cut (and a trial at s 95) still clipped the sheet. At s 115 the cut passes 4.6 mm behind the corner at tip height.
+Coupon A (unchanged): s -25 .. rear edge; 45.2 x 83.4 x 46.9 mm, 17.22 cm3; flat cut face 3.61 cm2
+Coupon B: front edge .. s +115; 106.9 x 98.5 x 149.6 mm, 53.24 cm3 (was 38.07)
+  cut face: 1 flat region, 2.85 cm2, lowest point at radius 365.9 mm (U-section only; sheets reach radius ~258) -> sheets and windows not touched
+  sheet probes (Y rays): all 6 strap slots (D 90/110/125, x +-11) open; window open (incl. 1 mm inside its rear edge);
+    front and rear 8 mm strips solid (incl. 1 mm behind the window edge); sheet body and rear-bottom corner solid
+Checks: 2 solids (1 + 1); A/B interfere 0, abut 121; bolt axes 0 hits (holes aligned), 4 mm-offset controls 4 hits each
+  tie slots s -12.5 / +12.5: all open; wing slots 12/12
+On its side (-Y down): B 149.6 x 106.9 footprint (142.2 x 107.0 turned 18 deg), 98.5 tall; A 46.9 x 45.2, 83.4 tall
+Print estimate (PETG 1.27 g/cm3): A ~22 g, B ~68 g -> ~90 g parts + ~15-25 g supports; P1S standard PETG ~1 h (A) + ~2.5-3 h (B), ~3.5-4 h total

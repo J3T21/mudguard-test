@@ -301,7 +301,7 @@ export const mudguardJointCoupon = defineFeature(function(context is Context, id
         annotation { "Name" : "Coupon A start (s, front piece)" }
         isLength(definition.cutA, { (millimeter) : [-100, -25, -15] } as LengthBoundSpec);
         annotation { "Name" : "Coupon B end (s, rear piece)" }
-        isLength(definition.cutB, { (millimeter) : [75, 80, 150] } as LengthBoundSpec);
+        isLength(definition.cutB, { (millimeter) : [75, 115, 150] } as LengthBoundSpec);
     }
     {
         const mm = millimeter;
@@ -348,6 +348,18 @@ export const mudguardJointCoupon = defineFeature(function(context is Context, id
                 }
             }
             println("COUPON " ~ pr[2] ~ " flat cut-face regions: " ~ nf ~ ", area " ~ roundToPrecision(af / 100, 2) ~ " cm2");
+            // lowest point of the cut face (radius from the axle): above ~355 means only the U-section is cut, not the leg sheets
+            var rMin = inf;
+            for (var f in evaluateQuery(context, qOwnedByBody(pr[0], EntityType.FACE)))
+            {
+                const ip = try silent(evPlane(context, { "face" : f }));
+                if (ip != undefined && abs(abs(dot(ip.normal, fr.t)) - 1) < 1e-6 && abs(dot(ip.origin - fr.origin, fr.t) / mm) < 0.01)
+                {
+                    for (var v in evaluateQuery(context, qAdjacent(f, AdjacencyType.VERTEX, EntityType.VERTEX)))
+                        rMin = min(rMin, norm(evVertexPoint(context, { "vertex" : v })) / mm);
+                }
+            }
+            println("COUPON " ~ pr[2] ~ " cut face lowest radius " ~ roundToPrecision(rMin, 1) ~ " mm (sheet tips at radius ~258; wall bottom ~360)");
         }
         var nI = 0; var nAb = 0;
         for (var cl in evCollision(context, { "tools" : qA, "targets" : qB }))
@@ -376,6 +388,21 @@ export const mudguardJointCoupon = defineFeature(function(context is Context, id
                 println("COUPON bolt y=" ~ xb ~ (off == 0 ? " axis" : " +4 mm (control, should hit flanges)") ~ ": surface hits through flange stack " ~ n);
             }
         }
+        {
+            // leg sheet integrity after the trim: rays across the sheet (along Y) at the 3 strap rows (2 slots each), in the window, and on its 8 mm strips
+            // leg sheet is world-aligned: x = xC +- 28 (xC = sheet centre at s 45), vertical in z, outer face |y| 48.5; brace underside z = 392.4
+            const xC = -R * sin((45 / R) * radian);
+            const zB = 392.4;
+            var rep = "COUPON B sheet probes (expect slot/window=open, strip/sheet=solid):";
+            for (var pr in [[90, -11, "slot"], [90, 11, "slot"], [110, -11, "slot"], [110, 11, "slot"], [125, -11, "slot"], [125, 11, "slot"],
+                            [50, 0, "window"], [50, -24, "rear strip"], [50, 24, "front strip"], [128, -24, "sheet rear-bottom corner"], [100, 0, "sheet"], [50, -19, "window rear edge-1"], [50, -21, "rear strip edge+1"]])
+            {
+                const p = vector(xC + pr[1], 0, zB - pr[0]) * mm;
+                const hits = evRaycast(context, { "entities" : qB, "ray" : line(p + Y * 70 * mm, -Y), "closest" : true });
+                rep = rep ~ " [" ~ pr[2] ~ " D" ~ pr[0] ~ " " ~ pr[1] ~ ": " ~ ((size(hits) > 0 && abs(hits[0].distance / mm - 70 + 48.5) < 3) ? "solid" : "open") ~ "]";
+            }
+            println(rep);
+        }
         for (var sv in [-12.5, 12.5])
         {
             const fr = arcFrame(R, sv, 0);
@@ -387,7 +414,7 @@ export const mudguardJointCoupon = defineFeature(function(context is Context, id
             }
             println(t);
         }
-    }, { "cutA" : -25 * millimeter, "cutB" : 80 * millimeter });
+    }, { "cutA" : -25 * millimeter, "cutB" : 115 * millimeter });
 
 annotation { "Feature Type Name" : "Mudguard V2 (Fox AWL 36)" }
 export const mudguardV2 = defineFeature(function(context is Context, id is Id, definition is map)

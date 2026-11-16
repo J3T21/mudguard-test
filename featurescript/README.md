@@ -135,6 +135,6 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 ## Joint test coupon (from v2.11.1)
 - `test_coupon_v2.11.1.fs` (also saved as `test_coupon_v2.11.fs`): feature "Mudguard joint test coupon v2.11.1". It builds v2.11.1 and trims it with radial planes.
   - Coupon A: s -25 to the rear edge of A (front tie row, step faces, flange A, nut slots). 45.2 x 83.4 x 46.9 mm, 17.2 cm3.
-  - Coupon B: front edge of B to s +80 (ears, rear tie row, flange B, full leg sheets with windows and strap slots). 73.0 x 98.5 x 149.6 mm, 38.1 cm3.
-- They mate (no interference), the bolt holes align, and all slots are open. Roughly 70 g of PETG plus supports, about 3-3.5 h on the P1S. Print on the side (-Y down), like the full parts.
-- Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/12295830145b40df97e8c231/e/5b67a4974a5ea64603396eec (a branched workspace; the MCP can't create a separate document). Verification: `verification_test_coupon_v2.11.1.txt`. Renders: `renders/test_coupon_v2.11.1_*`.
+  - Coupon B: front edge of B to s +115 (ears, rear tie row, flange B, and the complete leg sheets with intact seal windows, 8 mm strips and all strap slots). 106.9 x 98.5 x 149.6 mm, 53.2 cm3. The first cut at s +80 clipped the bottom of the sheets, because the sheets are vertical while the cut is radial.
+- They mate (no interference), the bolt holes align, and all slots are open. Roughly 90 g of PETG plus supports, about 3.5-4 h on the P1S. Print on the side (-Y down), like the full parts.
+- Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/af67272cd0b1dfb0885ee86d/e/5b67a4974a5ea64603396eec (a branched workspace; the MCP can't create a separate document). Verification: `verification_test_coupon_v2.11.1.txt`. Renders: `renders/test_coupon_v2.11.1_*`.
