@@ -1,0 +1,43 @@
+{
+  "source_stl": "/tmp/fox_downloads/unz/fender.stl",
+  "licence": "CC BY-NC 4.0",
+  "author": "sjc115",
+  "url": "https://www.printables.com/model/1753735-2026-fox-36-fork-fender-mud-guard-my26",
+  "note": "Clearance fender, not the fork. Outline is built to round numbers (100 mm wide, R\u224860 mm). Hole centres are the only features likely copied from the crown.",
+  "lower_hole_pair_mm": [
+    [
+      -45.5,
+      -61.5
+    ],
+    [
+      45.5,
+      -61.5
+    ]
+  ],
+  "lower_pair_spacing_mm": 91.0,
+  "lower_hole_diameter_mm": 3.4,
+  "upper_hole_pair_mm": [
+    [
+      -30.0,
+      0.0
+    ],
+    [
+      30.0,
+      0.0
+    ]
+  ],
+  "upper_pair_spacing_mm": 60.0,
+  "upper_hole_diameter_mm": 3.5,
+  "upper_pair_station_mm": [
+    4.0,
+    6.0
+  ],
+  "lower_pair_station_mm": [
+    53.0,
+    56.0
+  ],
+  "inner_crown_radius_mm": 59.9,
+  "inner_crown_fit_residual_mm": 0.13,
+  "outer_width_mm": 100.0,
+  "length_mm": 242.3
+}
