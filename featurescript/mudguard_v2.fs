@@ -56,7 +56,10 @@ function buildStations(def is map) returns array
         [-215, 104, 35, 9, 21, w0],
         [-192.5, 108, 39.5, 9.5, 20.5, w0],
         [-170, 110, 42, 10, 20, w0],
+        [-145, 110, 42, 10, 20, w0],
         [-120, 110, 42, 10, 20, w0],
+        [-95, 110, 42, 10, 20, w0],
+        [-82.5, 110, 42, 10, 20, w0],
         [-70, 110, 42, 10, 20, w0],
         [-42.5, (110 + wB) / 2, 34, 14.5, 13, (w0 + ww) / 2],
         [-15, wB, dB, 19, 6, ww],
@@ -271,6 +274,12 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.boltSpacing, { (millimeter) : [8, 15, 25] } as LengthBoundSpec);
         annotation { "Name" : "Bolt hole diameter" }
         isLength(definition.boltDia, { (millimeter) : [3, 3.4, 4] } as LengthBoundSpec);
+        annotation { "Name" : "Nyloc slot width (across flats + clearance)" }
+        isLength(definition.nutWidth, { (millimeter) : [5.5, 5.95, 7] } as LengthBoundSpec);
+        annotation { "Name" : "Nyloc slot thickness" }
+        isLength(definition.nutThk, { (millimeter) : [4, 4.5, 5.5] } as LengthBoundSpec);
+        annotation { "Name" : "Ear root fillet radius" }
+        isLength(definition.earFillet, { (millimeter) : [0, 4, 6] } as LengthBoundSpec);
         annotation { "Name" : "Teardrop tip angle (0 = radially out, 90 = +Y side up)" }
         isAngle(definition.teardropAngle, { (degree) : [-180, 90, 180] } as AngleBoundSpec);
         annotation { "Name" : "Spine rib", "Default" : true }
@@ -315,7 +324,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             const pl = plane(fr.origin + fr.rn * 5 * mm, fr.rn, Y);
             for (var yv in [-tieY, tieY])
             {
-                stadiumSketch(context, id + ("bp" ~ k), pl, yv, 0, 6 + 6, 2.4 + 6);
+                stadiumSketch(context, id + ("bp" ~ k), pl, yv, 0, 6 + 8.6, 2.4 + 8); // 14.6 long so the boss overlaps flange A side face (avoids line contact)
                 prisms = append(prisms, extrudeSk(context, id + ("bpx" ~ k), id + ("bp" ~ k), -fr.rn, 18));
                 stadiumSketch(context, id + ("ts" ~ k), pl, yv, 0, 6.0, 2.4);
                 tieSlots = append(tieSlots, extrudeSk(context, id + ("tsx" ~ k), id + ("ts" ~ k), -fr.rn, 18));
@@ -400,7 +409,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         }
         const Lt = W / 2 - 2;
         polySketch(context, id + "tgSk", plane(fm.origin - Y * Lt * mm, Y, fm.t),
-            [vector(0.5, 2), vector(-1.1, 2), vector(-1.5, 2.4), vector(-1.5, 3.6), vector(-1.1, 4), vector(0.5, 4)]);
+            [vector(0.5, 0.3), vector(-1.1, 0.3), vector(-1.5, 0.7), vector(-1.5, 1.9), vector(-1.1, 2.3), vector(0.5, 2.3)]);
         bAdds = append(bAdds, extrudeSk(context, id + "tg", id + "tgSk", Y, 2 * Lt));
         opBoolean(context, id + "uB", { "tools" : qUnion(bAdds), "operationType" : BooleanOperationType.UNION });
 
@@ -410,18 +419,27 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         // ---------- 7. cuts in A: groove + captive nyloc slots ----------
         var aCuts = [];
         polySketch(context, id + "grSk", plane(fm.origin - Y * (Lt + 0.5) * mm, Y, fm.t),
-            [vector(-1.8, 1.75), vector(0.5, 1.75), vector(0.5, 4.25), vector(-1.8, 4.25)]);
-        aCuts = append(aCuts, extrudeSk(context, id + "gr", id + "grSk", Y, 2 * (Lt + 0.5)));
+            [vector(-1.8, 0.05), vector(0.5, 0.05), vector(0.5, 2.55), vector(-1.8, 2.55)]);
+        const grooveQ = extrudeSk(context, id + "gr", id + "grSk", Y, 2 * (Lt + 0.5));
+        aCuts = append(aCuts, grooveQ);
+        var nutQs = [];
         const boltH = 7;
+        const nutW = definition.nutWidth / mm;
+        const nutT = definition.nutThk / mm;
+        const nutFloor = boltH - 3.2; // 3.8 above outer top: nut centred on bolt axis
         const rb = definition.boltDia / mm / 2;
         var n = 0;
         for (var xb in [-bs, 0, bs])
         {
-            polySketch(context, id + ("nSk" ~ n), plane(fm.origin + Y * (xb - 2.875) * mm, Y, fm.t),
-                [vector(-5.8, boltH - rb * 0 - 3.4), vector(-1.5, boltH - 3.4), vector(-1.5, H + 1), vector(-5.8, H + 1)]);
-            aCuts = append(aCuts, extrudeSk(context, id + ("n" ~ n), id + ("nSk" ~ n), Y, 5.75));
+            polySketch(context, id + ("nSk" ~ n), plane(fm.origin + Y * (xb - nutW / 2) * mm, Y, fm.t),
+                [vector(-1.5 - nutT, nutFloor), vector(-1.5, nutFloor), vector(-1.5, H + 1), vector(-1.5 - nutT, H + 1)]);
+            const nq = extrudeSk(context, id + ("n" ~ n), id + ("nSk" ~ n), Y, nutW);
+            nutQs = append(nutQs, nq);
+            aCuts = append(aCuts, nq);
             n += 1;
         }
+        const gnDist = evDistance(context, { "side0" : grooveQ, "side1" : qUnion(nutQs) }).distance / mm;
+        println("groove-to-nut-slot clearance (mm, 0 = touching/intersecting): " ~ roundToPrecision(gnDist, 3));
         opBoolean(context, id + "cutA", { "targets" : qA, "tools" : qUnion(aCuts), "operationType" : BooleanOperationType.SUBTRACTION });
 
         // ---------- 8. bolt holes through both flanges (teardrop) ----------
@@ -445,6 +463,39 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         const fin = loftStations(context, id + "in", st, "in", 0);
         opBoolean(context, id + "hollow", { "targets" : qUnion([qA, qB]), "tools" : qUnion(concatenateArrays([[fin], tieSlots, earSlots])),
                     "operationType" : BooleanOperationType.SUBTRACTION });
+
+        // ---------- 9b. leg ear root fillets (bridge faces meeting the outer shell) ----------
+        if (definition.earFillet > 0.01 * mm)
+        {
+            const bridgeFaces = qUnion([qCreatedBy(id + "ear0", EntityType.FACE), qCreatedBy(id + "ear1", EntityType.FACE)]);
+            const shellFaces = qCreatedBy(id + "out", EntityType.FACE);
+            const earEdges = qIntersection([qAdjacent(bridgeFaces, AdjacencyType.EDGE, EntityType.EDGE),
+                        qAdjacent(shellFaces, AdjacencyType.EDGE, EntityType.EDGE)]);
+            const nEar = size(evaluateQuery(context, earEdges));
+            var earOk = false;
+            try silent
+            {
+                opFillet(context, id + "earFil", { "entities" : earEdges, "radius" : definition.earFillet });
+                earOk = true;
+            }
+            println("ear root fillet edges=" ~ nEar ~ " ok=" ~ earOk);
+            if (!earOk && nEar > 0)
+            {
+                // retry edge by edge, keep the ones that work
+                var nGood = 0;
+                var ei = 0;
+                for (var ed in evaluateQuery(context, earEdges))
+                {
+                    try silent
+                    {
+                        opFillet(context, id + ("earFilE" ~ ei), { "entities" : ed, "radius" : definition.earFillet });
+                        nGood += 1;
+                    }
+                    ei += 1;
+                }
+                println("ear root fillet per-edge ok=" ~ nGood ~ "/" ~ nEar);
+            }
+        }
 
         // ---------- 10. identify parts, fillets, names ----------
         const pA2 = arcFrame(R, -100, -1.2).origin;
@@ -523,6 +574,23 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             }
             println("bolt y=" ~ xb ~ " axis hits within flange stack: " ~ nHit);
         }
+        // tie slot vs R6 corner: radial rays through slot centre-line points; a hit means skin left in the slot path
+        for (var sv in [-tieS, tieS])
+        {
+            const fr = arcFrame(R, sv, 0);
+            var line_ = "tie slot s=" ~ sv ~ ":";
+            for (var dy in [-2.9, -1.5, 0, 1.5, 2.9])
+            {
+                const yy = tieY + dy;
+                const org = fr.origin + fr.rn * 6 * mm + Y * yy * mm;
+                const hits = evRaycast(context, { "entities" : qUnion([qA, qB]), "ray" : line(org, -fr.rn), "closest" : true });
+                var txt = "clear";
+                if (size(hits) > 0)
+                    txt = "hit@h=" ~ roundToPrecision(hits[0].distance / mm - 6, 2);
+                line_ = line_ ~ " y=" ~ roundToPrecision(yy, 1) ~ "->" ~ txt;
+            }
+            println(line_);
+        }
         println("R_top=" ~ R ~ " inner top (waist)=" ~ (R - ww) ~ " tyre+clr=" ~ ((definition.tyreRadius + definition.clearance) / mm));
         println("sM(mating s)=" ~ sM ~ " sFront=" ~ sF);
     }, {
@@ -533,6 +601,6 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
             "braceTieS" : 14 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
-            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "teardropAngle" : 90 * degree,
+            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "earFillet" : 4 * millimeter, "teardropAngle" : 90 * degree,
             "addRib" : true, "addFillets" : true
         });

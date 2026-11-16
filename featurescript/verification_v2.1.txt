@@ -1,0 +1,10 @@
+Mudguard V2.1 – Onshape verification (FeatureScript console, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/5ce0853d809914970d796e9a/e/5b67a4974a5ea64603396eec
+nSolids=2 (Guard Front A, Guard Rear B); no errors/notices
+Groove-to-nut-slot clearance: 1.25 mm (no intersection)
+A box: X=248.1 Y=110.3 Z=107.2 mm, 103.3 cm3 ; B box: X=141.2 Y=118.5 Z=67.6 mm, 64.8 cm3
+A/B: interfere=0, abut=97 (mating faces only)
+On side: A 248.1 x 107.2 (110.3 tall), min-area 261.0 x 51.8, fits 200x200 square diagonally; B 141.2 x 67.6 (118.5 tall)
+Bolt axes y=-15/0/+15: 0 hits through the flange stack (coaxial, clear)
+Flange root fillets R2: 4/4 ok ; ear root fillets R4: batch failed, per-edge 10/22 applied
+Tie slots y=+/-30 (rays at y=27.1,28.5,30,31.5,32.9): clear for y<=30, skin left at h=13 for y=31.5 and 32.9 (outboard ~3 mm of slot is blind)
