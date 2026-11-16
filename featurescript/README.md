@@ -118,3 +118,10 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - The rear slots sit beside the flange ends (slots |y| 27-33, flange |y| <= 23, 4 mm of skin), and their bosses merge into the flange. Clearances: nuts 9.1, bolt holes 9.8, groove 7.3, part B 5.4 mm. The tie exit and inner-run paths are clear.
 - Both brace ties are now on part A. B hangs off the 3 x M3 flange and the leg-sheet straps.
 - Renders: `renders/mudguard_v2.10_top.png`, `_side.png`, `_brace_closeup_{top,front,rear}.png`.
+
+## v2.11 changes - zip ties hold both parts together
+- Stepped joint: outboard of the flange (|y| > 23 mm) the split between A and B steps forward from s 19.5 to s 7, just under the rear edge of the brace. B gets two ears (side corner, wall and sheet root) that carry the rear brace-tie slots at s +12.5. The front row (s -12.5) stays on A.
+- Each zip tie now goes up through A, over the 20 mm brace and down through B. Its tension squeezes the step faces and the bolted flange together, so the ties clamp the joint as well as the 3 x M3.
+- The flange is unchanged and stays behind the brace, between the tie rows' y positions, with the same bolt access from the crown side.
+- Printing: on its side both parts have no new overhangs (the joint faces stand vertical), and B's footprint is unchanged (244.0 x 241.3 at about 27 deg). Clearances are unchanged.
+- Renders: `renders/mudguard_v2.11_top.png`, `_side.png`, `_brace_closeup_{top,front,rear}.png`, `_brace_closeup_under{,_front,_rear}.png`.

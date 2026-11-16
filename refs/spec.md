@@ -197,3 +197,8 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - Rear brace-tie row s +28 (B) -> +12.5 (A), mirroring the front row at -12.5: 25 mm centres, 22.6 mm between slot inner edges for the 20 mm brace, 1.3 mm from each brace face. Slots at |y| 27..33 beside the flange (|y| <= 23), 4 mm of skin between. Rear bosses merge into the flange ends.
 - Both brace ties are now on A. B is held by the 3 x M3 flange and the leg-sheet straps.
 - Tie: about 105-115 mm loop with a 25 mm brace back face (PH-4 placeholder), so use 200 x 3.6 (or >=150 x 2.5-4.8; slot 6 x 2.4).
+
+## v2.11 (stepped joint; ties hold both parts)
+- The split steps forward to s = 7 outboard of the flange (|y| > 23), so B has two ears (s 7..19.5) carrying the rear brace-tie slots at +12.5. The front row (-12.5) stays on A. Flange stack, bolts and tongue are unchanged.
+- The tie loops compress the step faces and the flange stack, clamping A to B as well as the 3 x M3.
+- Print: no new overhangs (the step and seam faces stand vertical on the side orientation). B's bed footprint is unchanged (244.0 x 241.3). The joint is hidden under and behind the brace.
