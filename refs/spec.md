@@ -202,3 +202,7 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - The split steps forward to s = 7 outboard of the flange (|y| > 23), so B has two ears (s 7..19.5) carrying the rear brace-tie slots at +12.5. The front row (-12.5) stays on A. Flange stack, bolts and tongue are unchanged.
 - The tie loops compress the step faces and the flange stack, clamping A to B as well as the 3 x M3.
 - Print: no new overhangs (the step and seam faces stand vertical on the side orientation). B's bed footprint is unchanged (244.0 x 241.3). The joint is hidden under and behind the brace.
+
+## v2.11.1 VIABLE
+- v2.11 with the front spine rib off (addRib = false). This is the version marked viable (git tag v2.11.1-viable).
+- Joint test coupon (test_coupon_v2.11.1.fs): A from s -25 to its rear edge; B from its front edge to s +80, with full leg sheets.

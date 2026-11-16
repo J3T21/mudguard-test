@@ -1,0 +1,15 @@
+Joint test coupon from v2.11.1 (rib off). Feature "Mudguard joint test coupon v2.11.1" (mudguardJointCoupon) = mudguardV2 + two radial-plane trims
+Onshape (own branched workspace of the mudguard doc; the MCP cannot create a new document or named version):
+  https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/12295830145b40df97e8c231/e/5b67a4974a5ea64603396eec
+Coupon A (front piece, brace end): s -25 .. rear edge (includes front tie row -12.5, step faces s 7, flange A + nut slots + groove)
+  bbox 45.2 x 83.4 x 46.9 mm, 17.22 cm3; flat cut face at s -25: 3.61 cm2
+Coupon B (rear piece front): front edge (ears s 7, rear tie row +12.5, flange B, tongue, gussets) .. s +80 (past the sheet ends at 73)
+  full flush leg sheets, seal windows, 3 strap-slot rows to 135 mm below the brace
+  bbox 73.0 x 98.5 x 149.6 mm, 38.07 cm3; flat cut face at s 80: 7.91 cm2 (7 regions, U-section)
+Checks: 2 solids (1 + 1); A/B interfere 0, abut 121 (they mate)
+  bolt axes y -15/0/15: 0 hits through the flange stack (holes aligned); control rays 4 mm off: 4 hits each
+  tie slots s -12.5 and +12.5: all 6 y-samples per row open; wing/strap slots 12/12 open
+Print estimate (PETG 1.27 g/cm3): A ~22 g, B ~48 g, ~70 g parts + ~10-20 g supports; P1S standard PETG ~1 h (A) + ~2-2.5 h (B)
+Orientation: as the full parts (on its side, -Y down), so the layer direction and support pattern match the real print.
+  B on its side: 149.6 x 73.0 footprint, 98.5 tall. A on its side: 46.9 x 45.2, 83.4 tall.
+  For a quick fit-only check A can stand on its flat s=-25 cut face (46 tall, few supports), but the layers then lie parallel to the flange (not representative for strength).

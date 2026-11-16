@@ -125,3 +125,16 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - The flange is unchanged and stays behind the brace, between the tie rows' y positions, with the same bolt access from the crown side.
 - Printing: on its side both parts have no new overhangs (the joint faces stand vertical), and B's footprint is unchanged (244.0 x 241.3 at about 27 deg). Clearances are unchanged.
 - Renders: `renders/mudguard_v2.11_top.png`, `_side.png`, `_brace_closeup_{top,front,rear}.png`, `_brace_closeup_under{,_front,_rear}.png`.
+
+## v2.11.1 - VIABLE
+- **This is the viable design.** It is v2.11 with the front spine rib turned off (`addRib = false`); nothing else changed. A is now 65.1 cm3.
+- Source: `mudguard_v2.11.1_VIABLE.fs` (identical to `mudguard_v2.11.1.fs`). Git tag: `v2.11.1-viable`.
+- Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/db849832535cd9a560a26760/e/5b67a4974a5ea64603396eec. The MCP can't create named versions, so the version is marked by this workspace and the git tag.
+- Verification: `verification_v2.11.1.txt`. Renders: `renders/mudguard_v2.11.1_*`.
+
+## Joint test coupon (from v2.11.1)
+- `test_coupon_v2.11.1.fs` (also saved as `test_coupon_v2.11.fs`): feature "Mudguard joint test coupon v2.11.1". It builds v2.11.1 and trims it with radial planes.
+  - Coupon A: s -25 to the rear edge of A (front tie row, step faces, flange A, nut slots). 45.2 x 83.4 x 46.9 mm, 17.2 cm3.
+  - Coupon B: front edge of B to s +80 (ears, rear tie row, flange B, full leg sheets with windows and strap slots). 73.0 x 98.5 x 149.6 mm, 38.1 cm3.
+- They mate (no interference), the bolt holes align, and all slots are open. Roughly 70 g of PETG plus supports, about 3-3.5 h on the P1S. Print on the side (-Y down), like the full parts.
+- Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/12295830145b40df97e8c231/e/5b67a4974a5ea64603396eec (a branched workspace; the MCP can't create a separate document). Verification: `verification_test_coupon_v2.11.1.txt`. Renders: `renders/test_coupon_v2.11.1_*`.
