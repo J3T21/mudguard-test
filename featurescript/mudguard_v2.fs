@@ -78,8 +78,11 @@ function buildStations(def is map) returns array
     for (var row in raw)
     {
         var s = row[0];
-        if (s < -15)
-            s = -15 + (s + 15) * (fL - 15) / 225;
+        if (s <= -170)
+            s = -fL + (s + 240); // tip zone + kicker stay anchored to the tip
+        else if (s < -70)
+            s = -70 + (s + 70) * (fL - 140) / 100; // 110 mm plateau absorbs the length change
+        // flare (-70..-15) stays anchored to the brace
         else if (s > lo + 15 && row[0] >= 100)
             s = (lo + 15) + (s - 60) * (tL - (lo + 15)) / 105;
         var k = 0;
@@ -88,6 +91,8 @@ function buildStations(def is map) returns array
             const u = sK - s;
             k = u * u * tan(def.kickAngle) / (2 * kickLen);
         }
+        if (size(out) > 0 && s - out[size(out) - 1].s < 8)
+            continue; // drop stations squeezed together by a short front blade
         const a = row[1] / 2 - row[2] * tan(row[3] * degree);
         out = append(out, { "s" : s, "w" : row[1], "d" : row[2], "alpha" : row[3], "r" : row[4], "wall" : row[5], "a" : a, "k" : k, "R" : R });
     }
@@ -270,9 +275,9 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         annotation { "Name" : "Brace pad thickness" }
         isLength(definition.padThk, { (millimeter) : [0, 1.5, 5] } as LengthBoundSpec);
         annotation { "Name" : "Front length (arc)" }
-        isLength(definition.frontLen, { (millimeter) : [150, 240, 300] } as LengthBoundSpec);
+        isLength(definition.frontLen, { (millimeter) : [100, 165, 300] } as LengthBoundSpec);
         annotation { "Name" : "Tail length (arc)" }
-        isLength(definition.tailLen, { (millimeter) : [100, 165, 220] } as LengthBoundSpec);
+        isLength(definition.tailLen, { (millimeter) : [100, 240, 300] } as LengthBoundSpec);
         annotation { "Name" : "Wing centre s (leg tie offset behind brace)" }
         isLength(definition.legTieOffset, { (millimeter) : [30, 45, 70] } as LengthBoundSpec);
         annotation { "Name" : "Wall" }
@@ -283,8 +288,10 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.kickLen, { (millimeter) : [5, 25, 60] } as LengthBoundSpec);
         annotation { "Name" : "Tip kicker angle" }
         isAngle(definition.kickAngle, { (degree) : [0, 12, 30] } as AngleBoundSpec);
-        annotation { "Name" : "Brace tie row s (+/-)" }
-        isLength(definition.braceTieS, { (millimeter) : [8, 14, 30] } as LengthBoundSpec);
+        annotation { "Name" : "Brace tie front row (distance forward of brace centre)" }
+        isLength(definition.braceTieFront, { (millimeter) : [8, 14, 40] } as LengthBoundSpec);
+        annotation { "Name" : "Brace tie rear row (s behind brace centre, part B)" }
+        isLength(definition.braceTieRear, { (millimeter) : [8, 29, 60] } as LengthBoundSpec);
         annotation { "Name" : "Brace tie y (+/-)" }
         isLength(definition.braceTieY, { (millimeter) : [15, 30, 35] } as LengthBoundSpec);
         annotation { "Name" : "Flange width" }
@@ -366,18 +373,19 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         // ---------- 3. brace tie bosses (outer +1 mm skin) ----------
         const bossH = 1.0;
         const fboss = loftStations(context, id + "boss", st, "boss", bossH);
-        const tieS = definition.braceTieS / mm;
+        const tieSF = definition.braceTieFront / mm;
+        const tieSR = definition.braceTieRear / mm;
         const tieY = definition.braceTieY / mm;
         var prisms = [];
         var tieSlots = [];
         var k = 0;
-        for (var sv in [-tieS, tieS])
+        for (var sv in [-tieSF, tieSR])
         {
             const fr = arcFrame(R, sv, 0);
             const pl = plane(fr.origin + fr.rn * 5 * mm, fr.rn, Y);
             for (var yv in [-tieY, tieY])
             {
-                stadiumSketch(context, id + ("bp" ~ k), pl, yv, 0, 6 + 8.6, 2.4 + 8); // 14.6 long so the boss overlaps flange A side face (avoids line contact)
+                stadiumSketch(context, id + ("bp" ~ k), pl, yv, 0, 6 + 8, 2.4 + 8); // boss = slot + 4 mm all round
                 prisms = append(prisms, extrudeSk(context, id + ("bpx" ~ k), id + ("bp" ~ k), -fr.rn, 18));
                 stadiumSketch(context, id + ("ts" ~ k), pl, yv, 0, 6.0, 2.4);
                 tieSlots = append(tieSlots, extrudeSk(context, id + ("tsx" ~ k), id + ("ts" ~ k), -fr.rn, 5 + definition.tieCutDepth / mm));
@@ -497,6 +505,8 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         const flA = extrudeSk(context, id + "flA", id + "flASk", fm.t, tA);
         polySketch(context, id + "flBSk", fm.plane, flPts);
         const flB = extrudeSk(context, id + "flB", id + "flBSk", fm.t, tB);
+        println("rear tie row s=" ~ tieSR ~ ": slot front edge to flange B rear face (along s) = " ~ roundToPrecision(tieSR - 1.2 - (sM + tB), 2) ~ " mm; front row s=" ~ (-tieSF) ~
+            ", slot rear edge to brace front face = " ~ roundToPrecision(-(definition.ph3 / mm / 2) - (-tieSF + 1.2), 2) ~ " mm");
         println("tie-slot cutter to flange A clearance (mm): " ~ roundToPrecision(evDistance(context, { "side0" : qUnion(tieSlots), "side1" : flA }).distance / mm, 2) ~
             ", to flange B: " ~ roundToPrecision(evDistance(context, { "side0" : qUnion(tieSlots), "side1" : flB }).distance / mm, 2));
         opBoolean(context, id + "uA", { "tools" : qUnion([qA, flA]), "operationType" : BooleanOperationType.UNION });
@@ -647,7 +657,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             println("bolt y=" ~ xb ~ " axis hits within flange stack: " ~ nHit);
         }
         // tie slot vs R6 corner: radial rays through slot centre-line points; a hit means skin left in the slot path
-        for (var sv in [-tieS, tieS])
+        for (var sv in [-tieSF, tieSR])
         {
             const fr = arcFrame(R, sv, 0);
             var line_ = "tie slot s=" ~ sv ~ ":";
@@ -697,9 +707,9 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 22 * millimeter, "ph4" : 25 * millimeter,
             "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "ph7" : 0 * degree,
             "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "maxTyreWidth" : 69.2 * millimeter, "tyreWidth" : 63.5 * millimeter, "padThk" : 1.5 * millimeter,
-            "frontLen" : 240 * millimeter, "tailLen" : 165 * millimeter, "legTieOffset" : 45 * millimeter,
+            "frontLen" : 165 * millimeter, "tailLen" : 240 * millimeter, "legTieOffset" : 45 * millimeter,
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
-            "braceTieS" : 14 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
+            "braceTieFront" : 14 * millimeter, "braceTieRear" : 29 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
             "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "wingThk" : 2.5 * millimeter, "wingWidth" : 40 * millimeter, "wingRootFront" : -24 * millimeter, "wingRootRear" : 32 * millimeter,
             "wingRootDepth" : 12 * millimeter, "wingFlareDepth" : 37 * millimeter, "wingTipDepth" : 112 * millimeter, "wingCornerR" : 8 * millimeter,
