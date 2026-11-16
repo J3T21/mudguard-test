@@ -278,8 +278,10 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.nutWidth, { (millimeter) : [5.5, 5.95, 7] } as LengthBoundSpec);
         annotation { "Name" : "Nyloc slot thickness" }
         isLength(definition.nutThk, { (millimeter) : [4, 4.5, 5.5] } as LengthBoundSpec);
+        annotation { "Name" : "Brace tie slot cut depth below outer top" }
+        isLength(definition.tieCutDepth, { (millimeter) : [5, 20, 30] } as LengthBoundSpec);
         annotation { "Name" : "Ear root fillet radius" }
-        isLength(definition.earFillet, { (millimeter) : [0, 4, 6] } as LengthBoundSpec);
+        isLength(definition.earFillet, { (millimeter) : [0, 0, 6] } as LengthBoundSpec);
         annotation { "Name" : "Teardrop tip angle (0 = radially out, 90 = +Y side up)" }
         isAngle(definition.teardropAngle, { (degree) : [-180, 90, 180] } as AngleBoundSpec);
         annotation { "Name" : "Spine rib", "Default" : true }
@@ -327,7 +329,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
                 stadiumSketch(context, id + ("bp" ~ k), pl, yv, 0, 6 + 8.6, 2.4 + 8); // 14.6 long so the boss overlaps flange A side face (avoids line contact)
                 prisms = append(prisms, extrudeSk(context, id + ("bpx" ~ k), id + ("bp" ~ k), -fr.rn, 18));
                 stadiumSketch(context, id + ("ts" ~ k), pl, yv, 0, 6.0, 2.4);
-                tieSlots = append(tieSlots, extrudeSk(context, id + ("tsx" ~ k), id + ("ts" ~ k), -fr.rn, 18));
+                tieSlots = append(tieSlots, extrudeSk(context, id + ("tsx" ~ k), id + ("ts" ~ k), -fr.rn, 5 + definition.tieCutDepth / mm));
                 k += 1;
             }
         }
@@ -394,6 +396,8 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         const flA = extrudeSk(context, id + "flA", id + "flASk", fm.t, tA);
         polySketch(context, id + "flBSk", fm.plane, flPts);
         const flB = extrudeSk(context, id + "flB", id + "flBSk", fm.t, tB);
+        println("tie-slot cutter to flange A clearance (mm): " ~ roundToPrecision(evDistance(context, { "side0" : qUnion(tieSlots), "side1" : flA }).distance / mm, 2) ~
+            ", to flange B: " ~ roundToPrecision(evDistance(context, { "side0" : qUnion(tieSlots), "side1" : flB }).distance / mm, 2));
         opBoolean(context, id + "uA", { "tools" : qUnion([qA, flA]), "operationType" : BooleanOperationType.UNION });
 
         // gussets + tongue on B
@@ -461,7 +465,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         qA = bodyAt(context, pA);
         qB = bodyAt(context, pB);
         const fin = loftStations(context, id + "in", st, "in", 0);
-        opBoolean(context, id + "hollow", { "targets" : qUnion([qA, qB]), "tools" : qUnion(concatenateArrays([[fin], tieSlots, earSlots])),
+        opBoolean(context, id + "hollow", { "targets" : qUnion([qA, qB]), "tools" : qUnion(concatenateArrays([[fin], tieSlots])),
                     "operationType" : BooleanOperationType.SUBTRACTION });
 
         // ---------- 9b. leg ear root fillets (bridge faces meeting the outer shell) ----------
@@ -481,21 +485,37 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             println("ear root fillet edges=" ~ nEar ~ " ok=" ~ earOk);
             if (!earOk && nEar > 0)
             {
-                // retry edge by edge, keep the ones that work
+                // retry edge by edge: R, then 3/4 R, then R/2; keep whatever works
                 var nGood = 0;
                 var ei = 0;
+                var used = [];
                 for (var ed in evaluateQuery(context, earEdges))
                 {
-                    try silent
+                    var done = false;
+                    for (var f in [1, 0.75, 0.5, 0.25])
                     {
-                        opFillet(context, id + ("earFilE" ~ ei), { "entities" : ed, "radius" : definition.earFillet });
-                        nGood += 1;
+                        if (!done)
+                        {
+                            try silent
+                            {
+                                opFillet(context, id + ("earFilE" ~ ei ~ "_" ~ round(f * 100)), { "entities" : ed, "radius" : definition.earFillet * f });
+                                done = true;
+                                used = append(used, roundToPrecision(definition.earFillet * f / mm, 1));
+                            }
+                        }
                     }
+                    if (done)
+                        nGood += 1;
                     ei += 1;
                 }
+                println("ear fillet radii used: " ~ toString(used));
                 println("ear root fillet per-edge ok=" ~ nGood ~ "/" ~ nEar);
             }
         }
+
+        // ear tie slots cut after the ear fillets
+        opBoolean(context, id + "earSlotCut", { "targets" : qUnion([bodyAt(context, pA), bodyAt(context, pB)]), "tools" : qUnion(earSlots),
+                    "operationType" : BooleanOperationType.SUBTRACTION });
 
         // ---------- 10. identify parts, fillets, names ----------
         const pA2 = arcFrame(R, -100, -1.2).origin;
@@ -601,6 +621,6 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,
             "braceTieS" : 14 * millimeter, "braceTieY" : 30 * millimeter, "flangeWidth" : 46 * millimeter,
             "flangeHeight" : 14 * millimeter, "flangeAThk" : 8 * millimeter, "flangeBThk" : 4 * millimeter,
-            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "earFillet" : 4 * millimeter, "teardropAngle" : 90 * degree,
+            "boltSpacing" : 15 * millimeter, "boltDia" : 3.4 * millimeter, "nutWidth" : 5.95 * millimeter, "nutThk" : 4.5 * millimeter, "earFillet" : 0 * millimeter, "tieCutDepth" : 20 * millimeter, "teardropAngle" : 90 * degree,
             "addRib" : true, "addFillets" : true
         });

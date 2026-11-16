@@ -5,7 +5,8 @@ FeatureScript (Onshape, std 3112) built with the Onshape FeatureScript MCP.
 - `mudguard_v2.fs` – production feature **Mudguard V2 (Fox AWL 36)**; every parameter has a default.
 - `mudguard_v2.1.fs` – same as mudguard_v2.fs (v2.1 snapshot); `mudguard_v2.0.fs` – first version.
 - `stage1_shell.fs` – stage-1 shell-only test feature (intermediate).
-- Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/5ce0853d809914970d796e9a/e/5b67a4974a5ea64603396eec (v2.1; v2.0 in workspace 626735a52f1ff5d642470481)
+- Onshape v2.2: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/9f4eddef365d02564c3ecaad/e/5b67a4974a5ea64603396eec
+- Onshape (older): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/5ce0853d809914970d796e9a/e/5b67a4974a5ea64603396eec (v2.1; v2.0 in workspace 626735a52f1ff5d642470481)
 
 Coordinates: origin = axle, +Z along stanchion, +X forward, Y lateral; s = arc length on the outer top
 centreline, s=0 brace centreline, s<0 forward. Outer top radius = PH1 - padThk (393.5).
@@ -29,4 +30,8 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Brace tie bosses 14.6 x 10.4 (overlap flange A side face, closes the slit).
 - Leg ear R4 root fillets (parameter earFillet): only 10 of 22 junction edges fillet; rest left sharp.
 - Extra loft stations s=-145, -95, -82.5: front width 110.3 (was 112.6).
-- Known issue: brace tie slots at y=+/-30 cut into the R6 corner; outboard ~3 mm of each slot is blind (skin remains). See PR notes.
+- (fixed in v2.2) brace tie slots at y=+/-30 were blind at the outboard ~3 mm.
+
+## v2.2 changes
+- Brace tie slot cut depth is now parameter tieCutDepth (default 20 mm): full 6 mm slot open through the R6 corner at both rows (verified by radial ray traces); 4 mm clear of flange A.
+- Ear root fillets disabled (earFillet = 0): leg-ear saddles are being replaced by flat zip-tie wings in the next revision.

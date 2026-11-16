@@ -1,0 +1,8 @@
+Mudguard V2.2 – Onshape verification (FeatureScript console, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/9f4eddef365d02564c3ecaad/e/5b67a4974a5ea64603396eec
+Change: brace tie slot cutter depth = parameter tieCutDepth (default 20 mm below outer top, was 13). Ear fillets off (earFillet=0; leg saddles to be replaced by flat wings).
+nSolids=2; no errors/notices
+Tie slots y=+/-30, rays at y=27.1/28.5/30/31.5/32.9, both rows s=-14 and s=+14: all 10 clear (was blind at 31.5 and 32.9)
+Tie-slot cutter clearance: 4.0 mm to flange A, 7.06 mm to flange B; groove-to-nut-slot 1.25 mm
+A box X=248.1 Y=110.3 Z=107.2 mm, 103.3 cm3 (unchanged); B box X=141.2 Y=118.5 Z=67.6 mm, 64.7 cm3
+A/B interfere=0; bolt axes 0 hits; flange root fillets 4/4
