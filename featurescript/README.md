@@ -5,7 +5,8 @@ FeatureScript (Onshape, std 3112) built with the Onshape FeatureScript MCP.
 - `mudguard_v2.fs` – production feature **Mudguard V2 (Fox AWL 36)**; every parameter has a default.
 - `mudguard_v2.1.fs` – same as mudguard_v2.fs (v2.1 snapshot); `mudguard_v2.0.fs` – first version.
 - `stage1_shell.fs` – stage-1 shell-only test feature (intermediate).
-- Onshape v2.5 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/cebfd1f1e404c8fa591d005d/e/5b67a4974a5ea64603396eec
+- Onshape v2.6 (current): https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/c72993a9e3ca77a1844350a9/e/5b67a4974a5ea64603396eec
+- Onshape v2.5: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/cebfd1f1e404c8fa591d005d/e/5b67a4974a5ea64603396eec
 - Onshape v2.4: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/f7a8708351f8db57d71d95a0/e/5b67a4974a5ea64603396eec
 - Onshape v2.3: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/6e34d14a5ae5e724004e2dd1/e/5b67a4974a5ea64603396eec
 - Onshape v2.2: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/9f4eddef365d02564c3ecaad/e/5b67a4974a5ea64603396eec
@@ -79,3 +80,11 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Guard width at the legs 84 -> 76 (legZoneWidth) so the walls clear the 85 mm gap.
 - Clearances: wings 11.4 / 14.25, part B min 9.09 / 10.31 (max tyre / Assegai). B 206.4 x 149.5 x 97 - fits on its side.
 - Brace geometry unchanged (photos not available to the build agent) - see refs/fork_photos.md.
+
+## v2.6 changes - near-constant width
+- Width 82 mm along the whole 405 mm (params guardWidth / frontWidth / tailWidth, all 82). The 110 mm front flare is gone.
+- 82 is the maximum at the leg axis: measured 85 mm leg gap minus 1.5 mm each side. Walls are 32 mm deep under the brace
+  and between the legs so the top flat under the brace stays PH5 = 60.
+- Leg model: gap held at 85 from the brace underside to 40 mm down (new param legGapTop, an assumption - confirm on the bike).
+- Clearances: A 8.28, B 8.72 mm to a 69.2 mm tyre; wings 11.4. A 182.5 x 82 x 71.1, B 206.6 x 97 x 149.5 - both fit 250.
+- Reference widths: refs/width_research_v2.6.md.

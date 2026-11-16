@@ -172,3 +172,8 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - PH2 = 100 (inner gap at/below 90 mm under the brace); legGapUpper 85 at 40 mm; PH6 = 45 (OD at ties); OD 60 at 40 mm; centre 145.
 - Wing tie rows 85 / 110 / 125 mm below the brace underside, tip 135. Wings relieved around the tapered leg above ~75 mm.
 - Guard width at legs 76 (was 84). Brace PH3/PH4/PH5 still placeholders - photos not yet read (see fork_photos.md).
+
+## v2.6 update - constant width
+- guardWidth = frontWidth = tailWidth = 82 (max allowed at the leg axis: 85 gap - 2 x 1.5). Walls 32 deep under brace/legs (top flat = PH5 60).
+- Leg gap above 40 mm below the brace ASSUMED = 85 (legGapTop) - confirm on the bike; the old extrapolated taper would limit width to 80.
+- Research table: width_research_v2.6.md.

@@ -46,31 +46,36 @@ function buildStations(def is map) returns array
     const tL = def.tailLen / millimeter;
     const w0 = def.wall / millimeter;
     const ww = def.waistWall / millimeter;
-    const dB = 26;
-    const wB = def.ph5 / millimeter + 2 * dB * tan(19 * degree);
+    // v2.6: near-constant width. W = guardWidth everywhere it passes the brace and legs (limited by the 85 mm leg gap
+    // minus 2 x 1.5 mm); front blade and tail use frontWidth / tailWidth (default = W, no flare).
+    const W = def.guardWidth / millimeter;
+    const Wf = def.frontWidth / millimeter;
+    const Wt = def.tailWidth / millimeter;
+    const tA = tan(19 * degree);
+    const dB = (W - def.ph5 / millimeter) / (2 * tA);        // wall depth so the top flat under the brace = PH5
     const lo = def.legTieOffset / millimeter;
     // [s, width, depth, alpha, cornerR, wall]
     const raw = [
-        [-240, 100, 30, 8, 22, w0],
-        [-227.5, 102, 32.5, 8.5, 21.5, w0],
-        [-215, 104, 35, 9, 21, w0],
-        [-192.5, 108, 39.5, 9.5, 20.5, w0],
-        [-170, 110, 42, 10, 20, w0],
-        [-145, 110, 42, 10, 20, w0],
-        [-120, 110, 42, 10, 20, w0],
-        [-95, 110, 42, 10, 20, w0],
-        [-82.5, 110, 42, 10, 20, w0],
-        [-70, 110, 42, 10, 20, w0],
-        [-42.5, (110 + wB) / 2, 34, 14.5, 13, (w0 + ww) / 2],
-        [-15, wB, dB, 19, 6, ww],
-        [0, wB, dB, 19, 6, ww],
-        [15, wB, dB, 19, 6, ww],
-        [lo - 15, (wB + def.legZoneWidth / millimeter) / 2, 26, 19, 6, ww],
-        [lo, def.legZoneWidth / millimeter, 26, 19, 6, ww],
-        [lo + 15, def.legZoneWidth / millimeter, 26, 19, 6, ww],
-        [100, 83, 25, 19, 6, w0],
-        [135, 82, 24, 19, 6, w0],
-        [165, 80, 22, 19, 6, w0]
+        [-240, Wf, 28, 13, 12, w0],
+        [-227.5, Wf, 30, 13.5, 11.5, w0],
+        [-215, Wf, 32, 14, 11, w0],
+        [-192.5, Wf, 33, 14.5, 10.5, w0],
+        [-170, Wf, 34, 15, 10, w0],
+        [-145, Wf, 34, 15, 10, w0],
+        [-120, Wf, 34, 15, 10, w0],
+        [-95, Wf, 34, 15, 10, w0],
+        [-82.5, Wf, 34, 15, 10, w0],
+        [-70, Wf, 34, 15, 10, w0],
+        [-42.5, (Wf + W) / 2, (34 + dB) / 2, 17, 8, (w0 + ww) / 2],
+        [-15, W, dB, 19, 6, ww],
+        [0, W, dB, 19, 6, ww],
+        [15, W, dB, 19, 6, ww],
+        [lo - 15, W, dB, 19, 6, ww],
+        [lo, W, dB, 19, 6, ww],
+        [lo + 15, W, dB, 19, 6, ww],
+        [100, (W + Wt) / 2, 28, 19, 6, w0],
+        [135, Wt, 25, 19, 6, w0],
+        [165, Wt, 22, 19, 6, w0]
     ];
     const kickLen = def.kickLen / millimeter;
     const sK = -fL + kickLen;
@@ -253,17 +258,17 @@ function makeLegs(context is Context, lid is Id, definition is map, xC is number
     const mm = millimeter;
     const dT0 = definition.legTaperTop / mm;
     const dT1 = definition.legTaperEnd / mm;
-    const kT = (definition.ph2 - definition.legGapUpper) / mm / 2 / (dT1 - dT0);
     const yLeg = definition.ph2 / mm / 2 + definition.ph6 / mm / 2;
     const r1 = definition.ph6 / mm / 2 + grow;
-    const r0 = yLeg - (definition.ph2 / mm / 2 - kT * dT1) + grow; // radius at D = 0 (extrapolated)
+    const r0 = yLeg - definition.legGapTop / mm / 2 + grow;       // radius at D = 0 (legGapTop guess)
+    const rU = yLeg - definition.legGapUpper / mm / 2 + grow;     // radius at legTaperTop (measured 85 gap @ 40)
     var out = [];
     for (var sg in sides)
     {
         const id2 = lid + ("L" ~ (sg + 1));
         const lpl = plane(vector(xC, sg * yLeg, 0) * mm, vector(1, 0, 0), vector(0, 1, 0));
         const lsk = newSketchOnPlane(context, id2 + "sk", { "sketchPlane" : lpl });
-        skPolyline(lsk, "pl", { "points" : [vector(0, zB) * mm, vector(r0, zB) * mm, vector(r1, zB - dT1) * mm,
+        skPolyline(lsk, "pl", { "points" : [vector(0, zB) * mm, vector(r0, zB) * mm, vector(rU, zB - dT0) * mm, vector(r1, zB - dT1) * mm,
                     vector(r1, zB - 200) * mm, vector(0, zB - 200) * mm, vector(0, zB) * mm] });
         skSolve(lsk);
         opRevolve(context, id2 + "rv", { "entities" : qSketchRegion(id2 + "sk"), "axis" : line(vector(xC, sg * yLeg, 0) * mm, vector(0, 0, 1)), "angleForward" : 360 * degree });
@@ -294,8 +299,14 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.legTaperTop, { (millimeter) : [0, 40, 100] } as LengthBoundSpec);
         annotation { "Name" : "Leg taper end, below brace underside" }
         isLength(definition.legTaperEnd, { (millimeter) : [20, 90, 150] } as LengthBoundSpec);
-        annotation { "Name" : "Guard width at the legs (s = wing centre +/-15)" }
-        isLength(definition.legZoneWidth, { (millimeter) : [60, 76, 90] } as LengthBoundSpec);
+        annotation { "Name" : "Inner leg face-to-face at brace underside (D=0, guess: = gap at taper top)" }
+        isLength(definition.legGapTop, { (millimeter) : [60, 85, 140] } as LengthBoundSpec);
+        annotation { "Name" : "Guard width under brace and between legs" }
+        isLength(definition.guardWidth, { (millimeter) : [66, 82, 100] } as LengthBoundSpec);
+        annotation { "Name" : "Front blade width" }
+        isLength(definition.frontWidth, { (millimeter) : [66, 82, 130] } as LengthBoundSpec);
+        annotation { "Name" : "Tail width" }
+        isLength(definition.tailWidth, { (millimeter) : [66, 82, 130] } as LengthBoundSpec);
         annotation { "Name" : "PH7 brace tilt (not yet used)" }
         isAngle(definition.ph7, { (degree) : [-30, 0, 30] } as AngleBoundSpec);
         annotation { "Name" : "Tyre radius" }
@@ -754,7 +765,7 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         println("sM(mating s)=" ~ sM ~ " sFront=" ~ sF);
     }, {
             "ph1" : 395 * millimeter, "ph2" : 100 * millimeter, "ph3" : 22 * millimeter, "ph4" : 25 * millimeter,
-            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "legGapUpper" : 85 * millimeter, "legTaperTop" : 40 * millimeter, "legTaperEnd" : 90 * millimeter, "legZoneWidth" : 76 * millimeter, "ph7" : 0 * degree,
+            "ph5" : 60 * millimeter, "ph6" : 45 * millimeter, "legGapUpper" : 85 * millimeter, "legTaperTop" : 40 * millimeter, "legTaperEnd" : 90 * millimeter, "legGapTop" : 85 * millimeter, "guardWidth" : 82 * millimeter, "frontWidth" : 82 * millimeter, "tailWidth" : 82 * millimeter, "ph7" : 0 * degree,
             "tyreRadius" : 375 * millimeter, "clearance" : 16 * millimeter, "maxTyreWidth" : 69.2 * millimeter, "tyreWidth" : 63.5 * millimeter, "padThk" : 1.5 * millimeter,
             "frontLen" : 165 * millimeter, "tailLen" : 240 * millimeter, "legTieOffset" : 45 * millimeter,
             "wall" : 2.5 * millimeter, "waistWall" : 3.0 * millimeter, "kickLen" : 25 * millimeter, "kickAngle" : 12 * degree,

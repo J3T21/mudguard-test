@@ -1,0 +1,13 @@
+Mudguard V2.6 - near-constant width (Onshape FeatureScript, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/c72993a9e3ca77a1844350a9/e/5b67a4974a5ea64603396eec
+test_feature + create_geometry: no errors/notices; nSolids=2 (Guard Front A, Guard Rear B); A/B interfere=0 (abut only)
+Width profile: guardWidth=frontWidth=tailWidth=82 (constant, s -165..+240). Under the brace/legs the 19 deg walls are 32 deep
+  so the top flat stays PH5=60; front blade 82 x 34 deep (alpha 15, R10), tip 82 x 28; tail 82 x 28 -> 25 -> 22.
+Max-width calc (leg model + 1.5 mm, 19 deg walls, depth 32): s+45 (leg axis) 82.0; s+30/+60 90; s+20 109; outside s 15..75 unlimited
+  -> binding at the leg axis = legGap(<=40 below brace) 85 - 2x1.5. With the v2.5 extrapolated taper it would be 80.0.
+  Leg model now: inner gap 85 from the brace underside down to 40 (legGapTop=85, ASSUMED), 100 at 90+, OD 60/45.
+Tyre clearance (torus, 69.2 max / 63.5 Assegai): A 8.28 / 9.94 ; B 8.72 / 10.26 ; wings 11.40 / 14.25  (>= 8)
+Guard to legs: A 10.89, B 1.48 (design 1.5); no interference.  Legs themselves to tyre 9.64 / 12.07.
+Brace ties s=-14 (A) / s=+29 (B): 5/5 + 5/5 clear; bolts 3 axes clear; groove-nut web 1.25; flange fillets 4/4; wing slots 12/12 open
+Bounding boxes: A X=182.5 Y=82.0 Z=71.1 (64.5 cm3); B X=206.6 Y=97.0 Z=149.5 (97.4 cm3)
+On side: A 182.5 x 71.1 (82 tall); B 206.6 x 149.5 (97 tall) -> both fit 250, no rotation
