@@ -192,3 +192,8 @@ Take these with the wheel in, the fork at full extension, and a steel rule plus 
 - tailLen 315 (was 240), frontLen 165: rear:front 1.91. Total arc 480. Part arcs: A 184.5, B 295.5.
 - B prints on its side (-Y down), rotated ~27° in the bed plane: 244.0 × 241.3, H 98.5. 320 would give 248.4 (too tight).
 - Down-tube gap at bottom-out is estimated at ~20 mm nominal (range 2–39) at s ≈ 93–168; check on the bike.
+
+## v2.10 (brace ties hug the brace)
+- Rear brace-tie row s +28 (B) -> +12.5 (A), mirroring the front row at -12.5: 25 mm centres, 22.6 mm between slot inner edges for the 20 mm brace, 1.3 mm from each brace face. Slots at |y| 27..33 beside the flange (|y| <= 23), 4 mm of skin between. Rear bosses merge into the flange ends.
+- Both brace ties are now on A. B is held by the 3 x M3 flange and the leg-sheet straps.
+- Tie: about 105-115 mm loop with a 25 mm brace back face (PH-4 placeholder), so use 200 x 3.6 (or >=150 x 2.5-4.8; slot 6 x 2.4).

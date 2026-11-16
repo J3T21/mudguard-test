@@ -1,0 +1,18 @@
+Mudguard v2.10 verification (Onshape FeatureScript std 3112, test_feature + create_geometry)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/54bf5d468010efb8ea081fdd/e/5b67a4974a5ea64603396eec
+
+Change from v2.9: the rear brace-tie row moves from s +28 (part B) to s +12.5 (part A), mirroring the front row at s -12.5.
+  Rear bosses grow 1 mm inboard so they merge into the flange-A ends (the first try edge-touched at |y|=23 and gave a non-manifold union).
+Brace ties: rows at s -12.5 / +12.5, y = +-30 (slots 6 x 2.4, |y| 27..33)
+  centre spacing 25 mm (was 40.5); gap between slot inner edges 22.6 mm for the 20 mm brace (PH3)
+  front slot rear edge to brace front face 1.3 mm; rear slot front edge to brace rear face 1.3 mm
+  rear slots are in A, beside the flange: inner slot end |y| 27 vs flange half-width 23 -> 4 mm of skin
+Rear slot cutters to: flange A 4.0, flange B 7.45, nut slots 9.08, groove 7.28, bolt holes 9.82, part B incl. gussets/tongue 5.44 (all >= 1.2)
+Tie path: slot rays through the skin (5 y-samples per slot) all clear, both rows
+  exit rays outward 30 mm from every slot clear (nothing of the flange or bosses in the way)
+  inner run under the skin, s +11 -> -11 at y +-30: clear
+Solids 2 (A=1, B=1), A/B interfere 0; flange bolts 0 hits; groove-nut 1.25; root fillet ok
+A bbox 181.5 x 97.1 x 71.1 mm, 69.2 cm3; B bbox 265.5 x 98.5 x 149.6 mm, 112.3 cm3 (on its side, -Y down, ~27 deg on the bed: 244.0 x 241.3, H 98.5)
+Tyre clearance [69.2 / Assegai]: A 8.17/9.70, B 11.40/14.25, sheets 11.22/12.94 (unchanged)
+Legs: clashes 0/0, min dist A 5.66 / B 0.59; wing slots 12/12
+Note: the inner run of each tie (about 1.3 mm strap) lies under the skin at y 28..32, close to A's tightest tyre point (y 37, s -6), so expect about 1 mm less there with the tie fitted.

@@ -112,3 +112,9 @@ The M3 bolt-hole teardrops point **+Y**. Print both parts **on their side with t
 - Widths, sheets, window, ties, flange and clearances are unchanged from v2.8.
 - Down-tube clearance at full compression is only an estimate (~20 mm nominal at s 93-168 behind the brace). Check on the bike. The extra length beyond 240 curves away from the frame.
 - Files: `mudguard_v2.9.fs`, `verification_v2.9.txt`, `renders/mudguard_v2.9_*`.
+
+## v2.10 changes - brace ties hug the 20 mm brace
+- Rear brace-tie row moved from s +28 (on B, 18 mm behind the brace) to s +12.5 (on A), mirroring the front row at -12.5. The slots are 25 mm apart centre to centre, with 22.6 mm between their inner edges for the ~20 mm brace and 1.3 mm from each brace face.
+- The rear slots sit beside the flange ends (slots |y| 27-33, flange |y| <= 23, 4 mm of skin), and their bosses merge into the flange. Clearances: nuts 9.1, bolt holes 9.8, groove 7.3, part B 5.4 mm. The tie exit and inner-run paths are clear.
+- Both brace ties are now on part A. B hangs off the 3 x M3 flange and the leg-sheet straps.
+- Renders: `renders/mudguard_v2.10_top.png`, `_side.png`, `_brace_closeup_{top,front,rear}.png`.
