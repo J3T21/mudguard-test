@@ -15,8 +15,19 @@ Document `3da26eeb7582e4a385de5a0b` (Part Studio element `6d4ce527def8539685e560
 
 Sources: `featurescript/mudguard_v2.14.fs`, `featurescript/test_coupon_v2.14.fs`; verification in `featurescript/verification_v2.14.md`.
 
-## v2.15 (source only, not built in Onshape)
+## v2.15 (built)
 
-`featurescript/mudguard_v2.15.fs`. The front tip and the rear end are rounded in plan: R32 corners tangent to the end and to the side-wall lip at y = ±48.5, leaving a 33 mm straight end, plus a 1 mm 45° chamfer on that straight lip (outer and inner). Sections, the flange joint, bolts, tie slots, leg sheets and the print faces are unchanged. `featurescript/test_coupon_v2.15.fs` is a copy of the v2.14 coupon; the coupon window (s −25..+115) does not include either end. Offline checks are in `featurescript/v2.15_end_round.py`.
+| model | workspace | link |
+|---|---|---|
+| v2.15 full | `a2749eafdd4a4d19d1a57dc6` | https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/a2749eafdd4a4d19d1a57dc6/e/6d4ce527def8539685e560ec |
 
-Not uploaded: the Onshape MCP session authenticated as jameset701@gmail.com, not the document account jameset701@outlook.com, so no `test_feature` or `create_geometry` call was made.
+`featurescript/mudguard_v2.15.fs`: the front tip (A) and the rear end (B) are rounded in plan with R32 corners tangent to the end
+and to the side lip at y = ±48.5 (33 mm straight end), plus a 1 mm 45° chamfer on that straight lip (outer and inner).
+Everything else is v2.14. The joint coupon is unchanged (use the v2.14 coupon; the coupon window s −25..+115 excludes both ends).
+Offline check: `featurescript/v2.15_end_round.py`. Onshape test bundle: `featurescript/test_bundle_v2.15.fs`
+(v2.15 core + the v2.14 coupon checks); console in `featurescript/verification_v2.15.txt`.
+
+Measured: A 62.4 / B 112.1 cm³ (1 solid each); end cut removed A 2848 / B 2113 mm³; corners removed 2/2, inside-arc kept 2/2,
+arc radius 32.0 at both ends, chamfer present (u 0.7 at 0.3 below the top), land u 0 at 1.2 below. Tyre clearance A 9.44/10.89,
+B 9.44/10.90; legs 0.59; width 97; bolts 0 hits; tie slots clear; joint step 0.011; outside and inside R4 join fillets applied;
+B bed fit 241.3 × 238.3. Print orientations unchanged.
