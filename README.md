@@ -83,3 +83,7 @@ Onshape rejected the v2.19.1 deep-patch union (BOOLEAN_INVALID at patchU). The l
 ## v2.19.3
 
 Leg joint rebuilt to Split & Join Planner's plan: the lower 10 mm of the guard wall is cut out over s 22.5..76 and replaced by one revolved root profile (19° wall → R8 → R53 bow → R9.31 → flat |y| 49.0, wall 3.0 → 2.5), and a planar lower sheet on |y| 49.0 overlaps the root flat by 4 mm, all in one union. The proud skin, root band, ifill, deep patch, trims, shave, keep boxes and crease fillets are gone. The guard is revolved (exact) over the leg zone s 16..78 with lofts either side meeting it normal to the section, so the root sits on true surfaces. C1 ends at s 4 and the leg zone starts at s 16. OD45 clearance 1.0 mm, belly 2.5 mm lower. Verification: `featurescript/verification_v2.19.3.txt`; renders `out/v2.19.3_*.png`.
+
+## v2.19.3.1
+
+v2.19.3's one test failed at the guard + boss merge (BOOLEAN_BAD_INPUT). The guard pieces are now picked up by a history query and merge takes every solid present except the tie-slot cutters. Closing lines and tangencies shared between differently built bodies are moved 0.5 mm apart: the boss bottom (S.d - 0.5), clipY (|y| 49.0), the ear boxes (1 mm past the split) and the R32 end-round cutters (0.5 beyond the end and the side). The joint is unchanged. Full audit in `featurescript/verification_v2.19.3.1.txt`.

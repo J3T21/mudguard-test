@@ -1,0 +1,56 @@
+v2.19.3.1 verification (offline). Base: v2.19.3 (tag v2.19.3, 5b3ec19), which failed its one Onshape test with
+"@opBoolean: BOOLEAN_BAD_INPUT" at the guard + boss "merge" union (line 825), before clipY and the joint.
+
+Two likely causes, both fixed:
+  (a) guardSolid returned a transient query (qUnion(evaluateQuery(...))). bossCut splits the boss into four lumps,
+      after which that query can resolve to none or only one of them, so the union got bad or too few tools.
+      Now guardSolid returns qCreatedBy(id, BODY)->qBodyType(SOLID), and merge takes every solid present except the tie
+      slot cutters (guard + all boss lumps + rib if on). It throws a plain message if fewer than 2 bodies go in or more
+      than 1 comes out.
+  (b) shared closing line between differently lofted bodies (the boss / guard bottom face).
+
+Audit rule applied: a body lofted with the new tangent end conditions is assumed NOT to share faces exactly with any body
+made another way; where two bodies were meant to share a closing line / face / tangency, one is moved >= 0.5 mm.
+
+Every union / subtract / intersect in the chain, in order:
+  1. guardSolid out/boss/in "u" (front loft + revolve + tail loft): shared faces are the planar end caps at s 16 / 78,
+     sketched on the same arcFrame plane (planes, not lofted surfaces). KEPT (planar; offsetting would leave a step).
+  2. rib: addRib false (off). n/a.
+  3. mask (big box - stadium prisms): box vs prisms, all faces >= 100 mm apart. ok.
+  4. bossCut (boss - mask): prism walls cross the boss transversally; prism bottom at v 13 is inside the solid. ok.
+     CHANGED: boss profile now closes at S.d - 0.5 (was S.d, same closing line as the guard).
+  5. merge (guard + boss lumps): boss lumps contain the guard's outer surface (boss top 1 mm proud, walls 1/cos19 out);
+     after change 4 no boss face lies on a guard face. CHANGED query handling (cause a).
+  6. clipY: in the revolved zone the guard edge lay exactly on the clip plane |y| 48.5 (line contact).
+     CHANGED: clip plane |y| 49.0 (yEdge + 0.5). It still trims any loft overshoot over 0.5 in the blends; the bump
+     check (max |y| <= 49.4) still applies.
+  7. split (planar). ok.
+  8. ear boxes: earInt (A copy x ear box) and earCutA. The ear box rear face sat on the split face s = sM, built by
+     rotation rather than from the split plane. CHANGED: ear box runs 1 mm past sM (A ends at sM, so the result is the same).
+     earUnionB: ear pieces and B share the split face from the same split. KEPT (identical face from one operation).
+  9. uA (A + flange A): flange A's |y| 23 sides are coplanar with the ear-cut planes |y| 23 (both exact planes y = +-23,
+     not lofted); the flange crosses the guard transversally. KEPT (unchanged since v2.11).
+ 10. uB (B + flange B + gussets + tongue): planar parts, overlaps 0.3-1 mm, transversal to the guard. ok.
+ 11. cutA (groove + nut slots): groove 0.25 clear of the tongue planes; nut slots planar. ok.
+ 12. holes: teardrop prisms 1 mm past both flange faces. ok.
+ 13. hollow (A,B - in-solid - tie slots): in-solid closes at d + 10 (guard at d), so its walls cross the guard bottom;
+     inner walls 3.0 / 2.5 off. Shared: front and tail end caps (planar faces on the same station sketch planes; both
+     ends are natural loft ends, no tangent condition there). KEPT (planar; open U ends as in every build since v2.0).
+ 14. jBandCut: cylinder r = R - 20.5 and radial planes, transversal; nearest faces 1.9 (u 40 vs inner wall) and 9.5. ok.
+ 15. jointU (B + roots + sheets): root cones = guard cones (revolve vs revolve, same line about the same axis), root top =
+     band-cut cylinder, root end planes = band-cut end planes (both revolved from jFr0.plane by jSweep), sheet planes
+     |y| 49.0 / 46.5 = root flat planes, sheet end planes = the same radial planes. None of these are lofted.
+     KEPT exact: offsetting them would make the step James asked us to remove.
+ 16. sheet slotCut: boxes 1 mm past both faces, channel 0.8 deep. ok.
+ 17. corner fillets R2 / root fillet R2: try silent, counted. ok.
+ 18. v215EndRound cut (front tip on A, rear end on B, natural loft ends): the R32 arc was tangent to the end face (u 0)
+     and to the side edge (|y| = w/2), and l3 lay on the end face. CHANGED: whole cutter moved 0.5 mm beyond the end
+     (du = -0.5) and the arc made tangent to |y| = w/2 + 0.5. The arc now crosses the end face about 5.6 mm from the old
+     tangent point and the side edge about 5.6 mm before it, at about 10 deg. The plan-view corner is the same size within
+     0.5 mm; the straight land is about 1 mm longer. Lip chamfer off (unchanged).
+ 19. Check-only bodies (tyres, legs, collar, rays): evDistance / ray tests only, no booleans on the parts.
+
+Also: deleted the unused loftStations and revolveSection. Feature name "Mudguard V2.19.3.1 (Fox AWL 36)", report prefix v2.19.3.1.
+Volume windows unchanged (A 57.5-67.5, B 115.7-135.8): the boss bottom is cut away by the prisms anyway, clipY at 49.0
+can keep at most a 0.5 mm overshoot in the blends (< 0.1 cm3), and the end corners keep < 0.05 cm3 more.
+Joint geometry, offline renders and expected values as in verification_v2.19.3.txt.
