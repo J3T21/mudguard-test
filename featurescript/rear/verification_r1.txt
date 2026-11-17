@@ -1,0 +1,95 @@
+Rear mudguard r1 verification (offline, no Onshape)
+source: featurescript/rear/rear_mudguard_r1.fs
+model: featurescript/rear/rear_r1_model.py
+bike: Amflow PR Carbon, 27.5 rear, Maxxis DHR II 27.5x2.5
+layout: Split & Join Planner 1c
+
+COORDINATES
+  origin rear axle, +X forward, +Z up, +Y rider's left
+  phi from +X toward +Z, 90 deg at TDC
+  phi(brace) = 33.6 deg, s = 0 there, +s toward TDC, R_top = 390.0
+  TDC falls at s = 383.9 with these two numbers.
+  The planner's 'TDC at s +405' would need phi(brace) = 30.5 deg at this R,
+  or R = 411.5 at 33.6 deg. The part is built on 33.6 deg and R 390.
+
+PARTS
+  A  s -135 .. +20   outer lap plate, brace slots, front skirt, trim guides
+  B  s -20 .. +330   inner tongue, brace slots, stay tabs, squared tail
+  lap s -20 .. +20, B inside A, tongue tip butts the shoulder at s -20
+  6 ties: 2 brace (the s=±14 pair at each y) + 4 stay (one per tab slot)
+
+SECTION
+  rounded U, vertical walls, radial depth 22 mm.
+  22 mm is the depth whose bare annular sector lands on the planner bed target
+  (B shell 245.1 x 244.9 against 245.1 x 245.7). Deeper walls still clear the tyre
+  but push B over the 250 mm bed.
+  Neck outer width 52.0 from s -20 to +40 (corner R4).
+  Skirt and tail outer width 94 (corner R12).
+  Wall 2.5, lap and tabs 3.0. Lap radial clearance 0.2. Rails 3.0 x 1.2 at y=±20
+  into grooves 3.6 x 1.5, open at s=+20, 4 mm lead-in chamfer.
+
+CLEARANCE
+  min tyre gap 15.57 mm at tab d=44.0
+  min side clearance 3.00 mm at tab outer d=8.0
+  crown gap at the 2.5 mm wall: 387.5 - 350 = 37.5 mm (the 'about 34' nominal).
+  a 3 mm tab at the requested d=55 would have tyre gap 11.76 mm
+  and still be 3.0 mm off the stay. A zero-thickness sheet there is about 14.5 mm
+  off the tyre. Both floors cannot be met, so the lower slot is at d=40
+  (spans 37..43) and the tab ends at d=44, where the inner face is still >= 15 mm.
+  Tab width there is about 80 mm, not the 85 mm / 90-95 mm flare at d=50 / d=100.
+
+BRACE PAD
+  guard outer R 390.0 + pad 1.5 bears at radius 391.5.
+  estimated brace underside (tyre 350 + gap 38) is radius 388.0.
+  if that estimate is right the pad interferes by 3.5 mm.
+  braceGap is a parameter. The solid is built at R 390 as specified.
+
+VOLUME cm3  (section integral + features, mm3 below)
+  volA 48.07    volB 114.19
+  test window +/-8%: A 44.23..51.92   B 105.05..123.32
+    shellA            43.98
+    shoulder           2.22
+    grooves           -0.43
+    slotsA            -0.19
+    ribsA              1.54
+    trims              0.04
+    lipA               0.79
+    shellB            92.57
+    tongue             9.05
+    rails              0.27
+    slotsB            -0.17
+    recess            -0.37
+    bosses             0.26
+    ribsB              5.51
+    lipB               0.51
+    tailCorners       -0.24
+    tabs               7.08
+    tabSlots          -0.17
+
+BED  polygon bbox of the side silhouette, rotation about Y
+  A best 123.5 x 123.6 at 160.2 deg   (axis-aligned 86.0 x 146.4)
+  B at a 22 deg world rotation 284.3 x 198.8 (does not fit)
+  B best 247.7 x 248.0 at 100.2 deg
+  The planner's 'about 22 deg' is the arc bisector measured from the brace:
+  (330 + -20) / 2 = 155 mm = 22.8 deg. The chord is perpendicular to that bisector.
+  Laying the chord on the plate diagonal is an 11 deg rotation from the bike axes,
+  and that is the angle that squares the box.
+  Bare 22 mm shell (no ribs, tabs or lip): B 245.1 x 244.9, the planner's 245.1 x 245.7.
+  A at the same depth is about 121, against the planner's 'about 116'.
+  The printed parts include ribs, the lip and the tabs, so the real boxes are the
+  'best' numbers above. Usable bed 250 mm. P1S plate is 256.
+
+SLOT ALIGNMENT
+  tongue tip and shoulder are both at s=-20, slots of both layers are cut at s=±14.
+  alignment error 0.000 mm.
+
+RESULT
+  REAR-R1 parts=2 volA=48.07 volB=114.19 minTyreGap=15.57 neckW=52.00 bedA=123.5x123.6@160.2 bedB22=284.3x198.8@22 bedBbest=247.7x248.0@100.2 slotAlignErr=0.000
+
+MEASURE ON THE BIKE before printing
+  1. Tyre crown radius (assumed 350) and the true crown-to-brace gap (assumed 38, low confidence).
+  2. Brace centreline angle from the forward horizontal (assumed 33.6 deg) and where TDC sits in s.
+  3. Seatstay inner gap at the brace, at 50 mm down and at 100 mm down (assumed 60 / 90 / 100).
+  4. Whether the stay below the brace points at the axle. If it stays higher, d=55 may become usable.
+  5. Chain-stay and motor clearance ahead of the brace (the skirt opens to 94 mm by s=-55).
+  6. Brace width along the arc (contact zone is modelled as s -10..+10, ties at ±14).
