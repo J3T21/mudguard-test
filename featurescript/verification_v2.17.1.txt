@@ -1,0 +1,37 @@
+v2.17.1 offline verification (no Onshape)
+
+Why v2.17 measured 1.1 mm
+  Offline modelled the leg-facing face at |y|=43.5.
+  Clearance to the 55 mm collar (radius 27.5, centre |y|=72.5) is 72.5 - 43.5 - 27.5 = 1.50 mm.
+  The shell loft was built 0.4 mm proud of that face (the "skin" that was supposed to be cut off).
+  The cut started on the same plane as the intended face, so the 0.4 mm skin remained.
+  Real face |y|=43.9. Gap 72.5 - 43.9 - 27.5 = 1.10 mm. That is the Onshape result legclr 1.1.
+  It is not the rib (the rib is inboard of the shell) and not an R4 remnant (those sit near |y|=46-48.5
+  and would have been a clash, not a 1.1 mm gap).
+
+v2.17.1 face
+  Spec cylinder unchanged: 1.5 mm off OD 55, |y|=43.5.
+  Extra inset 0.5 mm, so the loft outer is |y|=43.0.
+  The cut then bites 0.3 mm into that loft, so the kept face is |y|=42.7.
+  No proud skin. Wall thickness after the bite is still 2.5 mm (the shell is built 2.8 mm and 0.3 mm is cut off).
+  Flat from D 16.02 to 38.02 (22 mm). Bottom ramp 64 mm, D 38.02 to 102.02, back to |y|=48.5.
+  64 mm (was 51) keeps the ramp from returning to the sheet before the leg has tapered.
+
+Clearance to the design leg (collar OD 55 to D=20, then straight to OD 45 at D=90), centreline
+  Flat, kept face |y|=42.7: minimum 2.30 mm at D=16.0.
+  Ramp while the face is still inboard of |y|=48.2: minimum 1.81 mm.
+  Last 3 mm of the ramp, and the original lower sheet, sit at the designed 1.50 mm gap to OD 45.
+  So the blister that Onshape measured at 1.1 mm is now 2.30 mm.
+  If a 0.4 mm skin were left again the flat would still be 1.90 mm, above the 1.3 mm test.
+  Whole-body minimum is the unchanged lower-sheet gap, 1.50 mm, which passes >= 1.3.
+
+Stanchion OD 36 and the tyre are unchanged in direction: the face moved inboard, away from the stanchion,
+and the rib is still on the tyre side of the skin. v2.17 samples were stanchion 6.0 mm, max tyre 9.16 mm,
+Assegai 10.79 mm. Moving the face from 43.5 to 42.7 adds 0.8 mm to the tyre side and does not close those gaps.
+
+Everything else is v2.17: no window, only the D=125 wing-tie pair, brace ties at s +/-12.5, R32 ends,
+no lip chamfer, R4 join fillets, stepped joint. Bed fit is unchanged (the face moved inward).
+
+Test bundle
+  Prints the closest B point and the leg point, and the gap, before the throw.
+  The throw text includes volA and volB.

@@ -55,3 +55,7 @@ B bed fit 241.3 × 238.3. Print orientations unchanged.
 - Junction rib: 2 mm proud toward the tyre, 3 mm down the sheet, stadium ends R1.5. It is on the tyre side of the skin. A bead on the leg face would use up the 1.5 mm collar gap.
 
 Offline numbers: `featurescript/verification_v2.17.txt`, script `featurescript/v2.17_offline.py`. Expected volume about A 62.5 / B 128.7 cm³. B bed fit still 241.3 × 238.3. Renders in `out/`. Test bundle `featurescript/test_bundle_v2.17.fs` (one feature evaluation throws unless parts, volumes, holes, indent face, rib, design-leg clearance and bed all pass). The joint coupon trim is unchanged; its sheet probes in the bundle match the solid sheet. The older tape figure OD 60 at 40 mm is not what this blister clears — see the verification note.
+
+## v2.17.1
+
+Onshape measured body B 1.1 mm off the design leg (`legclr 1.1`); the offline model said 1.50. The difference is the 0.4 mm loft skin: the shell was built proud of |y|=43.5 and that skin stayed, so the face was at |y|=43.9 (72.5 − 43.9 − 27.5 = 1.1). v2.17.1 drops the proud skin. The kept face is |y|=42.7 (0.5 mm inside the 43.5 spec cylinder, then a 0.3 mm cut bite). Flat clearance to the 55 mm collar is 2.30 mm. The bottom ramp is 64 mm so it stays above 1.8 mm until it joins the original sheet, which is still 1.5 mm off the OD 45 leg. `featurescript/test_bundle_v2.17.1.fs` prints the closest point and both volumes before it throws, and the throw text includes the volumes. Tag `v2.17.1`.
