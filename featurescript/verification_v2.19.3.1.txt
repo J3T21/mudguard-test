@@ -54,3 +54,9 @@ Also: deleted the unused loftStations and revolveSection. Feature name "Mudguard
 Volume windows unchanged (A 57.5-67.5, B 115.7-135.8): the boss bottom is cut away by the prisms anyway, clipY at 49.0
 can keep at most a 0.5 mm overshoot in the blends (< 0.1 cm3), and the end corners keep < 0.05 cm3 more.
 Joint geometry, offline renders and expected values as in verification_v2.19.3.txt.
+
+Onshape (user-onshape--new): test PASS, create OK -> workspace ecd92e540acf3ba840fcb13e
+v2.19.3.1 volA=62.84 volB=122.75 tyreGap=8.86 stanchion=5.56 collar=0.95in od45=1clr legMin=-2.57 holes=4/4 bedB=241.3x238.3 bowY=45.95 bowV=51.95 flatY=49 root=s22.5-76 v25=0 stepOut=0 stepIn=0 tiny=0 fil=2/4 PASS
+Console notes: merge 5 bodies -> 1; clipY removed 0 mm3; band cut 3173 mm3; joint small faces 0; corner fillets 2/4 (try silent);
+flange root fillet ok; end cuts A 2512 / B 1802 mm3, R32 corners 2/2; A/B interfere 0; tyre A 9.14 / B 8.86;
+step-joint mismatch at s=7 (ears) 0.658 mm (outer+inner, y 24..40).
