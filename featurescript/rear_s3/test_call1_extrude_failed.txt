@@ -1,0 +1,169 @@
+<cursor_untrusted_data_1337 source="CallDynamicTool">
+
+Evaluation notices:
+[
+  {
+    "btType": "BTNotice-227",
+    "type": "MODELING",
+    "tryNode": {
+      "btType": "BTNodeReference-21",
+      "nodeId": "PgpAnhBn3WJthDpvW"
+    },
+    "expressionErrorInfo": null,
+    "stackTrace": [
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "e8dd7bc755d3db37bef8a257",
+        "parseNodeId": "P474E8h46CkG1o+Lc",
+        "endCharacter": 0,
+        "moduleIds": null,
+        "endLine": 0,
+        "endColumn": 0,
+        "character": 0,
+        "languageVersion": 0,
+        "column": 0,
+        "document": "6d4ce527def8539685e560ec",
+        "elementMicroversion": "e8dd7bc755d3db37bef8a257",
+        "topLevel": "main",
+        "line": 0,
+        "nodeId": "YOEoU9NS9qCuFT5K"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "e8dd7bc755d3db37bef8a257",
+        "parseNodeId": "PQiXBrDDHB/SlyO1s",
+        "endCharacter": 0,
+        "moduleIds": null,
+        "endLine": 0,
+        "endColumn": 0,
+        "character": 0,
+        "languageVersion": 0,
+        "column": 0,
+        "document": "6d4ce527def8539685e560ec",
+        "elementMicroversion": "e8dd7bc755d3db37bef8a257",
+        "topLevel": "",
+        "line": 0,
+        "nodeId": "QVcpj5uVfeAurr/z"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "3112.0",
+        "parseNodeId": "PoY0pYT2kKkjrx7DQ",
+        "endCharacter": 3308,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "versionId": "c31f2dcea3a7abd54f9bf94c",
+          "documentId": "12312312345abcabcabcdeff",
+          "elementId": "c2e68972a0b14c709954d6ca"
+        },
+        "endLine": 61,
+        "endColumn": 46,
+        "character": 3279,
+        "languageVersion": 3112,
+        "column": 17,
+        "document": "onshape/std/feature.fs",
+        "elementMicroversion": "fdb0440b32ec9d20019fc403",
+        "topLevel": "defineFeature",
+        "line": 61,
+        "nodeId": "60thKM1hxxmtu9UJ"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "d74ddff6dc3cf57b8954295f",
+        "parseNodeId": "Pl8/8rM9Xn70uVl/B",
+        "endCharacter": 20779,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "versionId": "",
+          "documentId": "",
+          "elementId": "a9cdb66596aa3072bafb083f"
+        },
+        "endLine": 345,
+        "endColumn": 79,
+        "character": 20723,
+        "languageVersion": 3112,
+        "column": 23,
+        "document": "a9cdb66596aa3072bafb083f",
+        "elementMicroversion": "d74ddff6dc3cf57b8954295f",
+        "topLevel": "const rearS31SaddleCoupons",
+        "line": 345,
+        "nodeId": "TIeYyJ9Ir2vffpRX"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "d74ddff6dc3cf57b8954295f",
+        "parseNodeId": "PSiiWUJbCebXLz8Ua",
+        "endCharacter": 13983,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "versionId": "",
+          "documentId": "",
+          "elementId": "a9cdb66596aa3072bafb083f"
+        },
+        "endLine": 267,
+        "endColumn": 142,
+        "character": 13878,
+        "languageVersion": 3112,
+        "column": 37,
+        "document": "a9cdb66596aa3072bafb083f",
+        "elementMicroversion": "d74ddff6dc3cf57b8954295f",
+        "topLevel": "s3BuildCoupon",
+        "line": 267,
+        "nodeId": "jOPVAfEmW7+DZhca"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "d74ddff6dc3cf57b8954295f",
+        "parseNodeId": "P+ZgH1yAdH0lLU3aR",
+        "endCharacter": 7957,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "versionId": "",
+          "documentId": "",
+          "elementId": "a9cdb66596aa3072bafb083f"
+        },
+        "endLine": 158,
+        "endColumn": 150,
+        "character": 7812,
+        "languageVersion": 3112,
+        "column": 5,
+        "document": "a9cdb66596aa3072bafb083f",
+        "elementMicroversion": "d74ddff6dc3cf57b8954295f",
+        "topLevel": "s3Extr",
+        "line": 158,
+        "nodeId": "9HgpRUgEg+EhFCYj"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "version": "3112.0",
+        "parseNodeId": "PjafVyUQYh1ss0YZq",
+        "endCharacter": 37354,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "versionId": "c31f2dcea3a7abd54f9bf94c",
+          "documentId": "12312312345abcabcabcdeff",
+          "elementId": "ddbe7e9c67ca4a44935354fa"
+        },
+        "endLine": 642,
+        "endColumn": 47,
+        "character": 37319,
+        "languageVersion": 3112,
+        "column": 12,
+        "document": "onshape/std/geomOperations.fs",
+        "elementMicroversion": "dc8411c6b317c2f246e9e06e",
+        "topLevel": "const opExtrude",
+        "line": 642,
+        "nodeId": "41mJ4SpzF2VEKVg/"
+      }
+    ],
+    "message": "@opExtrude: EXTRUDE_FAILED",
+    "level": "INFO",
+    "nodeId": "ScXIrbnYMwvYJQvH",
+    "parameterId": ""
+  }
+]
+"$file:/workspace/mudguard/featurescript/rear_s3/rear_s3_coupons.fs" was replaced with the contents of /workspace/mudguard/featurescript/rear_s3/rear_s3_coupons.fs (24934 bytes) before the call.
+Structured content (JSON) the tool also returned:
+{"result":"Evaluation notices:\n[\n  {\n    \"btType\": \"BTNotice-227\",\n    \"type\": \"MODELING\",\n    \"tryNode\": {\n      \"btType\": \"BTNodeReference-21\",\n      \"nodeId\": \"PgpAnhBn3WJthDpvW\"\n    },\n    \"expressionErrorInfo\": null,\n    \"stackTrace\": [\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"e8dd7bc755d3db37bef8a257\",\n        \"parseNodeId\": \"P474E8h46CkG1o+Lc\",\n        \"endCharacter\": 0,\n        \"moduleIds\": null,\n        \"endLine\": 0,\n        \"endColumn\": 0,\n        \"character\": 0,\n        \"languageVersion\": 0,\n        \"column\": 0,\n        \"document\": \"6d4ce527def8539685e560ec\",\n        \"elementMicroversion\": \"e8dd7bc755d3db37bef8a257\",\n        \"topLevel\": \"main\",\n        \"line\": 0,\n        \"nodeId\": \"YOEoU9NS9qCuFT5K\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"e8dd7bc755d3db37bef8a257\",\n        \"parseNodeId\": \"PQiXBrDDHB/SlyO1s\",\n        \"endCharacter\": 0,\n        \"moduleIds\": null,\n        \"endLine\": 0,\n        \"endColumn\": 0,\n        \"character\": 0,\n        \"languageVersion\": 0,\n        \"column\": 0,\n        \"document\": \"6d4ce527def8539685e560ec\",\n        \"elementMicroversion\": \"e8dd7bc755d3db37bef8a257\",\n        \"topLevel\": \"\",\n        \"line\": 0,\n        \"nodeId\": \"QVcpj5uVfeAurr/z\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"3112.0\",\n        \"parseNodeId\": \"PoY0pYT2kKkjrx7DQ\",\n        \"endCharacter\": 3308,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"versionId\": \"c31f2dcea3a7abd54f9bf94c\",\n          \"documentId\": \"12312312345abcabcabcdeff\",\n          \"elementId\": \"c2e68972a0b14c709954d6ca\"\n        },\n        \"endLine\": 61,\n        \"endColumn\": 46,\n        \"character\": 3279,\n        \"languageVersion\": 3112,\n        \"column\": 17,\n        \"document\": \"onshape/std/feature.fs\",\n        \"elementMicroversion\": \"fdb0440b32ec9d20019fc403\",\n        \"topLevel\": \"defineFeature\",\n        \"line\": 61,\n        \"nodeId\": \"60thKM1hxxmtu9UJ\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"d74ddff6dc3cf57b8954295f\",\n        \"parseNodeId\": \"Pl8/8rM9Xn70uVl/B\",\n        \"endCharacter\": 20779,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"versionId\": \"\",\n          \"documentId\": \"\",\n          \"elementId\": \"a9cdb66596aa3072bafb083f\"\n        },\n        \"endLine\": 345,\n        \"endColumn\": 79,\n        \"character\": 20723,\n        \"languageVersion\": 3112,\n        \"column\": 23,\n        \"document\": \"a9cdb66596aa3072bafb083f\",\n        \"elementMicroversion\": \"d74ddff6dc3cf57b8954295f\",\n        \"topLevel\": \"const rearS31SaddleCoupons\",\n        \"line\": 345,\n        \"nodeId\": \"TIeYyJ9Ir2vffpRX\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"d74ddff6dc3cf57b8954295f\",\n        \"parseNodeId\": \"PSiiWUJbCebXLz8Ua\",\n        \"endCharacter\": 13983,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"versionId\": \"\",\n          \"documentId\": \"\",\n          \"elementId\": \"a9cdb66596aa3072bafb083f\"\n        },\n        \"endLine\": 267,\n        \"endColumn\": 142,\n        \"character\": 13878,\n        \"languageVersion\": 3112,\n        \"column\": 37,\n        \"document\": \"a9cdb66596aa3072bafb083f\",\n        \"elementMicroversion\": \"d74ddff6dc3cf57b8954295f\",\n        \"topLevel\": \"s3BuildCoupon\",\n        \"line\": 267,\n        \"nodeId\": \"jOPVAfEmW7+DZhca\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"d74ddff6dc3cf57b8954295f\",\n        \"parseNodeId\": \"P+ZgH1yAdH0lLU3aR\",\n        \"endCharacter\": 7957,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"versionId\": \"\",\n          \"documentId\": \"\",\n          \"elementId\": \"a9cdb66596aa3072bafb083f\"\n        },\n        \"endLine\": 158,\n        \"endColumn\": 150,\n        \"character\": 7812,\n        \"languageVersion\": 3112,\n        \"column\": 5,\n        \"document\": \"a9cdb66596aa3072bafb083f\",\n        \"elementMicroversion\": \"d74ddff6dc3cf57b8954295f\",\n        \"topLevel\": \"s3Extr\",\n        \"line\": 158,\n        \"nodeId\": \"9HgpRUgEg+EhFCYj\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"version\": \"3112.0\",\n        \"parseNodeId\": \"PjafVyUQYh1ss0YZq\",\n        \"endCharacter\": 37354,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"versionId\": \"c31f2dcea3a7abd54f9bf94c\",\n          \"documentId\": \"12312312345abcabcabcdeff\",\n          \"elementId\": \"ddbe7e9c67ca4a44935354fa\"\n        },\n        \"endLine\": 642,\n        \"endColumn\": 47,\n        \"character\": 37319,\n        \"languageVersion\": 3112,\n        \"column\": 12,\n        \"document\": \"onshape/std/geomOperations.fs\",\n        \"elementMicroversion\": \"dc8411c6b317c2f246e9e06e\",\n        \"topLevel\": \"const opExtrude\",\n        \"line\": 642,\n        \"nodeId\": \"41mJ4SpzF2VEKVg/\"\n      }\n    ],\n    \"message\": \"@opExtrude: EXTRUDE_FAILED\",\n    \"level\": \"INFO\",\n    \"nodeId\": \"ScXIrbnYMwvYJQvH\",\n    \"parameterId\": \"\"\n  }\n]"}
+
+</cursor_untrusted_data_1337>
