@@ -1,0 +1,86 @@
+v2.19.3 verification (offline, no Onshape before commit)
+
+Source: mudguard_v2.19.3.fs (base v2.19.2 0a84190, volB limit 140 build). Plan: /workspace/mudguard/joint_plan_v2.19.3.md
+(Split & Join Planner). Feature "Mudguard V2.19.3 (Fox AWL 36)". test_bundle_v2.19.3.fs is the same text (the build
+verifies itself and throws its report string on failure).
+
+What changed
+  1. Guard solids (out, boss, in) are built in three pieces: front loft to s 16, the leg-zone section REVOLVED about the
+     axle from s 16 to 78, tail loft from s 78. Both lofts meet the revolve normal to the shared plane (opLoft
+     derivativeInfo, G1). Reason: a single loft is a spline through all stations and does not stay on the constant
+     section between identical stations (v2.19.2 clipped a 0.77 mm overshoot; the v2.14 patch notes the out loft running
+     outside the deep loft at s 20..31). The plan's 0.02 mm seam needs the guard to be exact where the root meets it.
+  2. Optional change applied: C1 ends at s 4 (was 10), first leg-zone station at s 16 (was 22).
+     The plan's "root s 19..80" is NOT safe as written: s 19 is ahead of the B mating plane (sM 19.5) and fails the
+     plan's own assert s0 >= sM + 3 = 22.5. Applied the safe part: root/band window s 22.5..76 (front at the
+     assert limit, rear 2 mm inside the revolved zone). Root width at the wall (r 363) 48.9 mm, at the root bottom
+     (r 317.5) 42.8 mm; the sheet is 56 wide below. Plan window s 24..70 would have been 41 / 36.8.
+  3. Step 9c after the hollow, on B only: band cut (u 40..60, v 20.5..40, exact angles), two revolved roots, two
+     planar lower sheets (|y| 49.0, 2.5 thick, slots and strap channel cut first), ONE union.
+  4. Removed: proud skin/emb/jog/X-extrude, root band, splay, ifill (+ innerBlend parameter), out2/slab/trimProud,
+     v2.14 deep patch, wingU + wingShave, keep boxes + finKeep, 9b fallback, crease/end join fillets, fClips.
+     clipY kept, on the guard, before the root exists.
+  5. R2 fillets tried (try silent, one per corner) on the four concave corners root end face / guard wall bottom.
+  6. Checks added (plan 2.7): tiny faces (area < 1 mm2, s 20..75, |y| > 40) counted right after the union, must be 0;
+     rays at v 25 at s 20, 22.5, 23.5, 49.25, 75, 76, 78 outside and inside within 0.02 of the 19 deg lines;
+     scan v 21..80 step 0.5 at s 23.5 / 49.25 / 75, outside and inside, within 0.05 of the analytic chains;
+     assert s 22.5 >= sM + 3. Kept: collarIntr, od45, tyreGap (>= 8), legMin (report), holes 4/4, upper rows 8/8,
+     window, bump (max |y| <= 49.4), stanchion, bedB, parts, nSolids. Flat check now |y| 49.0 +-0.05 at D 110.
+
+Root profile (u = |y|, v = depth below R = 393.5), computed in FS from the formulas (matches the plan)
+  wall line u = 38 + v tan19 (outer), inner offset 3.1729; E = (48.5, 30.4942)
+  o2 R8 centre (40.936, 33.099) to (48.544, 35.571); o3 R53 centre (98.950, 51.949),
+  belly (45.950, 51.949); o4 R9.311 to the flat at (49.000, 71.204); flat to v 76.
+  inner: flat 46.5, R6.811, R55.5, i2 R5.5 centre (40.682, 33.898) tangent at (45.883, 32.107) and
+  (45.936, 35.526); top v 20.5 from 41.886 to 45.059.
+  Thickness 3.17 (u) at v 30.5, 2.83 at 33, 2.62 at 35.6, 2.56 at 40, 2.50 from the belly down. Simple polygon, 148.8 mm2.
+
+Lower sheet outline (world x/z, plane |y| 49.0)
+  top: arc r = R - 72 between the root end angles (0.8 below the o4/i4 tangency, 4.0 above the root bottom)
+  front: radial line (root end plane) on for 11.00 mm below r = R - 76, then one tangent arc R375.7 to x = xC + 28
+  rear: radial line to r = R - 76, R10 / 17.15 mm line at 32.0 deg / R10 to x = xC - 28
+  edges vertical from D 107.9 down (the plan's D ~97 is too short for the rear flare with R10 blends: no solution
+  under ~24 mm of height); tip D 135 with R8 corners; slots and channel unchanged at D 125. Simple polygon, 3132 mm2.
+
+Expected checks
+  od45 1.00 clr (was 1.50), collar 0.95 in (belly |y| 45.95, now at v 51.95 instead of 49.2), tyreGap 8.86 at the bow
+  inner (v 52.6, |y| 43.45), v25 0, steps ~0, tiny 0, holes 4/4, flatY 49.00, bowY ~45.95.
+
+Volumes (offline)
+  A: v2.19.2 measured 62.48; C1 shift adds ~0.05 -> window 57.5..67.5 (unchanged)
+  B: v2.19.2 measured 135.61. Voxel model of the joint box (x -80..-10, |y| 38..56, z 250..386, 0.25/0.05/0.25 mm,
+     both sides, v2_19_3_volume.py): v2.19.2 pipeline 46.47 cm3 -> v2.19.3 36.31 cm3, delta -10.16
+     (old lumps above the edge 4.2 cm3: band proud of the wall, embed wedge, ifill/notch; old deep-patch block below the
+     edge; narrower root). Plus 0.05 mm trimProud skin no longer removed outside the box +0.14, C1 shift on B ears +0.19.
+     Expected 125.8 -> window 115.7..135.8 (+-8%).
+
+Boolean audit (gap or overlap under 0.2 mm is called out)
+  guardSolid unions (out / boss / in): front loft end cap, revolve start and end faces and tail loft start cap are the
+    same section sketched on the same arcFrame plane. Exact coplanar, identical regions. ok.
+  boss mask / bossCut: unchanged (1 mm proud skin inside the stadium prisms). ok.
+  rib: off.
+  merge: out + boss. Boss skin 1 mm proud; boss bottom chord is outside the prisms and is cut away. ok.
+  clipY (|y| > 48.5, x -120..10): in the revolved zone the guard edge lies exactly ON the clip plane (line contact,
+    no volume), as at every station in v2.19.2, which built. In the 4..16 and 78..85 blends it trims any loft overshoot.
+    RISK (inherited, kept as instructed): an overshoot of a few hundredths would leave a thin clipped patch.
+  split, ears, flanges, gussets, tongue, groove, nut slots, bolt holes: unchanged (multi-mm overlaps). ok.
+  hollow: void = in-solid in the same three pieces; tie slots. Wall 3.0. ok.
+  band cut: cylinder r = R - 20.5 and the two radial planes cut the 3 mm wall square on; u = 40 face is 1.9 mm inside
+    the void at v 20.5 (air); v = 40 face 9.5 mm below the wall bottom (air). Removes ~3.2 cm3. ok.
+  jointU (B + 2 roots + 2 sheets):
+    root top = band-cut cylinder, same region (u 41.886..45.059): identical surface, merges.
+    root end planes = band-cut end planes = sheet side planes (radial, same angles): exact.
+    root o1 / i1 = the revolved guard's outer / inner 19 deg cones (same a, tan19, wall/cos19): exact, seam only.
+    sheet planes |y| 49.0 / 46.5 = root flat planes, 4 mm overlap band: exact.
+    sheet top arc r = R - 72: 0.8 below o4/i4 tangency, 4.0 above the root bottom, buried in the root. ok.
+    clipY plane 48.5 vs flat 49.0 / 46.5: 0.5 / 2.0 (and clipY ran before these existed). ok.
+    nothing of B within 0.2 mm of the roots or sheets other than the exact shared faces above. ok.
+  sheet slotCut: boxes 1 mm past both faces; channel 0.8 into the 2.5 sheet; 7 mm above the tip; R8 corners 9 mm away. ok.
+  corner fillets R2: on 3.17 mm edges (guard bottom face is 3.17 wide); try silent per corner, counted in the string.
+  v2.15 end rounds, flange root fillets: unchanged.
+  Removed booleans: ifill, slabCut, patchCut, patchU, trimProud, wingU, wingShave, finKeep, iblendU, win2Cut, finClipY,
+    corner bites (now in the outline), band union.
+
+FS risks not checkable offline
+  opLoft derivativeInfo (normal-to-profile end condition) is new to this file.
+  Sketch arcs are 3-point (start / mid / end); all < 180 deg.

@@ -79,3 +79,7 @@ Onshape rejected the v2.19 loft intersection (`BOOLEAN_BAD_INPUT`): the slab was
 ## v2.19.2
 
 Onshape rejected the v2.19.1 deep-patch union (BOOLEAN_INVALID at patchU). The leg sheet was already on the guard, 0.05 mm proud of the wall plane, while the deep-patch face sits 0.05 mm inside that plane. The sheets now union after the deep patch, the proud trim and clipY. The embed and the lower flat are 0.5 mm proud, and a shave cuts that skin back to |y|=48.5. The R8 tip tools were sketched with sketch-y along world -Z, so they missed the sheet; the plane x-direction is now -X and x is negated, and a build throws if a side loses under 10 mm3. The unused blister loft and the outer-fillet warning are gone. The check string is still the v2.19.1 string. Renders: out/v2.19.2_*.png.
+
+## v2.19.3
+
+Leg joint rebuilt to Split & Join Planner's plan: the lower 10 mm of the guard wall is cut out over s 22.5..76 and replaced by one revolved root profile (19° wall → R8 → R53 bow → R9.31 → flat |y| 49.0, wall 3.0 → 2.5), and a planar lower sheet on |y| 49.0 overlaps the root flat by 4 mm, all in one union. The proud skin, root band, ifill, deep patch, trims, shave, keep boxes and crease fillets are gone. The guard is revolved (exact) over the leg zone s 16..78 with lofts either side meeting it normal to the section, so the root sits on true surfaces. C1 ends at s 4 and the leg zone starts at s 16. OD45 clearance 1.0 mm, belly 2.5 mm lower. Verification: `featurescript/verification_v2.19.3.txt`; renders `out/v2.19.3_*.png`.
