@@ -1,0 +1,113 @@
+v2.19.2 verification (offline, no Onshape)
+
+Why v2.19.1 failed
+  Onshape threw BOOLEAN_INVALID at the v2.14 deep-patch union (id + "patchU") before any check.
+  The leg sheet was already unioned to the guard. Its embed was 0.05 mm proud of |y|=48.5
+  and stepped back to the wall plane. The deep loft's outer face is the guard outer profile
+  inset by 0.05 mm, so the two faces sat about 0.1 mm apart.
+
+Order now
+  The guard is merged, patched, trimmed and clipped with no leg sheet on it.
+  The sheets are unioned after clipY. Embed and lower flat are 0.5 mm proud of |y|=48.5.
+  wingShave then cuts y past 48.5 over the whole sheet, a 0.5 mm skin, and throws if it
+  removes under 20 mm3. Expected removal is about 4000 mm3 (6 mm embed plus the 66 mm lower
+  flat, both sides, 0.5 mm thick, 56 mm wide).
+
+Corner rounds
+  The bite sketch used plane normal +Y and xDir +X, so sketch y was world -Z and the tools
+  were built at z = -zTip, clear of the sheet. The plane x-direction is now -X and the sketch
+  x is negated, so sketch y is +world Z. Each side must lose at least 10 mm3 or the feature
+  throws. A square-minus-quarter-circle of R8 through the 3.0 mm pre-shave tip is 82 mm3
+  a side (two corners).
+
+Profile
+  Three tangent arcs, radii 30 / 40 / 30 mm, turn 15.5 / 31 / 15.5 deg. Belly |y|=45.95
+  at D=50.7. Collar intrusion 0.95 mm. Inner face to the 69.2 mm tyre about 8.9 mm.
+  OD 45 clearance 1.5 mm. Stanchion clearance 6.0 mm. The check string is unchanged from
+  v2.19.1. Production file and test bundle feature bodies are the same text.
+
+Boolean audit
+  A gap or overlap under 0.2 mm is called out. Larger bites are marked ok.
+
+  revolveSection clip (line 255), intersection. The revolved section is a full 12 deg wedge
+  and the box cuts it to the sheet x range. Overlap is the whole kept section, many mm. ok.
+
+  end-round cut (line 387), subtraction. The round tools are 50 mm deep through the end
+  lip. ok.
+
+  channel chamfer ch (line 418), subtraction. The cutter is 1 mm tall and spans the full
+  channel width. ok, 1 mm.
+
+  mask (line 673), subtraction. A 1200 mm box minus the tie-boss prisms. ok.
+
+  bossCut (line 674), subtraction. Same box through the boss. ok.
+
+  corner bites brnd (line 801), subtraction. Tools sit on the tip corners and remove about
+  82 mm3 a side. The feature throws under 10 mm3. ok.
+
+  band union (line 809). Band outer face is at |y|=48.5-0.6, sheet outer is at 49.0 before
+  the shave. They overlap through the sheet thickness, about 2 mm. ok.
+
+  slotCut (line 829), subtraction. Slot boxes run 1 mm past the inner face and 0.5 mm past
+  the proud outer face. ok.
+
+  merge (line 859), union. Guard lofts only. The sheets are not in this union. Station
+  overlaps are the original several-millimetre blends. ok.
+
+  ifill union (line 874). Fill outer face is 0.5 mm inside |y|=48.5, buried in the wall.
+  ok.
+
+  slabCut (line 903), subtraction. The slab is the region outside the deep loft and is
+  many millimetres thick. ok.
+
+  patchCut (line 915), subtraction. Boxes cut the deep loft through its middle, not along
+  a face. ok.
+
+  patchU (line 920), union. This is the boolean that failed in v2.19.1. The sheet is not
+  on the guard here. REMAINING under 0.2 mm: the deep profile is the outer profile inset
+  by 0.05 mm (loftStations mode "deep", t = 0.05). Those two faces are 0.05 mm apart, but
+  the deep solid overlaps the guard by the wall thickness, about 2.5 mm, and this same
+  union built in v2.18. Left as it was so the wall is not moved. The 0.05 mm sheet embed
+  that used to meet it is gone.
+
+  trimProud (line 926), subtraction. Removes whatever stands outside the deep face,
+  including the 0.77 mm loft overshoot. The 0.05 mm deep inset is the same pair as patchU.
+  ok as a multi-millimetre cut.
+
+  clipY (line 931), subtraction. Clips |y| past 48.5. The sheet is not on the body yet.
+  The loft overshoot is about 0.77 mm. ok.
+
+  wingU (line 940), union. Sheet outer face at |y|=49.0, clipped wall at 48.5. Parallel
+  faces 0.5 mm apart. Shared volume is the embed, about 2.5 mm thick. ok.
+
+  wingShave (line 946), subtraction. Cutter face at |y|=48.5, sheet outer at 49.0.
+  Removes a 0.5 mm skin, about 4000 mm3, and throws under 20 mm3. ok.
+
+  earInt / earCutA / earUnionB (lines 987-993). Ear boxes are the full side of the flange,
+  tens of millimetres. ok.
+
+  uA / uB (lines 1014, 1031). Flanges extrude 8 mm and 4 mm into the guard. ok.
+
+  cutA (line 1063), subtraction. Nut slots and the groove are several millimetres deep. ok.
+
+  holes (line 1079), subtraction. Teardrop drills are 3.4 mm across and longer than the
+  flange stack. ok.
+
+  finKeep (line 1091), subtraction. Keep box starts about 4 mm inboard of the sheet inner
+  face (yi - bow depth - 1.5). ok.
+
+  hollow (line 1092), subtraction. Void tool is the inner loft, kept off the sheets by
+  finKeep. ok.
+
+  iblendU (line 1129). Inside the `innerRevolveFallback` flag, which is false, so this
+  boolean does not run. ok, not executed.
+
+  win2Cut (line 1140). Same flag, and sealWindow is false. Not executed.
+
+  finClipY (line 1188), subtraction. After the shave the sheet face is on |y|=48.5, which
+  is the tool boundary. The tool still removes loft overshoot elsewhere on part B, the
+  same cut that built from v2.16 through v2.18. No new sub-0.2 mm skin is added here.
+
+Removed
+  v217RectSk, v217LoftRects, v218FaceY, v219FaceY, v219Slope, v217Apply, and the
+  joinOutOk edge scan that only printed the skipped outer fillet.

@@ -3,7 +3,7 @@ import math
 
 YO = 48.5
 WT = 2.5
-PROUD = 0.05
+PROUD = 0.5
 YLEG = 72.5
 PAD = 1.5
 TAN = math.tan(math.radians(19))
@@ -250,3 +250,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

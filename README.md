@@ -75,3 +75,7 @@ The blister, the R10 root blend and the outer join fillet are gone. The leg shee
 ## v2.19.1
 
 Onshape rejected the v2.19 loft intersection (`BOOLEAN_BAD_INPUT`): the slab was 21 sections, many of them the same rectangle, and the flat face sat on the wall plane. The sheet is now one closed profile — a 0.05 mm proud embed, then three tangent arcs (radii 30, 40, 30 mm) and the flat return — extruded across the wing and unioned. Corner rounds are a subtraction of two small bites. Offline, the profile has area 274 mm², thickness 2.5 mm, no self-intersections and no zero-length edges, and the embed overlaps the wall by 8.8 mm² per side. Belly |y|=45.95 (0.95 mm inside the OD 55 collar). Tyre gap about 8.9 mm. The production file and the test bundle use the same check string. Renders: `out/v2.19.1_*.png`.
+
+## v2.19.2
+
+Onshape rejected the v2.19.1 deep-patch union (BOOLEAN_INVALID at patchU). The leg sheet was already on the guard, 0.05 mm proud of the wall plane, while the deep-patch face sits 0.05 mm inside that plane. The sheets now union after the deep patch, the proud trim and clipY. The embed and the lower flat are 0.5 mm proud, and a shave cuts that skin back to |y|=48.5. The R8 tip tools were sketched with sketch-y along world -Z, so they missed the sheet; the plane x-direction is now -X and x is negated, and a build throws if a side loses under 10 mm3. The unused blister loft and the outer-fillet warning are gone. The check string is still the v2.19.1 string. Renders: out/v2.19.2_*.png.
