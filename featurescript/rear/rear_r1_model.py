@@ -179,7 +179,7 @@ def u_outer(a: float, rad: float, h: float) -> list[tuple[float, float]]:
     pts = [(0.0, 0.0), (c, 0.0)]
     pts += _arc(c, rad, rad, -math.pi / 2.0, 0.0)[1:]
     pts += [(a, h), (-a, h), (-a, rad)]
-    pts += _arc(-c, rad, rad, math.pi, math.pi / 2.0)[1:]
+    pts += _arc(-c, rad, rad, math.pi, 1.5 * math.pi)[1:]
     pts += [(-c, 0.0), (0.0, 0.0)]
     return pts
 
@@ -194,7 +194,7 @@ def u_inset(a: float, rad: float, h: float, q: float) -> list[tuple[float, float
     pts = [(0.0, q), (c, q)]
     pts += _arc(c, rad, ri, -math.pi / 2.0, 0.0)[1:]
     pts += [(a - q, h), (-(a - q), h), (-(a - q), rad)]
-    pts += _arc(-c, rad, ri, math.pi, math.pi / 2.0)[1:]
+    pts += _arc(-c, rad, ri, math.pi, 1.5 * math.pi)[1:]
     pts += [(-c, q), (0.0, q)]
     return pts
 
@@ -924,7 +924,7 @@ def write_verification(path: str, info: dict):
     bB = info["bedB"]
     L22, W22 = bB["at22"][2], bB["at22"][3]
     lines = [
-        "Rear mudguard r2.1 verification (offline, no Onshape)",
+        "Rear mudguard r2.1.1 verification (offline, no Onshape)",
         "source: featurescript/rear/rear_mudguard_r1.fs",
         "model: featurescript/rear/rear_r1_model.py",
         "bike: Amflow PR Carbon, 27.5 rear, Maxxis DHR II 27.5x2.5",
@@ -1017,6 +1017,10 @@ def write_verification(path: str, info: dict):
         "  8. Recess 6.6 wide (0.3 past each slot side) and s -15.7..15.7 (0.5 past each B slot),",
         "     cut 0.5 past the tongue inner face. r2's 6.2 left 0.1 mm steps at the slot sides.",
         "  9. Tail R5 tools sketched on the end plane itself and run 1 mm past the end and wall.",
+        " 10. r2.1.1: uSketch's left corner arc had its mid point below the corner centre, so every",
+        "     U profile crossed itself (Onshape: LOFT_PROFILE_FAILED on the first loft). Mid point is",
+        "     now (-c - ri cos45, rad - ri sin45), mirroring the right arc. The Python outline had the",
+        "     same mirrored arc and is fixed too.",
         "     r2's tool was sketched 2.5 mm back and met the end face within 0.04-0.11 mm.",
         "",
         "BOOLEAN AUDIT (gaps or overlaps under 0.2 mm; exact shared planes noted)",

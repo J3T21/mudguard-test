@@ -80,7 +80,7 @@ function uSketch(context is Context, sid is Id, pl is Plane, a is number, rad is
         skLineSegment(sk, "wr", { "start" : vector(side, rad) * mm, "end" : vector(side, bottom) * mm });
         skLineSegment(sk, "b", { "start" : vector(side, bottom) * mm, "end" : vector(-side, bottom) * mm });
         skLineSegment(sk, "wl", { "start" : vector(-side, bottom) * mm, "end" : vector(-side, rad) * mm });
-        skArc(sk, "al", { "start" : vector(-side, rad) * mm, "mid" : vector(-c - ri * c45, rad + ri * s45) * mm, "end" : vector(-c, q) * mm });
+        skArc(sk, "al", { "start" : vector(-side, rad) * mm, "mid" : vector(-c - ri * c45, rad - ri * s45) * mm, "end" : vector(-c, q) * mm });
     }
     skSolve(sk);
 }
