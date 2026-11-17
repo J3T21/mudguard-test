@@ -59,3 +59,11 @@ Offline numbers: `featurescript/verification_v2.17.txt`, script `featurescript/v
 ## v2.17.1
 
 Onshape measured body B 1.1 mm off the design leg (`legclr 1.1`); the offline model said 1.50. The difference is the 0.4 mm loft skin: the shell was built proud of |y|=43.5 and that skin stayed, so the face was at |y|=43.9 (72.5 − 43.9 − 27.5 = 1.1). v2.17.1 drops the proud skin. The kept face is |y|=42.7 (0.5 mm inside the 43.5 spec cylinder, then a 0.3 mm cut bite). Flat clearance to the 55 mm collar is 2.30 mm. The bottom ramp is 64 mm so it stays above 1.8 mm until it joins the original sheet, which is still 1.5 mm off the OD 45 leg. `featurescript/test_bundle_v2.17.1.fs` prints the closest point and both volumes before it throws, and the throw text includes the volumes. Tag `v2.17.1`.
+
+## v2.17.2
+
+Built in Onshape. B volume check lower bound 123 → 120 cm³ (measured about 122.9). Tag `v2.17.2`, commit `abfcecb`.
+
+## v2.18
+
+The leg-facing ridge was the step between the loft at |y|=43.0 and the cut at |y|=42.7, together with the R4 crease fillet that the blister cut sliced. Shell and cut now use one surface: an R10 ease off the 19° wall, a flat at |y|=42.7 (2.30 mm off the 55 mm collar), then a smoothstep back to the sheet. The stadium rib is replaced by one R10 blend along the whole wing root on the tyre side, bulging 2.4 mm so it stays 8.4 mm off the 69.2 mm tyre. Leg clearance stays at least 1.50 mm. `featurescript/test_bundle_v2.18.fs` puts volA, volB, leg gap and tyre gap in one string that is also the throw message. Volume bounds are ±8% around A 62.5 / B 124.5. Renders: `out/v2.18_*.png`, including the tyre-side wing close-up. Tag `v2.18`.
