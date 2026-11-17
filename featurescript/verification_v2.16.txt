@@ -1,0 +1,93 @@
+leg sheets: wall edge |y|=48.5 at d=30.49, splay 0 deg; outer |y| at D40/50/85/110/125/135: 48.5/48.5/48.5/48.5/48.5/48.5 ; sheet clash with leg(+0.5) before window / window on, per side: [ [ 6 , true ] , [ 6 , true ] ] ; sheet s 17..73, window s 25..65 (strips 8 mm), D 12..84
+wing plate to tyre clearance per side [maxTyre69.2, Assegai63.5] (-Y, +Y): [ [ 11.22 , 12.94 ] , [ 11.22 , 12.94 ] ]
+v2.14 deep patch over sheet x -72.9..-16.9: bodies 2, vol 20741 mm3
+v2.14 deep patch union: guard +3538.7 mm3, bodies 1, all solids 9
+join fillet out (crease sheet|wall, pre-hollow): edges 2 [ 63 63] -> R4
+v2.12 join: proud material trimmed 3978 mm3, |y|>48.5 clip 2820.57 mm3
+stepped joint: B ears s 7..19.5 outboard of |y|=23; strip ahead of rear tie slot 4.3 mm
+brace ties: front row s=-12.5, rear row s=12.5; centre spacing 25 mm, slot inner-edge gap 22.6 mm (brace 20); front slot rear edge to brace front face 1.3 mm, rear slot front edge to brace rear face 1.3 mm; rear slot owner: B; rear slot inner end |y|=25 vs flange half-width 23 -> skin gap 2 mm
+tie-slot cutter to flange A clearance (mm): 2, to flange B: 6.42
+groove-to-nut-slot clearance (mm, 0 = touching/intersecting): 1.25
+rear tie slot cutters to nut slots 7.09, groove 5.81, part B (incl. gussets/tongue) 0 mm
+rear tie slot cutters to bolt holes 7.87 mm
+root fillet edges: 4
+root fillet ok=true
+v2.14 final B clip |y|>48.5: removed -8.11 mm3, nB 1
+join fillet in candidate edge lengths [ 8.1 , 13.2 , 8.1 , 13.2 ]
+  after in: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet in: edges 4 -> all R4
+join fillet endF candidate edge lengths [ 12.3 , 4.3 , 12.3 , 4.3 , 3 , 3 , 3.5 , 3.5 , 5.9 , 5.9 ]
+  after endF: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endF: edges 10 -> FAILED (left sharp) at [ [ -16.9 , -48.3 , -7.9 ] , [ -16.9 , -46.6 , 0.1 ] , [ -16.9 , 48.3 , -7.9 ] , [ -16.9 , 46.6 , 0.1 ] , [ -16.9 , -44.4 , 2.2 ] , [ -16.9 , 44.4 , 2.2 ] , [ -16.9 , -45.2 , -5.1 ] , [ -16.9 , 45.2 , -5.1 ] , [ -16.9 , -43.8 , -0.6 ] , [ -16.9 , 43.8 , -0.6 ] ]
+join fillet endF- candidate edge lengths [ 12.3 , 4.3 , 3 , 3.5 , 5.9 ]
+  after endF-: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endF-: edges 5 -> FAILED (left sharp) at [ [ -16.9 , -48.3 , -7.9 ] , [ -16.9 , -46.6 , 0.1 ] , [ -16.9 , -44.4 , 2.2 ] , [ -16.9 , -45.2 , -5.1 ] , [ -16.9 , -43.8 , -0.6 ] ]
+join fillet endF+ candidate edge lengths [ 12.3 , 4.3 , 3 , 3.5 , 5.9 ]
+  after endF+: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endF+: edges 5 -> FAILED (left sharp) at [ [ -16.9 , 48.3 , -7.9 ] , [ -16.9 , 46.6 , 0.1 ] , [ -16.9 , 44.4 , 2.2 ] , [ -16.9 , 45.2 , -5.1 ] , [ -16.9 , 43.8 , -0.6 ] ]
+join fillet endFo candidate edge lengths [ 12.3 , 12.3 ]
+  after endFo: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endFo: edges 2 -> FAILED (left sharp) at [ [ -16.9 , -48.3 , -7.9 ] , [ -16.9 , 48.3 , -7.9 ] ]
+join fillet endR- candidate edge lengths [ 0.8 , 2.7 , 1.3 , 0.3 ]
+  after endR-: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endR-: edges 4 -> FAILED (left sharp) at [ [ -72.9 , -48.5 , -5.6 ] , [ -72.9 , -47 , -5.2 ] , [ -72.9 , -45.9 , -6.1 ] , [ -72.9 , -45.7 , -5.3 ] ]
+join fillet endR+ candidate edge lengths [ 0.8 , 2.7 , 1.3 , 0.3 ]
+  after endR+: nB 1 vol 114212.6 dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+join fillet endR+: edges 4 -> FAILED (left sharp) at [ [ -72.9 , 48.5 , -5.6 ] , [ -72.9 , 47 , -5.2 ] , [ -72.9 , 45.9 , -6.1 ] , [ -72.9 , 45.7 , -5.3 ] ]
+after join fillets: B dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+FRONT END ROUNDS APPLIED: sharp
+v2.15 end cut removed A 2818 mm3, B 2082 mm3
+v2.15 end outline R32: corners removed 2/2, inside-arc kept 2/2, solids A+B 2 | front arc u=22.32 R=32 chamfer u=0 land u=0; rear arc u=17.45 R=32 chamfer u=0 land u=0
+  solid dims(mm) X=181.5 Y=97.4 Z=69.2 min=(-20.2,-48.7,338.2) max=(161.3,48.7,407.4)
+  solid dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+nSolids=2 nA=1 nB=1
+A dims(mm) X=181.5 Y=97.4 Z=69.2 min=(-20.2,-48.7,338.2) max=(161.3,48.7,407.4)
+B dims(mm) X=276 Y=97 Z=149.6 min=(-282.4,-48.5,257.4) max=(-6.5,48.5,407)
+volA(cm3)=62.5 volB(cm3)=112.1
+A/B collision check: interfere=0 abut(face contact)=121
+A on side: { asModelled : { H : 97.4 , L : 181.5 , W : 69.2 } , minArea : { H : 97.4 , L : 186.9 , W : 42.3 , ang : 168 } , minSquare : { H : 97.4 , L : 140.1 , W : 139.1 , ang : 33 } }
+B on side: { asModelled : { H : 97 , L : 276 , W : 149.6 } , minArea : { H : 97 , L : 270.9 , W : 151.7 , ang : 87 } , minSquare : { H : 97 , L : 241.3 , W : 238.3 , ang : 153 } }
+bolt y=-15 axis hits within flange stack: 0
+bolt y=0 axis hits within flange stack: 0
+bolt y=15 axis hits within flange stack: 0
+tie slot s=-12.5: y=25.1->clear y=26.5->clear y=28->clear y=29.5->clear y=30.9->clear
+tie slot s=12.5: y=25.1->clear y=26.5->clear y=28->clear y=29.5->clear y=30.9->clear
+tie exit s=-12.5 y=-28: clear 30
+tie exit s=-12.5 y=28: clear 30
+tie exit s=12.5 y=-28: clear 30
+tie exit s=12.5 y=28: clear 30
+step joint surface mismatch A vs B at s=7 (y 24..40, outer+inner): max 0.011 mm -> tie inner run continuous
+min clearance to tyre [maxTyre, Assegai]: A=9.44/10.89 B=9.44/10.9
+  closest point to max tyre: -5.9,37.8,363
+  closest point to max tyre: -6.5,37.8,363
+  B closest point to legs: -44.9,-48.5,308.4
+sheet outer planes at |y|=48.5: 4 faces, 7045 mm2; any B face beyond the plane: false
+join check (1356 lateral rays, sheet span, tip..edge+16): max |y| 48.5 (plane 48.5), sheet plane deviation 0.525 mm, max surface jump between 0.5 mm rows (strips) 0.186 at x-20.9 z364.9 y47.8 prev 47.98 mm (19 deg wall alone = 0.172)
+INSIDE join check (3616 rays on the strips, zEdge-16..+12 at 0.25): max jump between rows 0.254 at x-17.4 z353.69 (zEdge-6.75) |y| 45.746 prev 46 ; row steps > 0.15 mm: 2 [ [ 17.4 , -6.75 , 46 , 45.75 ] , [ -17.4 , -6.75 , 46 , 45.75 ] ] (19 deg wall alone = 0.086)
+wing slots open: 12/12
+sheet outer face |y| at pivot 48.5; tip z=257.4 (D=135 below brace)
+leg model (measured taper): centre |y|=72.5, min dist guard A/B to legs: 19.46/0.59 ; legs to tyre [max, Assegai]: 9.64/12.07 ; A/legs, B/legs clashes: 0/0
+R_top=393.5 inner top (waist)=390.5 tyre+clr=391
+sM(mating s)=19.5 sFront=11.5
+COUPON nSolids=2 nA=1 nB=1
+COUPON A dims(mm) X=45.2 Y=85 Z=44.7 min=(-20.2,-42.5,362.7) max=(25,42.5,407.4) vol(cm3)=17.45
+COUPON B dims(mm) X=106.9 Y=97 Z=149.6 min=(-113.4,-48.5,257.4) max=(-6.5,48.5,407) vol(cm3)=51.87
+COUPON A on side: { asModelled : { H : 85 , L : 45.2 , W : 44.7 } , minArea : { H : 85 , L : 45.2 , W : 44.7 , ang : 0 } , minSquare : { H : 85 , L : 45.2 , W : 44.7 , ang : 0 } }
+COUPON B on side: { asModelled : { H : 97 , L : 149.6 , W : 106.9 } , minArea : { H : 97 , L : 142.2 , W : 107 , ang : 18 } , minSquare : { H : 97 , L : 142.2 , W : 107 , ang : 18 } }
+COUPON A cut face at s=-25: extent along centreline (height if stood on cut face) 46, footprint 44 x 85
+COUPON A flat cut-face regions: 1, area 3.63 cm2
+COUPON A cut face lowest radius 365.8 mm (sheet tips at radius ~258; wall bottom ~360)
+COUPON B cut face at s=115: extent along centreline (height if stood on cut face) 106.6, footprint 143.2 x 97
+COUPON B flat cut-face regions: 1, area 2.85 cm2
+COUPON B cut face lowest radius 365.9 mm (sheet tips at radius ~258; wall bottom ~360)
+COUPON A/B collision: interfere=0 abut=121
+COUPON bolt y=-15 axis: surface hits through flange stack 0
+COUPON bolt y=-15 +4 mm (control, should hit flanges): surface hits through flange stack 4
+COUPON bolt y=0 axis: surface hits through flange stack 0
+COUPON bolt y=0 +4 mm (control, should hit flanges): surface hits through flange stack 4
+COUPON bolt y=15 axis: surface hits through flange stack 0
+COUPON bolt y=15 +4 mm (control, should hit flanges): surface hits through flange stack 4
+COUPON B sheet probes (expect slot/window=open, strip/sheet=solid): [slot D90 -11: open] [slot D90 11: open] [slot D110 -11: open] [slot D110 11: open] [slot D125 -11: open] [slot D125 11: open] [window D50 0: open] [rear strip D50 -24: solid] [front strip D50 24: solid] [sheet rear-bottom corner D128 -24: solid] [sheet D100 0: solid] [window rear edge-1 D50 -19: open] [rear strip edge+1 D50 -21: solid]
+COUPON tie slot s=-12.5: -30.9ok -28ok -25.1ok 25.1ok 28ok 30.9ok
+COUPON tie slot s=12.5: -30.9ok -28ok -25.1ok 25.1ok 28ok 30.9ok
+COUPON B leg plate: planar faces at |y|=48.5: 2, area 7044 mm2; B y range -48.5..48.5
