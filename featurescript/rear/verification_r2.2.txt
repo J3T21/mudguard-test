@@ -88,3 +88,11 @@ PRINT SETTINGS (Print Checker, 72D TPU on P1S)
   Supports: tree, build plate only OFF, threshold 40, top/bottom Z 0.3, interface 3 layers, XY 0.8,
   blockers in the brace / tab slots, tie recesses, grooves and rails. B ~92 cm2 of support (~74 with the 45 deg ribs),
   A ~36 cm2. Mouse ears at the tail corners and the s 85 ends of the band; no brim.
+
+ONSHAPE (user-onshape--new), 2 calls
+  test_feature (test_bundle_r2.2.fs): no failure. The only modelling notice is the expected, caught
+  "@opDeleteBodies: DELETE_SELECT_PARTS" from the ixAB clean-up try (test bundle line 899, caught by the bundle's own
+  try, not the feature wrapper). There was no thrown "REAR-R2.2 ... FAIL" message. Because notices were present, the
+  tool returned only the notices, not the console, so the PASS string itself was not returned (out/rear/test_r2.2.txt).
+  Next bundle: drop that try / delete so the console comes back.
+  create_geometry: workspace 10daefb0f80097500b52c03e, previews out/rear/r2.2_onshape_{top,front,left}.png
