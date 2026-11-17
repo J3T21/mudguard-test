@@ -1,0 +1,149 @@
+Rear mudguard r2.1.1 verification (offline, no Onshape)
+source: featurescript/rear/rear_mudguard_r1.fs
+model: featurescript/rear/rear_r1_model.py
+bike: Amflow PR Carbon, 27.5 rear, Maxxis DHR II 27.5x2.5
+layout: Split & Join Planner 1c, brace gap measured at 30 mm
+
+COORDINATES
+  origin rear axle, +X forward, +Z up, +Y rider's left
+  phi from +X toward +Z, 90 deg at TDC
+  phi(brace) = 33.6 deg, s = 0 there, +s toward TDC, R_top = 378.5
+  TDC is at s = 372.6. Tail is s 330, phi 83.55 deg,
+  6.45 deg before TDC.
+  B covers 350 mm of arc, from s -20 to s 330.
+
+PARTS
+  A  s -135 .. +20   outer lap plate, brace slots, front skirt, trim guides
+  B  s -20 .. 330   inner tongue, brace slots, stay tabs, squared tail
+  lap s -20 .. +20, B inside A, tongue tip butts the shoulder at s -20
+  6 ties: 2 brace (the s=±14 pair at each y) + 4 stay (one per tab slot)
+
+RADIUS  braceGap drives the solid
+  measured brace underside to tyre tread = 30 mm.
+  brace underside R = 350 + 30 = 380.0.
+  outer lap plate = 380.0 - pad 1.5 = 378.5. The pad bears on the brace.
+  lap plate inner = 375.5. Tongue outer = 375.3.
+  tongue inner = 372.3. Main shell inner = 376.0.
+  The tie recess is 1.3 mm outboard of the tongue inner face, so a flush
+  tie strand sits at R 372.3,
+  22.3 mm off the tyre crown.
+
+SECTION
+  rounded U, vertical walls, radial depth 17 mm.
+  A 22 mm wall at this radius puts the neck inside the 15 mm tyre gap.
+  17 mm keeps the tongue inner wall, the closest point, above 15 mm.
+  Neck outer width 52.0 from s -20 to +40 (corner R4).
+  Skirt and tail outer width 94 (corner R12).
+  Wall 2.5, lap and tabs 3.0. Lap radial clearance 0.2. Rails 3.0 x 1.2 at y=±20
+  into grooves 3.6 wide at depth 1.5..3.5 (0.5 through A's 3.0 lap plate), s -20.5..20.6,
+  4 mm lead-in on the rails.
+
+CLEARANCE
+  min tyre gap 15.29 mm at tab d=27.5
+  min side clearance 3.00 mm at tab outer d=8.0
+  a 3 mm tab at d=55 is 8.32 mm off the tyre.
+  Lower slot d=22 (spans 20 to 26), tab ends at d=27.5.
+
+VOLUME cm3  (section integral + features, mm3 below)
+  volA 43.11    volB 103.87
+  test window +/-8%: A 39.66..46.56   B 95.56..112.18
+    shellA            40.42
+    shoulder           0.73
+    grooves           -0.44
+    slotsA            -0.19
+    ribsA              1.54
+    trims              0.04
+    lipA               0.91
+    shellB            84.99
+    tongue             7.91
+    rails              0.27
+    slotsB            -0.17
+    recess            -0.46
+    bosses             0.10
+    ribsB              5.51
+    lipB               0.47
+    tailCorners       -0.18
+    tabs               5.72
+    tabSlots          -0.17
+
+BED  polygon bbox of the side silhouette, rotation about Y
+  A best 120.7 x 120.7 at 69.9 deg   (axis-aligned 81.4 x 145.3)
+  B at a 22 deg world rotation 280.7 x 198.9
+  B best 243.7 x 243.8 at 11.4 deg
+  Usable bed 250 mm. The tail stays at s +330 because the smaller radius
+  and the 17 mm depth both shrink the polygon.
+
+STAY TABS (r2.1)
+  3 mm plate per stay at |y| yo-3..yo (yo = stay gap/2 - 3), d 8..27.5,
+  x -16..+30 along the brace tangent (straight, planar).
+  Web x 21..30 (s >= 21.4, behind A's end at s 20), d 8..18,
+  |y| 25 (1 mm into B's neck wall) to 0.5 into the plate.
+  Plate to A's lap wall (|y| 26): 0.40 mm at d 8, opening 0.3 mm per mm of d.
+  Tie slots 6.0 x 2.4 at d 13.5 and 22.5 (r2 had 20 / 24, which overlapped).
+
+R2.1 CHANGES
+  1. Bundle: the production feature is not exported in the bundle, so the test call runs
+     rearMudguardR2Test. The rest of the bundle is the production file text.
+  2. Tabs rebuilt as plates + web (above). Test fails on any A/B interference clash or
+     an A-intersect-B volume of 1 mm3 or more (ixAB).
+  3. Grooves cut to 3.5 (0.5 through A's inner face) and start 0.5 into the shoulder lip.
+  4. No shared wall-bottom planes: shoulder lip and bridge legs stop 0.5 above the wall
+     bottom, the hem runs 0.5 below it, the tongue runs 0.5 below the bridge. Bridge is an
+     inset ring (outer inset 1.5) on three stations, so there is no chord against B's skin.
+     Trim guides, bosses, lips and rails are embedded 0.5; ribs 1.0.
+  5. Shoulder is a perimeter lip, s -23..-20, inset 1.2..6.2 on crown and walls. Channel open.
+  6. Loft stations: A = skirt loft (10 mm, then 2.5 mm through the -55..-20 blend) + a
+     constant-section lap loft, meeting on the identical s=-20 section; B = constant neck
+     loft 20..40 + blend/tail loft (2.5 mm to s 85, then 10 mm). A single loft through the
+     r2 stations bowed the lap walls by up to 0.35 mm (natural-spline estimate), which would
+     have pushed A's inner wall into the tongue (0.2 mm clearance). With the split it is exact
+     in the lap and neck, and <= 0.1 mm elsewhere.
+  7. Bosses 3 mm long, starting 0.5 past each slot, so the s=+14 pair ends at 18.85 (r2's
+     ran to 21.35, past A's end, into B's crown).
+  8. Recess 6.6 wide (0.3 past each slot side) and s -15.7..15.7 (0.5 past each B slot),
+     cut 0.5 past the tongue inner face. r2's 6.2 left 0.1 mm steps at the slot sides.
+  9. Tail R5 tools sketched on the end plane itself and run 1 mm past the end and wall.
+ 10. r2.1.1: uSketch's left corner arc had its mid point below the corner centre, so every
+     U profile crossed itself (Onshape: LOFT_PROFILE_FAILED on the first loft). Mid point is
+     now (-c - ri cos45, rad - ri sin45), mirroring the right arc. The Python outline had the
+     same mirrored arc and is fixed too.
+     r2's tool was sketched 2.5 mm back and met the end face within 0.04-0.11 mm.
+
+BOOLEAN AUDIT (gaps or overlaps under 0.2 mm; exact shared planes noted)
+  aSub/aSubL, bSubN/bSub, tgSub, shSub, brSub: hole lofts share the exact end section
+    planes with their solids and run 1 mm past the bottom. ok.
+  aU (skirt + lap at s -20), bU0 (neck + tail at s 40): identical sections on one plane. ok.
+  shU: lip outer inset 1.2, A wall inner at 2.5..3.0 -> 1.3+ overlap; lip legs 0.5 above the
+    wall bottom; lip outer face 0.6 from the hem inner face. ok.
+  bU2 bridge: 1.0 into B's wall, legs 0.5 short of the bottom, 0.5 from the web. ok.
+  bU1 tongue: overlaps the bridge 1.5 in s, runs 0.5 below it. ok.
+  gvC grooves: 0.5 through A's inner face, 0.6 past A's end, 0.5 into the lip, top 0.3 below
+    the lip crown, 0.5 below the A rib embed. ok.
+  railU: embedded 0.5; 0.3 per side and 0.5 at the top to the groove. ok.
+  slA/slB: cutters start 2 mm outside and run 16 mm. ok.
+  recC: 0.5 past the inner face, 0.3 past slot sides, 0.5 past slot ends. ok.
+  bossU: 0.5 embed, 0.5 off the slot edge, ends 1.15 before A's end. ok.
+  ribAU/ribBU: 1.0 embed (>= 0.7 over the neck R4). Rib ends on A's front (sF) and end (20)
+    planes and the s=80/140/200/260 rib joints are exact shared planes. ok.
+  trimU 0.5 embed, lipAU/lipBU 0.5 radial and 0.5 along s, hemU 0.5 past the bottom. ok.
+  r5 tail corners: x=0 face is the end plane, tool runs 1 mm past end and wall. ok.
+  tabU: web 1.0 into B's wall, 0.5 into the plate; web bottom >= 1.1 above the wall bottom,
+    top >= 1.3 below the R4 corner; plate 0.4 off B's own wall (same body, no boolean face).
+  tsl tab slots: cutter from 1 mm inside the plate to 15 mm outside. ok.
+  Nothing under 0.2 mm. The only sub-0.5 gap is the plate-to-A-wall 0.4 mm at d=8,
+    between two separate parts (no boolean).
+
+SLOT ALIGNMENT
+  tongue tip and shoulder are both at s=-20, slots of both layers are cut at s=±14.
+  alignment error 0.000 mm.
+
+RESULT
+  REAR-R2.1 parts=2 volA=43.11 volB=103.87 minTyreGap=15.29 neckW=52.00 bedA=120.7x120.7@69.9 bedB22=280.7x198.9@22 bedBbest=243.7x243.8@11.4 slotAlignErr=0.000 ixAB=0.000 tabAclr=0.40 tailS=330 coverB=350 degToTDC=6.45 sTDC=372.6 outerR=378.5
+
+MEASURE ON THE BIKE before printing
+  1. Tyre crown radius. The brace gap is now the measured 30 mm; the radius still assumes a 350 mm tyre.
+  2. Brace centreline angle from the forward horizontal (assumed 33.6 deg) and where TDC sits in s.
+  3. Seatstay inner gap at the brace, at 50 mm down and at 100 mm down (assumed 60 / 90 / 100).
+  4. Whether the stay below the brace points at the axle. If it stays higher, d=55 may become usable.
+  5. Chain-stay and motor clearance ahead of the brace (the skirt opens to 94 mm by s=-55).
+  6. Brace width along the arc (contact zone is modelled as s -10..+10, ties at ±14).
