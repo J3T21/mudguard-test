@@ -44,3 +44,14 @@ and everything else unchanged. Coupon unchanged (v2.14). Test bundle `featurescr
 Measured: A 62.5 / B 112.1 cm³ (1 solid each); corners removed 2/2, inside-arc kept 2/2, arc R 32.0 both ends; chamfer absent (u 0 at 0.3 below
 the top). Tyre A 9.44/10.89, B 9.44/10.90; legs 0.59; width 97; bolts 0 hits; ties clear; joint step 0.011; R4 out/in join fillets;
 B bed fit 241.3 × 238.3. Print orientations unchanged.
+
+## v2.17 (offline — no Onshape build)
+
+`featurescript/mudguard_v2.17.fs`. Fox AWL, PETG, Bambu P1S. Same as v2.16 (R32 ends, no lip chamfer, R4 join fillets, stepped joint, brace ties at s ±12.5) except:
+
+- No seal window. The leg sheets stay solid.
+- Wing zip ties: only the lowest pair, at 125 mm below the brace (the 90 mm and 110 mm rows are gone). Four holes, two per wing.
+- Seal blister, on: the leg-facing face wraps the collar (OD 55 mm, 20 mm tall, top at the brace) at 1.5 mm radial clearance, so a 58 mm effective cylinder, face at |y|=43.5. Flat run is 22 mm starting where the 19° wall meets that cylinder (D 17.5), then a 51 mm ramp back to the |y|=48.5 sheet so the return stays 1.5 mm off a straight taper from OD 55 at D=20 to OD 45 at D=90. Wall stays 2.5 mm.
+- Junction rib: 2 mm proud toward the tyre, 3 mm down the sheet, stadium ends R1.5. It is on the tyre side of the skin. A bead on the leg face would use up the 1.5 mm collar gap.
+
+Offline numbers: `featurescript/verification_v2.17.txt`, script `featurescript/v2.17_offline.py`. Expected volume about A 62.5 / B 128.7 cm³. B bed fit still 241.3 × 238.3. Renders in `out/`. Test bundle `featurescript/test_bundle_v2.17.fs` (one feature evaluation throws unless parts, volumes, holes, indent face, rib, design-leg clearance and bed all pass). The joint coupon trim is unchanged; its sheet probes in the bundle match the solid sheet. The older tape figure OD 60 at 40 mm is not what this blister clears — see the verification note.
