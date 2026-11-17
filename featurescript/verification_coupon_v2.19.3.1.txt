@@ -1,0 +1,19 @@
+v2.19.3.1 test coupon (James t97u: check fit and flex in 72D TPU before the full print)
+Source: featurescript/test_coupon_v2.19.3.1.fs = mudguard_v2.19.3.1.fs (bb4917f) + coupon feature (first export).
+Method: the full v2.19.3.1 build, then four planar subtractions. No new geometry; A and B both kept.
+  1. radial plane s -25 (remove s < -25)        nearest planar face: front tie boss edge s -17.7 (7.3 mm)
+  2. radial plane s 83  (remove s > 83)         root end plane s 76 (7 mm); revolve cap s 78 is internal
+  3. plane normal to the s 49.25 radial, 319.0 from the axle (remove closer): v 73.76..74.5 across the root window
+     s 22.5..76; sheet top arc v 72 (>= 1.76), root bottom v 76 (>= 1.5), o4 tangency v 71.2 (>= 2.5).
+     Sheet front/rear edges are radial lines at this depth -> square cut. D about 73.
+  4. -Y side only (Y < -24): same normal, 368.5 from the axle (remove closer): v 24.15..25 in the root window
+     (band-cut top 20.5, 3.65 off; guard wall bottom 30.49, >= 5.5 off), v 18.4..23 over A. The Y = -24 face touches
+     no material (flanges/ear planes at |y| 23 sit above or inboard; air below the crown).
+No cut face within 0.5 mm of an existing face.
+Offline estimates: A ~17.6 cm3, B ~34.6 cm3 (test windows A 8..30, B 20..55).
+
+Onshape (user-onshape--new): 1 test_feature PASS, 1 create_geometry OK. Calls: 2.
+COUPON-v2.19.3.1 n0=2 solids=2 volA=16.63 volB=34.77 A[dims(mm) X=45.2 Y=87.9 Z=44.7 min=(-20.2,-43,362.7) max=(25,44.9,407.4)] B[dims(mm) X=75.9 Y=95.6 Z=93.2 min=(-82.4,-46.6,313.8) max=(-6.5,49,407)] sideA=45.2x44.7x87.9 sideB=86.9x75.5x95.6 root+=1 bow+=1 root-=0 below=0 slots=4/4 interfere=0 tiny=4 print@4=3.57h PASS
+tiny=4: four faces under 1 mm2 across both coupons (report only; not located).
+Workspace: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/06e529ad300d843a5b63ee56/e/6d4ce527def8539685e560ec
+Previews: out/v2.19.3.1_coupon_onshape_{top,front,left}.png
