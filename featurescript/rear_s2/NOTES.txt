@@ -1,0 +1,16 @@
+Rear S2 saddle coupons S2-A..D (spec: /workspace/mudguard_rear_refs/sicomte_S2_spec.md s6). STATUS: NOT BUILT.
+One Onshape test (user-onshape--new) returned: "Error: could not find Trojan feature spec: no features found. This may
+indicate syntax errors in the FeatureScript." -> parse-level failure, no console. No create, no retry. Calls: 1.
+
+Offline volumes (s2_coupon_model.py, 0.25 voxel, geometry as coded): A 41.72, B 42.16, C 42.61, D 42.37 cm3 (windows +-8%).
+Plate: 2x2 grid, offsets (0,0) (95,0) (0,-65) (95,-65) in world XZ, ~175 x 115 mm, print direction world Y (on side), height ~74.
+
+Deviations from the spec (all deliberate, for boolean hygiene / buildability):
+ - neck section (56 x 11.47) on both coupon ends; spec's front flare (s<-20) omitted -> ~42 vs 45.5-46.1 cm3
+ - finger slits at |y| 13.25-14.25 (spec 12.5-13.5 overlaps the 7.25-12.75 tie features by 0.25)
+ - brace-tie slot + saddle groove = one cutter z 378.2-380.5 (spec slot top 380.2 is 0.2 above the saddle top; slot bottom 0.2 below groove)
+ - stay-tie slots z 359.5-365.0, recess 359-365.5 (spec R362.25-367.75 cuts 0.75 into the crown, inner R367)
+ - wall top lf + 3.4 (403.8; D 404.6): lip lead-in ends 1.0 below the top instead of at the top edge
+ - saddle R6.5 fillets, wall root draft/R4 fillet and the 26..36 crown ramps omitted (square corners / step at s 27)
+ - panel top z 367.5, wall bottom 368.0, saddle bottom 368.6, crown edge 0.5 inside the panel face (>= 0.5 separations)
+Parse suspects to check first: top-level non-exported consts (RO, RI, YS...), helper names box/outline/reversed colliding with std.
