@@ -21,16 +21,19 @@ import numpy as np
 from matplotlib.patches import Polygon
 
 # ---------------------------------------------------------------- constants
-R = 390.0
+# James measured the brace underside 30 mm off the tyre tread. That radius
+# drives the guard: the 1.5 mm pad sits on the plate, so the plate outer is
+# tyre + braceGap - pad.
+TYRE_R = 350.0
+BRACE_GAP = 30.0
+PAD = 1.5
+R_BRACE = TYRE_R + BRACE_GAP  # 380, brace underside
+R = R_BRACE - PAD  # 378.5, outer lap plate and main guard top
 WALL = 2.5
 LAP_WALL = 3.0
-TYRE_R = 350.0
 TYRE_W = 63.5
 TYRE_RAD = TYRE_W / 2.0
 TYRE_C = TYRE_R - TYRE_RAD
-PAD = 1.5
-R_BRACE = R + PAD  # plastic bears on the brace through the pad
-BRACE_GAP_EST = 38.0  # low-confidence tyre-crown to brace-underside estimate
 PHI0 = math.radians(33.6)
 
 S_A0, S_A1 = -135.0, 20.0
@@ -44,8 +47,9 @@ NECK_A = 26.0  # outer half-width, 52 mm
 WIDE_A = 47.0  # 94 mm, inside the 90-95 band and 3 mm off a 100 mm gap
 NECK_R = 4.0
 WIDE_R = 12.0
-# 22 mm radial depth is what puts the bare shell on the planner's 245.1 x 245.7 bed box.
-SECTION_H = 22.0
+# At R 378.5 a 22 mm wall bottom is inside the 15 mm tyre gap. 17 mm keeps the
+# tongue's inner wall, the closest point, just over 15 mm.
+SECTION_H = 17.0
 LAP_CLEAR = 0.2
 
 RIB = 3.0
@@ -67,14 +71,14 @@ RAIL_Y, RAIL_W, RAIL_H = 20.0, 3.0, 1.2
 GROOVE_W, GROOVE_D = 3.6, 1.5
 RAIL_CHAMFER = 4.0
 
-# Stay tabs. A radial stay and a 63.5 mm torus cannot host a 3 mm tab at
-# d=55 with both 15 mm tyre gap and 3 mm side clearance (even a razor edge
-# is 0.5 mm short). The tab stops at the last depth that holds both.
+# Stay tabs. With the brace at R 380 the old d=40 / d=44 stations are inside
+# the tyre clearance. The lower slot is the deepest 6 mm slot whose inner face
+# stays at or above 15 mm; the tab ends just past that slot.
 TAB_S = 16.0
 TAB_D0 = 8.0
-TAB_D1 = 44.0
+TAB_D1 = 27.5
 TAB_THK = 3.0
-TAB_SLOT_D = (20.0, 40.0)  # requested lower station was "about 55"
+TAB_SLOT_D = (20.0, 24.0)
 SIDE_CLR = 3.0
 LIP_A = 1.8
 LIP_B = 2.0
@@ -579,15 +583,16 @@ def build_report() -> dict:
     bedA = best_bed(silhouette("A"))
     bedB = best_bed(silhouette("B"))
     s_tdc = (math.pi / 2.0 - PHI0) * R
+    phi_tail = math.degrees(PHI0 + S_B1 / R)
+    to_tdc = 90.0 - phi_tail
     d55 = counterfactual_d55()
     # slot alignment: both layers are cut at the same s in the assembled model
     align = 0.0
     volA = vols["volA"] / 1000.0
     volB = vols["volB"] / 1000.0
     L22, W22 = bedB["at22"][2], bedB["at22"][3]
-    # present the 22 deg box as length x width, longer side first was already stored
     text = (
-        f"REAR-R1 parts=2"
+        f"REAR-R2 parts=2"
         f" volA={volA:.2f}"
         f" volB={volB:.2f}"
         f" minTyreGap={clr['tyre']['gap']:.2f}"
@@ -596,6 +601,11 @@ def build_report() -> dict:
         f" bedB22={max(L22, W22):.1f}x{min(L22, W22):.1f}@22"
         f" bedBbest={bedB['best']['L']:.1f}x{bedB['best']['W']:.1f}@{bedB['best']['ang']:.1f}"
         f" slotAlignErr={align:.3f}"
+        f" tailS={S_B1:.0f}"
+        f" coverB={S_B1 - S_B0:.0f}"
+        f" degToTDC={to_tdc:.2f}"
+        f" sTDC={s_tdc:.1f}"
+        f" outerR={R:.1f}"
     )
     return {
         "text": text,
@@ -604,6 +614,8 @@ def build_report() -> dict:
         "bedA": bedA,
         "bedB": bedB,
         "sTdc": s_tdc,
+        "phiTail": phi_tail,
+        "toTdc": to_tdc,
         "d55": d55,
         "volA": volA,
         "volB": volB,
@@ -733,7 +745,7 @@ def render_rear(path: str):
     tyre_r = TYRE_C + TYRE_RAD * np.cos(circ)
     for ax, s, title in (
         (axes[0], 0.0, "neck at the brace, s=0"),
-        (axes[1], S_B1, "tail, from behind, s=+330"),
+        (axes[1], S_B1, f"tail, from behind, s={S_B1:+.0f}"),
     ):
         a, rad, h = section_params(s)
         wall = LAP_WALL if LAP0 <= s <= LAP1 else WALL
@@ -900,31 +912,40 @@ def write_verification(path: str, info: dict):
     bB = info["bedB"]
     L22, W22 = bB["at22"][2], bB["at22"][3]
     lines = [
-        "Rear mudguard r1 verification (offline, no Onshape)",
+        "Rear mudguard r2 verification (offline, no Onshape)",
         "source: featurescript/rear/rear_mudguard_r1.fs",
         "model: featurescript/rear/rear_r1_model.py",
         "bike: Amflow PR Carbon, 27.5 rear, Maxxis DHR II 27.5x2.5",
-        "layout: Split & Join Planner 1c",
+        "layout: Split & Join Planner 1c, brace gap measured at 30 mm",
         "",
         "COORDINATES",
         "  origin rear axle, +X forward, +Z up, +Y rider's left",
         "  phi from +X toward +Z, 90 deg at TDC",
         f"  phi(brace) = 33.6 deg, s = 0 there, +s toward TDC, R_top = {R:.1f}",
-        f"  TDC falls at s = {info['sTdc']:.1f} with these two numbers.",
-        "  The planner's 'TDC at s +405' would need phi(brace) = 30.5 deg at this R,",
-        "  or R = 411.5 at 33.6 deg. The part is built on 33.6 deg and R 390.",
+        f"  TDC is at s = {info['sTdc']:.1f}. Tail is s {S_B1:.0f}, phi {info['phiTail']:.2f} deg,",
+        f"  {info['toTdc']:.2f} deg before TDC.",
+        f"  B covers {S_B1 - S_B0:.0f} mm of arc, from s {S_B0:.0f} to s {S_B1:.0f}.",
         "",
         "PARTS",
         "  A  s -135 .. +20   outer lap plate, brace slots, front skirt, trim guides",
-        "  B  s -20 .. +330   inner tongue, brace slots, stay tabs, squared tail",
+        f"  B  s -20 .. {S_B1:.0f}   inner tongue, brace slots, stay tabs, squared tail",
         "  lap s -20 .. +20, B inside A, tongue tip butts the shoulder at s -20",
         "  6 ties: 2 brace (the s=±14 pair at each y) + 4 stay (one per tab slot)",
         "",
+        "RADIUS  braceGap drives the solid",
+        f"  measured brace underside to tyre tread = {BRACE_GAP:.0f} mm.",
+        f"  brace underside R = {TYRE_R:.0f} + {BRACE_GAP:.0f} = {R_BRACE:.1f}.",
+        f"  outer lap plate = {R_BRACE:.1f} - pad {PAD:.1f} = {R:.1f}. The pad bears on the brace.",
+        f"  lap plate inner = {R - LAP_WALL:.1f}. Tongue outer = {R - LAP_WALL - LAP_CLEAR:.1f}.",
+        f"  tongue inner = {R - (LAP_WALL + LAP_CLEAR + LAP_WALL):.1f}. Main shell inner = {R - WALL:.1f}.",
+        f"  The tie recess is {RECESS_D:.1f} mm outboard of the tongue inner face, so a flush",
+        f"  tie strand sits at R {R - (LAP_WALL + LAP_CLEAR + LAP_WALL):.1f},",
+        f"  {R - (LAP_WALL + LAP_CLEAR + LAP_WALL) - TYRE_R:.1f} mm off the tyre crown.",
+        "",
         "SECTION",
-        "  rounded U, vertical walls, radial depth 22 mm.",
-        "  22 mm is the depth whose bare annular sector lands on the planner bed target",
-        "  (B shell 245.1 x 244.9 against 245.1 x 245.7). Deeper walls still clear the tyre",
-        "  but push B over the 250 mm bed.",
+        f"  rounded U, vertical walls, radial depth {SECTION_H:.0f} mm.",
+        "  A 22 mm wall at this radius puts the neck inside the 15 mm tyre gap.",
+        "  17 mm keeps the tongue inner wall, the closest point, above 15 mm.",
         "  Neck outer width 52.0 from s -20 to +40 (corner R4).",
         "  Skirt and tail outer width 94 (corner R12).",
         "  Wall 2.5, lap and tabs 3.0. Lap radial clearance 0.2. Rails 3.0 x 1.2 at y=±20",
@@ -933,18 +954,8 @@ def write_verification(path: str, info: dict):
         "CLEARANCE",
         f"  min tyre gap {info['clr']['tyre']['gap']:.2f} mm at {info['clr']['tyre']['where']}",
         f"  min side clearance {info['clr']['side']:.2f} mm at {info['clr']['sideAt']}",
-        "  crown gap at the 2.5 mm wall: 387.5 - 350 = 37.5 mm (the 'about 34' nominal).",
-        f"  a 3 mm tab at the requested d=55 would have tyre gap {info['d55']:.2f} mm",
-        "  and still be 3.0 mm off the stay. A zero-thickness sheet there is about 14.5 mm",
-        "  off the tyre. Both floors cannot be met, so the lower slot is at d=40",
-        "  (spans 37..43) and the tab ends at d=44, where the inner face is still >= 15 mm.",
-        "  Tab width there is about 80 mm, not the 85 mm / 90-95 mm flare at d=50 / d=100.",
-        "",
-        "BRACE PAD",
-        f"  guard outer R {R:.1f} + pad {PAD:.1f} bears at radius {R_BRACE:.1f}.",
-        f"  estimated brace underside (tyre {TYRE_R:.0f} + gap {BRACE_GAP_EST:.0f}) is radius {TYRE_R + BRACE_GAP_EST:.1f}.",
-        f"  if that estimate is right the pad interferes by {R_BRACE - (TYRE_R + BRACE_GAP_EST):.1f} mm.",
-        "  braceGap is a parameter. The solid is built at R 390 as specified.",
+        f"  a 3 mm tab at d=55 is {info['d55']:.2f} mm off the tyre.",
+        f"  Lower slot d={TAB_SLOT_D[1]:.0f} (spans {TAB_SLOT_D[1]-3:.0f} to {TAB_SLOT_D[1]+3:.0f}), tab ends at d={TAB_D1:.1f}.",
         "",
         "VOLUME cm3  (section integral + features, mm3 below)",
         f"  volA {info['volA']:.2f}    volB {info['volB']:.2f}",
@@ -958,16 +969,10 @@ def write_verification(path: str, info: dict):
         "BED  polygon bbox of the side silhouette, rotation about Y",
         f"  A best {bA['best']['L']:.1f} x {bA['best']['W']:.1f} at {bA['best']['ang']:.1f} deg"
         f"   (axis-aligned {bA['axis'][0]:.1f} x {bA['axis'][1]:.1f})",
-        f"  B at a 22 deg world rotation {max(L22,W22):.1f} x {min(L22,W22):.1f} (does not fit)",
+        f"  B at a 22 deg world rotation {max(L22,W22):.1f} x {min(L22,W22):.1f}",
         f"  B best {bB['best']['L']:.1f} x {bB['best']['W']:.1f} at {bB['best']['ang']:.1f} deg",
-        "  The planner's 'about 22 deg' is the arc bisector measured from the brace:",
-        "  (330 + -20) / 2 = 155 mm = 22.8 deg. The chord is perpendicular to that bisector.",
-        "  Laying the chord on the plate diagonal is an 11 deg rotation from the bike axes,",
-        "  and that is the angle that squares the box.",
-        "  Bare 22 mm shell (no ribs, tabs or lip): B 245.1 x 244.9, the planner's 245.1 x 245.7.",
-        "  A at the same depth is about 121, against the planner's 'about 116'.",
-        "  The printed parts include ribs, the lip and the tabs, so the real boxes are the",
-        "  'best' numbers above. Usable bed 250 mm. P1S plate is 256.",
+        "  Usable bed 250 mm. The tail stays at s +330 because the smaller radius",
+        "  and the 17 mm depth both shrink the polygon.",
         "",
         "SLOT ALIGNMENT",
         "  tongue tip and shoulder are both at s=-20, slots of both layers are cut at s=±14.",
@@ -977,7 +982,7 @@ def write_verification(path: str, info: dict):
         "  " + info["text"],
         "",
         "MEASURE ON THE BIKE before printing",
-        "  1. Tyre crown radius (assumed 350) and the true crown-to-brace gap (assumed 38, low confidence).",
+        "  1. Tyre crown radius. The brace gap is now the measured 30 mm; the radius still assumes a 350 mm tyre.",
         "  2. Brace centreline angle from the forward horizontal (assumed 33.6 deg) and where TDC sits in s.",
         "  3. Seatstay inner gap at the brace, at 50 mm down and at 100 mm down (assumed 60 / 90 / 100).",
         "  4. Whether the stay below the brace points at the axle. If it stays higher, d=55 may become usable.",

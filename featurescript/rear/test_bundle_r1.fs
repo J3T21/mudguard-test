@@ -1,13 +1,14 @@
 FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
-// Rear mudguard r1, Amflow PR Carbon, layout 1c from the Split & Join Planner.
-// One custom feature. Origin is the rear axle, +X forward, +Z up, +Y rider's left.
-// phi is from +X toward +Z (90 deg at top dead centre). s is arc length on the
-// outer top, s = 0 on the seatstay brace centreline, +s toward TDC.
-// Offline check (no Onshape): featurescript/rear/rear_r1_model.py
-// Expected at the defaults: parts=2 volA=48.07 volB=114.19 minTyreGap=15.57
-// neckW=52 bedA=123.5x123.6 bedB=247.7x248.0 slotAlignErr=0
+// Rear mudguard r2, Amflow PR Carbon, layout 1c.
+// braceGap drives the radius. Measured brace-to-tyre gap is 30 mm, so the
+// brace underside is at R 380 and the lap plate outer is 380 - 1.5 = 378.5.
+// Origin is the rear axle, +X forward, +Z up, +Y rider's left.
+// phi is from +X toward +Z (90 deg at TDC). s is arc length on the outer top.
+// Offline check: featurescript/rear/rear_r1_model.py
+// Expected: REAR-R2 parts=2 volA=43.60 volB=102.31 minTyreGap=15.29 neckW=52.00
+// bedBbest=243.7x243.5 slotAlignErr=0 tailS=330 degToTDC=6.45 outerR=378.5
 
 function smooth01(u is number) returns number
 {
@@ -195,7 +196,7 @@ function rowsWallA(def is map, sList is array, bottomExtra is number) returns ar
 function numDef(definition is map) returns map
 {
     return {
-        "R" : definition.outerR / millimeter,
+        "R" : (definition.tyreRadius + definition.braceGap - definition.padThk) / millimeter,
         "wall" : definition.wall / millimeter,
         "lapWall" : definition.lapWall / millimeter,
         "depth" : definition.depth / millimeter,
@@ -539,11 +540,11 @@ function cutTailCorners(context is Context, id is Id, def is map)
 function addTabs(context is Context, id is Id, def is map) returns Query
 {
     // flat tabs following the stay inner face, 3 mm thick, 3 mm side clearance.
-    // Lower end is d=44: a 3 mm tab at the requested d=55 cannot keep a 15 mm tyre gap.
+    // At the measured brace (R 380) the lower slot is d=24 and the tab ends at d=27.5.
     const phi = def.phi0 * radian;
     const radial = vector(cos(phi), 0, sin(phi));
     const tang = vector(-sin(phi), 0, cos(phi));
-    const ds = [8, 20, 32, 44];
+    const ds = [8, 16, 22, 27.5];
     for (var side = 0; side < 2; side += 1)
     {
         const sg = (side == 0) ? 1 : -1;
@@ -568,12 +569,12 @@ function addTabs(context is Context, id is Id, def is map) returns Query
 
 function cutTabSlots(context is Context, id is Id, def is map)
 {
-    // one 6.0 (along the stay) x 2.4 slot per station, both stays. Stations d=20 and d=40.
+    // one 6.0 (along the stay) x 2.4 slot per station, both stays. Stations d=20 and d=24.
     const phi = def.phi0 * radian;
     const radial = vector(cos(phi), 0, sin(phi));
     const tang = vector(-sin(phi), 0, cos(phi));
     var n = 0;
-    for (var d in [20, 40])
+    for (var d in [20, 24])
     {
         for (var sg in [1, -1])
         {
@@ -590,18 +591,16 @@ function cutTabSlots(context is Context, id is Id, def is map)
     }
 }
 
-annotation { "Feature Type Name" : "Rear Mudguard R1 (Amflow PR)" }
-export const rearMudguardR1 = defineFeature(function(context is Context, id is Id, definition is map)
+annotation { "Feature Type Name" : "Rear Mudguard R2 (Amflow PR)" }
+export const rearMudguardR2 = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
-        annotation { "Name" : "Outer top radius" }
-        isLength(definition.outerR, { (millimeter) : [340, 390, 430] } as LengthBoundSpec);
         annotation { "Name" : "Wall" }
         isLength(definition.wall, { (millimeter) : [1.6, 2.5, 4] } as LengthBoundSpec);
         annotation { "Name" : "Lap and mount wall" }
         isLength(definition.lapWall, { (millimeter) : [2, 3, 5] } as LengthBoundSpec);
         annotation { "Name" : "Section depth" }
-        isLength(definition.depth, { (millimeter) : [12, 22, 40] } as LengthBoundSpec);
+        isLength(definition.depth, { (millimeter) : [12, 17, 28] } as LengthBoundSpec);
         annotation { "Name" : "Neck width (outer, s -20 to +40)" }
         isLength(definition.neckWidth, { (millimeter) : [40, 52, 60] } as LengthBoundSpec);
         annotation { "Name" : "Skirt and tail width" }
@@ -618,8 +617,8 @@ export const rearMudguardR1 = defineFeature(function(context is Context, id is I
         isLength(definition.tyreWidth, { (millimeter) : [50, 63.5, 80] } as LengthBoundSpec);
         annotation { "Name" : "EVA pad on the brace" }
         isLength(definition.padThk, { (millimeter) : [0, 1.5, 4] } as LengthBoundSpec);
-        annotation { "Name" : "Brace underside to tyre (estimate, not used to set R)" }
-        isLength(definition.braceGap, { (millimeter) : [20, 38, 60] } as LengthBoundSpec);
+        annotation { "Name" : "Brace underside to tyre. Outer R = tyre + this - pad" }
+        isLength(definition.braceGap, { (millimeter) : [20, 30, 50] } as LengthBoundSpec);
         annotation { "Name" : "Lap radial clearance" }
         isLength(definition.lapClear, { (millimeter) : [0, 0.2, 0.6] } as LengthBoundSpec);
         annotation { "Name" : "A front (s)" }
@@ -632,21 +631,21 @@ export const rearMudguardR1 = defineFeature(function(context is Context, id is I
     {
         buildRear(context, id, definition);
     }, {
-        "outerR" : 390 * millimeter, "wall" : 2.5 * millimeter, "lapWall" : 3 * millimeter, "depth" : 22 * millimeter,
+        "wall" : 2.5 * millimeter, "lapWall" : 3 * millimeter, "depth" : 17 * millimeter,
         "neckWidth" : 52 * millimeter, "wideWidth" : 94 * millimeter, "neckCorner" : 4 * millimeter, "wideCorner" : 12 * millimeter,
         "phiBrace" : 33.6 * degree, "tyreRadius" : 350 * millimeter, "tyreWidth" : 63.5 * millimeter,
-        "padThk" : 1.5 * millimeter, "braceGap" : 38 * millimeter, "lapClear" : 0.2 * millimeter,
+        "padThk" : 1.5 * millimeter, "braceGap" : 30 * millimeter, "lapClear" : 0.2 * millimeter,
         "sFront" : -135 * millimeter, "sJoin" : 20 * millimeter, "sTail" : 330 * millimeter
     });
 // One evaluation. The returned string, or the thrown regenError, contains every key number.
 // println is not the result: Onshape drops it when the feature throws.
-function r1Defaults() returns map
+function r2Defaults() returns map
 {
     return {
-        "outerR" : 390 * millimeter, "wall" : 2.5 * millimeter, "lapWall" : 3 * millimeter, "depth" : 22 * millimeter,
+        "wall" : 2.5 * millimeter, "lapWall" : 3 * millimeter, "depth" : 17 * millimeter,
         "neckWidth" : 52 * millimeter, "wideWidth" : 94 * millimeter, "neckCorner" : 4 * millimeter, "wideCorner" : 12 * millimeter,
         "phiBrace" : 33.6 * degree, "tyreRadius" : 350 * millimeter, "tyreWidth" : 63.5 * millimeter,
-        "padThk" : 1.5 * millimeter, "braceGap" : 38 * millimeter, "lapClear" : 0.2 * millimeter,
+        "padThk" : 1.5 * millimeter, "braceGap" : 30 * millimeter, "lapClear" : 0.2 * millimeter,
         "sFront" : -135 * millimeter, "sJoin" : 20 * millimeter, "sTail" : 330 * millimeter
     };
 }
@@ -681,13 +680,13 @@ function bedAt(context is Context, part is Query, ang is number) returns Vector
     return (b.maxCorner - b.minCorner) / millimeter;
 }
 
-annotation { "Feature Type Name" : "Rear mudguard r1 test" }
-export const rearMudguardR1Test = defineFeature(function(context is Context, id is Id, definition is map)
+annotation { "Feature Type Name" : "Rear mudguard r2 test" }
+export const rearMudguardR2Test = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
     }
     {
-        const spec = r1Defaults();
+        const spec = r2Defaults();
         buildRear(context, id + "part", spec);
         const def = numDef(spec);
         const qA = bodyAt(context, worldPt(def, -80, 0, 1));
@@ -696,7 +695,6 @@ export const rearMudguardR1Test = defineFeature(function(context is Context, id 
         const vA = evVolume(context, { "entities" : qA }) / cm3;
         const vB = evVolume(context, { "entities" : qB }) / cm3;
 
-        // DHR II as a torus about the axle, same construction as the front-guard checks
         const tyreR = 31.75;
         const tyreC = 350 - tyreR;
         const sk = newSketchOnPlane(context, id + "tySk", { "sketchPlane" : plane(vector(0, 0, 0) * millimeter, vector(1, 0, 0), vector(0, 1, 0)) });
@@ -716,7 +714,6 @@ export const rearMudguardR1Test = defineFeature(function(context is Context, id 
         if (size(hits) > 0)
             neck = 2 * (40 - hits[0].distance / millimeter);
 
-        // A slot is 2.7 along s at depth 1.5; B slot is 2.4 along s at depth 4.7. Centers should match.
         var align = 0;
         for (var y in [12, -12])
         {
@@ -764,7 +761,10 @@ export const rearMudguardR1Test = defineFeature(function(context is Context, id 
             }
         }
         const nParts = size(evaluateQuery(context, qAllModifiableSolidBodies()));
-        const msg = "REAR-R1 parts=" ~ nParts
+        const sTdc = (PI / 2 - def.phi0) * def.R;
+        const phiTail = (def.phi0 + def.sTail / def.R) * 180 / PI;
+        const toTdc = 90 - phiTail;
+        const msg = "REAR-R2 parts=" ~ nParts
             ~ " volA=" ~ roundToPrecision(vA, 2)
             ~ " volB=" ~ roundToPrecision(vB, 2)
             ~ " minTyreGap=" ~ roundToPrecision(gap, 2)
@@ -772,14 +772,19 @@ export const rearMudguardR1Test = defineFeature(function(context is Context, id 
             ~ " bedA=" ~ roundToPrecision(max(aU, aV), 1) ~ "x" ~ roundToPrecision(min(aU, aV), 1) ~ "@" ~ aAng
             ~ " bedB22=" ~ roundToPrecision(max(b22u, b22v), 1) ~ "x" ~ roundToPrecision(min(b22u, b22v), 1) ~ "@22"
             ~ " bedBbest=" ~ roundToPrecision(max(bestU, bestV), 1) ~ "x" ~ roundToPrecision(min(bestU, bestV), 1) ~ "@" ~ bestAng
-            ~ " slotAlignErr=" ~ roundToPrecision(align, 3);
-        // Wide band centred on the offline estimate (48.07 / 114.19 cm3).
+            ~ " slotAlignErr=" ~ roundToPrecision(align, 3)
+            ~ " tailS=" ~ roundToPrecision(def.sTail, 0)
+            ~ " coverB=" ~ roundToPrecision(def.sTail + 20, 0)
+            ~ " degToTDC=" ~ roundToPrecision(toTdc, 2)
+            ~ " sTDC=" ~ roundToPrecision(sTdc, 1)
+            ~ " outerR=" ~ roundToPrecision(def.R, 1);
+        // +/-8% around the offline estimate, 43.60 and 102.31 cm3.
         var bad = "";
         if (nParts != 2)
             bad = bad ~ " parts";
-        if (vA < 44.22 || vA > 51.92)
+        if (vA < 40.11 || vA > 47.09)
             bad = bad ~ " volA";
-        if (vB < 105.05 || vB > 123.33)
+        if (vB < 94.13 || vB > 110.49)
             bad = bad ~ " volB";
         if (gap < 14.5)
             bad = bad ~ " tyre";
