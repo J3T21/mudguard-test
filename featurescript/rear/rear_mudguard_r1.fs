@@ -1,7 +1,10 @@
 FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
-// Rear mudguard r2, Amflow PR Carbon, layout 1c.
+// Rear mudguard r2.1, Amflow PR Carbon, layout 1c.
+// r2.1: stay tabs are 3 mm plates with a web to B's wall behind A, grooves cut 0.5 through
+// A's inner face, shoulder is an open perimeter lip, and every added solid stops >= 0.3 short
+// of or runs >= 0.5 past the face it meets (no shared wall-bottom planes, no 2-section chords).
 // braceGap drives the radius. Measured brace-to-tyre gap is 30 mm, so the
 // brace underside is at R 380 and the lap plate outer is 380 - 1.5 = 378.5.
 // Origin is the rear axle, +X forward, +Z up, +Y rider's left.
@@ -187,7 +190,8 @@ function rowsWallA(def is map, sList is array, bottomExtra is number) returns ar
     for (var s in sList)
     {
         const sec = sectionAt(def, s);
-        const q = (s >= -20) ? def.lapWall : def.wall;
+        // r2.1: smooth 2.5 -> 3.0 over s -37..-20 instead of a step between two stations
+        const q = def.wall + (def.lapWall - def.wall) * smooth01((s + 37) / 17);
         rows = append(rows, [s, q, sec.h + bottomExtra]);
     }
     return rows;
@@ -213,6 +217,37 @@ function numDef(definition is map) returns map
     };
 }
 
+// r2.1: loft stations. 10 mm where the section is constant, 2.5 mm through the smoothstep blends,
+// so the spline through the sections follows sectionAt (offline natural-spline check: <= 0.1 mm).
+function skirtStations(sF is number) returns array
+{
+    var ss = [];
+    var s = sF;
+    while (s < -55 - 0.01)
+    {
+        ss = append(ss, s);
+        s += 10;
+    }
+    for (var k = 0; k <= 14; k += 1)
+        ss = append(ss, -55 + 2.5 * k);
+    return ss;
+}
+
+function tailStations(sT is number) returns array
+{
+    var ss = [];
+    for (var k = 0; k <= 18; k += 1)
+        ss = append(ss, 40 + 2.5 * k);
+    var s = 95;
+    while (s < sT - 2.5)
+    {
+        ss = append(ss, s);
+        s += 10;
+    }
+    ss = append(ss, sT);
+    return ss;
+}
+
 function buildRear(context is Context, id is Id, definition is map)
 {
     const def = numDef(definition);
@@ -227,39 +262,64 @@ function buildRear(context is Context, id is Id, definition is map)
     const pB = worldPt(def, 150, 0, 1);
 
     // ----- A shell, sFront .. sJoin -----
-    const sA = [sF, -110, -85, -55, -37, -20, -10, 0, 10, sJ];
-    const aSolid = loftProfiles(context, id + "aOut", def, rowsOf(sA, 0, h));
-    const aHole = loftProfiles(context, id + "aHole", def, rowsWallA(def, sA, 1));
-    subtractTool(context, id + "aSub", aSolid, aHole);
-    // shoulder filler just ahead of s=-20, overlapping the inner wall by 0.4 mm
+    // r2.1: two lofts that meet on the identical s=-20 section. The lap loft has a constant
+    // section, so its walls stay exactly at |y| 26 / 23 (a single loft through the blend stations
+    // bowed them by up to 0.35 mm). The skirt loft uses 2.5 mm stations through the -55..-20 blend.
+    const sSk = skirtStations(sF);
+    const aSkSolid = loftProfiles(context, id + "aOut", def, rowsOf(sSk, 0, h));
+    const aSkHole = loftProfiles(context, id + "aHole", def, rowsWallA(def, sSk, 1));
+    subtractTool(context, id + "aSub", aSkSolid, aSkHole);
+    const sLap = [-20, -10, 0, 10, sJ];
+    const aLpSolid = loftProfiles(context, id + "aOutL", def, rowsOf(sLap, 0, h));
+    const aLpHole = loftProfiles(context, id + "aHoleL", def, rowsOf(sLap, def.lapWall, h + 1));
+    subtractTool(context, id + "aSubL", aLpSolid, aLpHole);
+    unionInto(context, id + "aU", aSkSolid, aLpSolid);
+    // r2.1 shoulder: perimeter lip on the crown and walls only, s -23..-20, channel open.
+    // Outer inset 1.2 (1.3+ into the A wall), inner inset 6.2 (flush with the tongue inner face).
+    // The side legs stop 0.5 above the wall bottom; the hole runs 1 mm past it.
+    const shS = [-23, -21.5, -20];
     var shRows = [];
-    for (var s in [-23, -21.5, -20])
+    var shHoleRows = [];
+    for (var s in shS)
     {
         const sec = sectionAt(def, s);
-        shRows = append(shRows, [s, def.wall - 0.4, sec.h]);
+        shRows = append(shRows, [s, 1.2, sec.h - 0.5]);
+        shHoleRows = append(shHoleRows, [s, qTongueIn, sec.h + 1]);
     }
     const shoulder = loftProfiles(context, id + "sh", def, shRows);
+    const shHole = loftProfiles(context, id + "shHole", def, shHoleRows);
+    subtractTool(context, id + "shSub", shoulder, shHole);
     unionInto(context, id + "shU", bodyAt(context, pA), shoulder);
 
     // ----- B shell, bridge, tongue -----
-    const sB = [sJ, 40, 60, 85, 120, 160, 200, 240, 280, 310, sT];
+    // r2.1: constant neck loft sJoin..40, then the blend and tail on 2.5 / 10 mm stations,
+    // meeting on the identical s=40 section.
+    const sBn = [sJ, 30, 40];
+    const bnSolid = loftProfiles(context, id + "bOutN", def, rowsOf(sBn, 0, h));
+    const bnHole = loftProfiles(context, id + "bHoleN", def, rowsOf(sBn, def.wall, h + 1));
+    subtractTool(context, id + "bSubN", bnSolid, bnHole);
+    const sB = tailStations(sT);
     const bSolid = loftProfiles(context, id + "bOut", def, rowsOf(sB, 0, h));
     const bHole = loftProfiles(context, id + "bHole", def, rowsOf(sB, def.wall, h + 1));
     subtractTool(context, id + "bSub", bSolid, bHole);
+    unionInto(context, id + "bU0", bnSolid, bSolid);
 
     const sTg = [-20, -10, 0, 10, sJ + 1.5];
     const tgSolid = loftProfiles(context, id + "tgOut", def, rowsOf(sTg, qTongue, h));
     const tgHole = loftProfiles(context, id + "tgHole", def, rowsOf(sTg, qTongueIn, h + 1));
     subtractTool(context, id + "tgSub", tgSolid, tgHole);
 
-    // thick bridge sJoin .. sJoin+6 so the tongue (depth 3.2..6.2) joins the 2.5 mm shell
-    const sBr = [sJ, sJ + 6];
-    const brSolid = loftProfiles(context, id + "brOut", def, rowsOf(sBr, 0, h));
+    // r2.1 bridge sJoin .. sJoin+6 joins the tongue (depth 3.2..6.2) to the 2.5 mm shell.
+    // It is an inset ring: outer inset 1.5 (1 mm into B's wall, no chord against B's outer skin),
+    // legs stop 0.5 above the wall bottom, three stations.
+    const sBr = [sJ, sJ + 3, sJ + 6];
+    const brSolid = loftProfiles(context, id + "brOut", def, rowsOf(sBr, 1.5, h - 0.5));
     const brHole = loftProfiles(context, id + "brHole", def, rowsOf(sBr, qTongueIn + 0.4, h + 1));
     subtractTool(context, id + "brSub", brSolid, brHole);
 
-    unionInto(context, id + "bU1", bodyAt(context, pB), tgSolid);
+    // bridge first (it overlaps the shell), then the tongue (it overlaps the bridge)
     unionInto(context, id + "bU2", bodyAt(context, pB), brSolid);
+    unionInto(context, id + "bU1", bodyAt(context, pB), tgSolid);
 
     // ----- grooves in A, rails on B -----
     subtractTool(context, id + "gvC", bodyAt(context, pA), addGrooves(context, id + "gv", def));
@@ -294,7 +354,8 @@ function addGrooves(context is Context, id is Id, def is map) returns Query
 {
     // 3.6 x 1.5, open through A's rear face. Two rails' worth, lofted along the lap.
     var profs = [];
-    const ss = [-20, -10, 0, 10, 20.6];
+    // r2.1: s -20.5 (0.5 into the shoulder lip) to 20.6 (0.6 past A's end), depth 1.5..3.5 (0.5 through A's inner face)
+    const ss = [-20.5, -10, 0, 10, 20.6];
     for (var i = 0; i < size(ss); i += 1)
     {
         const fr = arcFrame(def, ss[i]);
@@ -304,9 +365,9 @@ function addGrooves(context is Context, id is Id, def is map) returns Query
         // two rectangles, one loop each is not a single region if drawn together without being separate.
         // draw one rectangle per groove by making a single profile per side via two sketches stacked in the loft pairs.
         skLineSegment(sk, "a", { "start" : vector(20 - 1.8, 1.5) * mm, "end" : vector(20 + 1.8, 1.5) * mm });
-        skLineSegment(sk, "b", { "start" : vector(20 + 1.8, 1.5) * mm, "end" : vector(20 + 1.8, 3.05) * mm });
-        skLineSegment(sk, "c", { "start" : vector(20 + 1.8, 3.05) * mm, "end" : vector(20 - 1.8, 3.05) * mm });
-        skLineSegment(sk, "d", { "start" : vector(20 - 1.8, 3.05) * mm, "end" : vector(20 - 1.8, 1.5) * mm });
+        skLineSegment(sk, "b", { "start" : vector(20 + 1.8, 1.5) * mm, "end" : vector(20 + 1.8, 3.5) * mm });
+        skLineSegment(sk, "c", { "start" : vector(20 + 1.8, 3.5) * mm, "end" : vector(20 - 1.8, 3.5) * mm });
+        skLineSegment(sk, "d", { "start" : vector(20 - 1.8, 3.5) * mm, "end" : vector(20 - 1.8, 1.5) * mm });
         skSolve(sk);
         profs = append(profs, qSketchRegion(sid));
     }
@@ -316,7 +377,7 @@ function addGrooves(context is Context, id is Id, def is map) returns Query
     {
         const fr2 = arcFrame(def, ss[j]);
         const sid2 = id + ("skn" ~ j);
-        rectSketch(context, sid2, fr2.plane, -20 - 1.8, 1.5, -20 + 1.8, 3.05);
+        rectSketch(context, sid2, fr2.plane, -20 - 1.8, 1.5, -20 + 1.8, 3.5);
         profs2 = append(profs2, qSketchRegion(sid2));
     }
     opLoft(context, id + "loft2", { "profileSubqueries" : profs2, "bodyType" : ToolBodyType.SOLID });
@@ -326,7 +387,7 @@ function addGrooves(context is Context, id is Id, def is map) returns Query
 
 function addRails(context is Context, id is Id, def is map, qTop is number) returns Query
 {
-    // 3.0 wide, 1.2 proud of the tongue outer, 0.3 embedded, 4 mm lead-in
+    // 3.0 wide, 1.2 proud of the tongue outer, 0.5 embedded, 4 mm lead-in
     const ss = [-20, -16, 0, 21];
     const heights = [0.2, 1.2, 1.2, 1.2];
     for (var side = 0; side < 2; side += 1)
@@ -338,7 +399,7 @@ function addRails(context is Context, id is Id, def is map, qTop is number) retu
             const fr = arcFrame(def, ss[i]);
             const sid = id + ("s" ~ side ~ "k" ~ i);
             const top = qTop - heights[i];
-            const bot = qTop + 0.3;
+            const bot = qTop + 0.5;
             rectSketch(context, sid, fr.plane, y - 1.5, top, y + 1.5, bot);
             profs = append(profs, qSketchRegion(sid));
         }
@@ -373,9 +434,10 @@ function cutBraceSlots(context is Context, id is Id, def is map, target is Query
 
 function addRecess(context is Context, id is Id, def is map, qInner is number) returns Query
 {
-    // 6.2 wide x 1.3 deep on the tongue underside, flush seat for the tie strand
+    // r2.1: 6.6 wide (0.3 past each slot side) x 1.3 deep on the tongue underside, cut 0.5 past
+    // the inner face, s -15.7..15.7 so it runs 0.5 past the far edge of each B slot
     const y0 = qInner - 1.3;
-    const ss = [-14, 0, 14];
+    const ss = [-15.7, 0, 15.7];
     for (var side = 0; side < 2; side += 1)
     {
         const y = (side == 0) ? 12 : -12;
@@ -383,7 +445,7 @@ function addRecess(context is Context, id is Id, def is map, qInner is number) r
         for (var i = 0; i < size(ss); i += 1)
         {
             const fr = arcFrame(def, ss[i]);
-            rectSketch(context, id + ("sk" ~ side ~ i), fr.plane, y - 3.1, y0, y + 3.1, qInner + 0.2);
+            rectSketch(context, id + ("sk" ~ side ~ i), fr.plane, y - 3.3, y0, y + 3.3, qInner + 0.5);
             profs = append(profs, qSketchRegion(id + ("sk" ~ side ~ i)));
         }
         opLoft(context, id + ("loft" ~ side), { "profileSubqueries" : profs, "bodyType" : ToolBodyType.SOLID });
@@ -394,17 +456,18 @@ function addRecess(context is Context, id is Id, def is map, qInner is number) r
 
 function addBraceBosses(context is Context, id is Id, def is map) returns Query
 {
-    // 1 mm proud on the +s side of each brace slot, on A's outer skin
+    // 1 mm proud on the +s side of each brace slot, on A's outer skin.
+    // r2.1: start 0.5 past the slot edge, 3 mm long, so the s=14 pair ends at 18.85 (A ends at 20).
     var tools = [];
     var n = 0;
     for (var s in [14, -14])
     {
-        const sBoss = s + 1.35 + 2;
+        const sBoss = s + 1.35 + 0.5;
         const fr = arcFrame(def, sBoss);
         for (var y in [12, -12])
         {
-            rectSketch(context, id + ("sk" ~ n), fr.plane, y - 4, -1.0, y + 4, 0.3);
-            tools = append(tools, extrudeRegion(context, id + ("ex" ~ n), id + ("sk" ~ n), fr.tang, 4));
+            rectSketch(context, id + ("sk" ~ n), fr.plane, y - 4, -1.0, y + 4, 0.5);
+            tools = append(tools, extrudeRegion(context, id + ("ex" ~ n), id + ("sk" ~ n), fr.tang, 3));
             n += 1;
         }
     }
@@ -428,8 +491,8 @@ function addRibRun(context is Context, id is Id, def is map, spans is array) ret
             for (var s in [s0, mid, s1])
             {
                 const fr = arcFrame(def, s);
-                // 3 mm wide, 3 mm proud, 0.6 mm embedded so the union is solid
-                rectSketch(context, id + ("sk" ~ n ~ k), fr.plane, y - 1.5, -3, y + 1.5, 0.6);
+                // 3 mm wide, 3 mm proud, 1.0 mm embedded (>= 0.7 even where y=23.5 crosses the neck R4 corner)
+                rectSketch(context, id + ("sk" ~ n ~ k), fr.plane, y - 1.5, -3, y + 1.5, 1.0);
                 profs = append(profs, qSketchRegion(id + ("sk" ~ n ~ k)));
                 k += 1;
             }
@@ -450,7 +513,7 @@ function addTrims(context is Context, id is Id, def is map) returns Query
     for (var s in [-120, -100, -80, -60])
     {
         const fr = arcFrame(def, s - 0.3);
-        rectSketch(context, id + ("sk" ~ n), fr.plane, -18, -0.4, 18, 0.15);
+        rectSketch(context, id + ("sk" ~ n), fr.plane, -18, -0.4, 18, 0.5); // r2.1: 0.5 embed (was 0.15)
         tools = append(tools, extrudeRegion(context, id + ("ex" ~ n), id + ("sk" ~ n), fr.tang, 0.6));
         n += 1;
     }
@@ -463,16 +526,18 @@ function addEndLip(context is Context, id is Id, def is map, s is number, lip is
     const sec = sectionAt(def, s);
     const half = sec.a - sec.r - 1;
     // start just inside the end and extrude out past it
-    const origin = fr.origin - fr.tang * (sign * 0.3 * millimeter);
+    // r2.1: 0.5 back into the shell along s and 0.5 radially into the crown (was 0.3 / 0.3)
+    const origin = fr.origin - fr.tang * (sign * 0.5 * millimeter);
     const pl = plane(origin, fr.tang, vector(0, 1, 0));
-    rectSketch(context, id + "sk", pl, -half, -lip, half, 0.3);
-    return extrudeRegion(context, id + "ex", id + "sk", fr.tang * sign, lip + 0.3);
+    rectSketch(context, id + "sk", pl, -half, -lip, half, 0.5);
+    return extrudeRegion(context, id + "ex", id + "sk", fr.tang * sign, lip + 0.5);
 }
 
 function addHem(context is Context, id is Id, def is map) returns Query
 {
-    // 1.8 mm lip along both lower edges of the skirt
-    const ss = [def.sFront, -110, -85, -55, -20];
+    // 1.8 mm lip along both lower edges of the skirt. r2.1: runs 0.5 below the wall bottom so it
+    // does not share the wall-bottom face, and uses the shell's own stations.
+    const ss = skirtStations(def.sFront); // the shell's own stations, so the hem follows the same spline
     for (var side = 0; side < 2; side += 1)
     {
         const sg = (side == 0) ? 1 : -1;
@@ -481,11 +546,11 @@ function addHem(context is Context, id is Id, def is map) returns Query
         {
             const sec = sectionAt(def, ss[i]);
             const fr = arcFrame(def, ss[i]);
-            const xIn = sg * (sec.a - 1.2);
+            const xIn = sg * (sec.a - 1.8); // r2.1: 0.6 off the shoulder lip's outer leg face (a-1.2)
             const xLip = sg * (sec.a + 0.6);
             const x0 = min(xIn, xLip);
             const x1 = max(xIn, xLip);
-            rectSketch(context, id + ("sk" ~ side ~ i), fr.plane, x0, sec.h - 1.8, x1, sec.h);
+            rectSketch(context, id + ("sk" ~ side ~ i), fr.plane, x0, sec.h - 1.8, x1, sec.h + 0.5);
             profs = append(profs, qSketchRegion(id + ("sk" ~ side ~ i)));
         }
         opLoft(context, id + ("loft" ~ side), { "profileSubqueries" : profs, "bodyType" : ToolBodyType.SOLID });
@@ -496,41 +561,33 @@ function addHem(context is Context, id is Id, def is map) returns Query
 
 function cutTailCorners(context is Context, id is Id, def is map)
 {
-    // R5 in plan where the squared end meets each side wall
+    // R5 in plan where the squared end meets each side wall.
+    // r2.1: the sketch plane is tangent at the end itself, so the tool's x=0 face is exactly the
+    // end plane; the offcut runs 1 mm past the end and 1 mm past the side wall.
     const sEnd = def.sTail;
-    const sMid = sEnd - 2.5;
     const sec = sectionAt(def, sEnd);
     const a = sec.a;
-    const fr = arcFrame(def, sMid);
+    const fr = arcFrame(def, sEnd);
     const origin = fr.radial * ((def.R + 6) * millimeter);
     const pl = plane(origin, fr.radial, fr.tang);
-    // sketch x along +s, sketch y = -world Y
+    // sketch x along +s, sketch y = radial x tang = -world Y
     for (var side = 0; side < 2; side += 1)
     {
         const sg = (side == 0) ? 1 : -1;
         const sk = newSketchOnPlane(context, id + ("sk" ~ side), { "sketchPlane" : pl });
         const mm = millimeter;
-        // fillet centre at s = sEnd-5, |y| = a-5. In this plane sMid maps to sketch x = 0.
-        const cx = (sEnd - 5) - sMid;
-        const cy = -sg * (a - 5);
-        const cornerX = sEnd - sMid;
-        const cornerY = -sg * a;
         const c45 = 0.70710678118;
-        // arc from the side wall to the end plane, then the two straight edges of the offcut
-        const arcEnd = vector(cornerX, cy);
-        const arcStart = vector(cx, cornerY);
-        if (sg == 1)
-        {
-            skArc(sk, "a", { "start" : arcStart * mm, "mid" : vector(cx + 5 * c45, cy - 5 * c45) * mm, "end" : arcEnd * mm });
-            skLineSegment(sk, "e", { "start" : arcEnd * mm, "end" : vector(cornerX, cornerY) * mm });
-            skLineSegment(sk, "s", { "start" : vector(cornerX, cornerY) * mm, "end" : arcStart * mm });
-        }
-        else
-        {
-            skArc(sk, "a", { "start" : arcStart * mm, "mid" : vector(cx + 5 * c45, cy + 5 * c45) * mm, "end" : arcEnd * mm });
-            skLineSegment(sk, "e", { "start" : arcEnd * mm, "end" : vector(cornerX, cornerY) * mm });
-            skLineSegment(sk, "s", { "start" : vector(cornerX, cornerY) * mm, "end" : arcStart * mm });
-        }
+        const cx = -5;
+        const cy = -sg * (a - 5);
+        const wallY = -sg * a;
+        const outY = -sg * (a + 1);
+        const arcStart = vector(cx, wallY);
+        const arcEnd = vector(0, cy);
+        skArc(sk, "a", { "start" : arcStart * mm, "mid" : vector(cx + 5 * c45, cy - sg * 5 * c45) * mm, "end" : arcEnd * mm });
+        skLineSegment(sk, "e1", { "start" : arcEnd * mm, "end" : vector(1, cy) * mm });
+        skLineSegment(sk, "e2", { "start" : vector(1, cy) * mm, "end" : vector(1, outY) * mm });
+        skLineSegment(sk, "e3", { "start" : vector(1, outY) * mm, "end" : vector(cx, outY) * mm });
+        skLineSegment(sk, "e4", { "start" : vector(cx, outY) * mm, "end" : arcStart * mm });
         skSolve(sk);
         const tool = extrudeRegion(context, id + ("ex" ~ side), id + ("sk" ~ side), -fr.radial, def.depth + 14);
         subtractTool(context, id + ("cut" ~ side), bodyAt(context, worldPt(def, 150, 0, 1)), tool);
@@ -539,47 +596,64 @@ function cutTailCorners(context is Context, id is Id, def is map)
 
 function addTabs(context is Context, id is Id, def is map) returns Query
 {
-    // flat tabs following the stay inner face, 3 mm thick, 3 mm side clearance.
-    // At the measured brace (R 380) the lower slot is d=24 and the tab ends at d=27.5.
+    // r2.1: a 3 mm plate per stay, |y| yo-3..yo, d 8..27.5, x -16..+30 along the brace tangent.
+    // The plate clears A's lap wall (|y| 26) by >= 0.4 mm. A web at x 21..30 (behind A, which ends
+    // at s 20) joins it to B's neck wall: |y| 25 (1 mm into the wall) to 0.5 into the plate, d 8..18
+    // (the wall bottom is at d 18.5 there, and the straight frame sits ~1.2 mm higher at x 30).
     const phi = def.phi0 * radian;
     const radial = vector(cos(phi), 0, sin(phi));
     const tang = vector(-sin(phi), 0, cos(phi));
-    const ds = [8, 16, 22, 27.5];
+    var made = [];
     for (var side = 0; side < 2; side += 1)
     {
         const sg = (side == 0) ? 1 : -1;
+        // plate: yo is linear in d, so two stations make it exact
         var profs = [];
-        for (var i = 0; i < size(ds); i += 1)
+        var k = 0;
+        for (var d in [8, 27.5])
         {
-            const d = ds[i];
             const yo = stayGap(d) / 2 - 3;
             const origin = radial * ((def.R + def.pad - d) * millimeter);
             // plane normal is radial; sketch x = tang, sketch y = radial x tang = -Y
             const pl = plane(origin, radial, tang);
-            const y0 = -sg * yo;
-            const y1 = -sg * 16; // 16 mm from centre, buried in the shell wall
-            rectSketch(context, id + ("sk" ~ side ~ i), pl, -16, min(y0, y1), 16, max(y0, y1));
-            profs = append(profs, qSketchRegion(id + ("sk" ~ side ~ i)));
+            rectSketch(context, id + ("pk" ~ side ~ k), pl, -16, min(-sg * yo, -sg * (yo - 3)), 30, max(-sg * yo, -sg * (yo - 3)));
+            profs = append(profs, qSketchRegion(id + ("pk" ~ side ~ k)));
+            k += 1;
         }
-        opLoft(context, id + ("loft" ~ side), { "profileSubqueries" : profs, "bodyType" : ToolBodyType.SOLID });
+        opLoft(context, id + ("plate" ~ side), { "profileSubqueries" : profs, "bodyType" : ToolBodyType.SOLID });
+        made = append(made, qCreatedBy(id + ("plate" ~ side), EntityType.BODY));
+        var wprofs = [];
+        k = 0;
+        for (var d in [8, 18])
+        {
+            const yIn = stayGap(d) / 2 - 3 - 3 + 0.5;
+            const origin = radial * ((def.R + def.pad - d) * millimeter);
+            const pl = plane(origin, radial, tang);
+            rectSketch(context, id + ("wk" ~ side ~ k), pl, 21, min(-sg * 25, -sg * yIn), 30, max(-sg * 25, -sg * yIn));
+            wprofs = append(wprofs, qSketchRegion(id + ("wk" ~ side ~ k)));
+            k += 1;
+        }
+        opLoft(context, id + ("web" ~ side), { "profileSubqueries" : wprofs, "bodyType" : ToolBodyType.SOLID });
+        made = append(made, qCreatedBy(id + ("web" ~ side), EntityType.BODY));
     }
     opDeleteBodies(context, id + "del", { "entities" : qCreatedBy(id, EntityType.BODY)->qSketchFilter(SketchObject.YES) });
-    return qUnion([qCreatedBy(id + "loft0", EntityType.BODY), qCreatedBy(id + "loft1", EntityType.BODY)]);
+    return qUnion(made);
 }
 
 function cutTabSlots(context is Context, id is Id, def is map)
 {
-    // one 6.0 (along the stay) x 2.4 slot per station, both stays. Stations d=20 and d=24.
+    // one 6.0 (along the stay) x 2.4 slot per station, both stays.
+    // r2.1: stations d=13.5 and d=22.5 (spans 10.5..16.5 and 19.5..25.5). r2 had d=20 and 24, which overlapped.
     const phi = def.phi0 * radian;
     const radial = vector(cos(phi), 0, sin(phi));
     const tang = vector(-sin(phi), 0, cos(phi));
     var n = 0;
-    for (var d in [20, 24])
+    for (var d in [13.5, 22.5])
     {
         for (var sg in [1, -1])
         {
             const yo = stayGap(d) / 2 - 3;
-            const origin = radial * ((def.R + def.pad - d) * millimeter) + vector(0, sg * (yo - 8), 0) * millimeter;
+            const origin = radial * ((def.R + def.pad - d) * millimeter) + vector(0, sg * (yo - 4), 0) * millimeter; // r2.1: starts 1 mm inboard of the plate, 1 mm outside A's wall
             // extrude along +Y * sg, sketch in the plane normal to Y
             const pl = plane(origin, vector(0, sg, 0), tang);
             // sketch x along tang (s), sketch y = Y x tang = radial, so +sketch y is outward

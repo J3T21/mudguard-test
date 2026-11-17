@@ -41,7 +41,10 @@ S_B0, S_B1 = -20.0, 330.0
 NECK0, NECK1 = -20.0, 40.0
 LAP0, LAP1 = -20.0, 20.0
 SHOULDER_S = -20.0
-SHOULDER_THK = 2.5
+SHOULDER_THK = 3.0  # r2.1: perimeter lip s -23..-20 on walls and crown, channel open
+SHOULDER_Q0 = 1.2  # outer inset, 1.3 mm into the A wall
+SHOULDER_Q1 = 6.2  # inner inset, flush with the tongue inner face
+SHOULDER_SHORT = 0.5  # lip walls stop 0.5 above the wall bottom
 
 NECK_A = 26.0  # outer half-width, 52 mm
 WIDE_A = 47.0  # 94 mm, inside the 90-95 band and 3 mm off a 100 mm gap
@@ -65,8 +68,10 @@ SLOT_L = 6.0
 SLOT_A = 2.7
 SLOT_B = 2.4
 SLOT_R = 0.8
-RECESS_W, RECESS_D = 6.2, 1.3
+RECESS_W, RECESS_D = 6.6, 1.3  # r2.1: 0.3 wider than the slot each side
+RECESS_S = 15.7  # runs 0.5 past the far edge of each B slot
 BOSS = 1.0
+BOSS_LEN = 3.0  # r2.1: 3 mm along s, starts 0.5 past the slot so it stays on A (s<20)
 RAIL_Y, RAIL_W, RAIL_H = 20.0, 3.0, 1.2
 GROOVE_W, GROOVE_D = 3.6, 1.5
 RAIL_CHAMFER = 4.0
@@ -75,10 +80,16 @@ RAIL_CHAMFER = 4.0
 # the tyre clearance. The lower slot is the deepest 6 mm slot whose inner face
 # stays at or above 15 mm; the tab ends just past that slot.
 TAB_S = 16.0
+# r2.1: the tab is a straight 3 mm plate in the brace-ray frame, x -16..+30 along the brace
+# tangent. x 21..30 is behind A (A ends at s 20) and a web joins the plate to B's neck wall.
+TAB_X0, TAB_X1 = -16.0, 30.0
+WEB_X0, WEB_X1 = 21.0, 30.0
+WEB_D1 = 18.0
+WEB_Y_IN = 25.0  # 1 mm into B's wall (|y| 23.5..26)
 TAB_D0 = 8.0
 TAB_D1 = 27.5
 TAB_THK = 3.0
-TAB_SLOT_D = (20.0, 24.0)
+TAB_SLOT_D = (13.5, 22.5)  # r2.1: r2 had 20/24, which overlapped
 SIDE_CLR = 3.0
 LIP_A = 1.8
 LIP_B = 2.0
@@ -302,7 +313,8 @@ def integrate_shell(s0: float, s1: float, wall_of, step_s: float = 2.0) -> float
 
 
 def wall_A(s: float) -> float:
-    return LAP_WALL if s >= LAP0 else WALL
+    # r2.1: matches the FeatureScript, 2.5 -> 3.0 by smoothstep over s -37..-20
+    return WALL + (LAP_WALL - WALL) * smooth((s + 37.0) / 17.0)
 
 
 def wall_B(s: float) -> float:
@@ -327,9 +339,15 @@ def feature_volumes() -> dict:
         tongue += 0.5 * (moms[i] + moms[i + 1]) * float(ss[i + 1] - ss[i])
     # shoulder bulkhead fills A's cavity just ahead of the lap
     a, rad, h = section_params(SHOULDER_S)
-    shoulder = cavity_factor(a, rad, h, WALL) * SHOULDER_THK
+    # lip ring between inset WALL (the part inside the wall adds nothing) and SHOULDER_Q1,
+    # with its two side legs stopping SHOULDER_SHORT above the wall bottom
+    shoulder = (cavity_factor(a, rad, h, WALL) - cavity_factor(a, rad, h, SHOULDER_Q1)) * SHOULDER_THK
+    shoulder -= 2.0 * (SHOULDER_Q1 - WALL) * SHOULDER_SHORT * SHOULDER_THK
     # grooves, two of them, through the lap plate only
     groove = 2.0 * GROOVE_W * GROOVE_D * (LAP1 - LAP0) * (R - (LAP_WALL - GROOVE_D / 2.0)) / R
+    # r2.1: groove depth 1.5..3.5 (0.5 through A's inner face) and starts at s -20.5,
+    # a 0.5 mm pocket in the shoulder lip
+    groove += 2.0 * GROOVE_W * 2.0 * 0.5
     # rails with a linear lead-in chamfer over RAIL_CHAMFER
     rail_len = (LAP1 - LAP0) - RAIL_CHAMFER
     rail = 2.0 * RAIL_W * RAIL_H * (rail_len + 0.5 * RAIL_CHAMFER) * (R - LAP_WALL) / R
@@ -339,11 +357,11 @@ def feature_volumes() -> dict:
     slots_A = 4.0 * area_A * LAP_WALL
     slots_B = 4.0 * area_B * LAP_WALL
     # recess on the tongue underside, minus the part already removed by B's slots
-    recess_len = 2.0 * SLOT_S
+    recess_len = 2.0 * RECESS_S
     recess = 2.0 * RECESS_W * RECESS_D * recess_len * (R - (LAP_WALL + LAP_CLEAR + LAP_WALL - RECESS_D / 2.0)) / R
-    recess_overlap = 4.0 * min(SLOT_L, RECESS_W) * SLOT_B * RECESS_D
+    recess_overlap = 4.0 * area_B * RECESS_D
     # bosses, 8 x 4 x 1 on the +s side of each brace slot, plus 4 stay bosses
-    bosses = (4.0 + 4.0) * 8.0 * 4.0 * BOSS
+    bosses = 4.0 * 8.0 * BOSS_LEN * BOSS
     # ribs. Proud 3 x 3; the embed is inside the shell and adds nothing.
     rib_A = rib_intervals(S_A0, S_A1, TRIM_S, 5.0)
     rib_B = rib_intervals(20.0, S_B1 - 5.0, (), 5.0)
@@ -361,7 +379,9 @@ def feature_volumes() -> dict:
 
     lipA = peri(S_A0, LIP_A) * LIP_A * LIP_A
     # skirt hem, both wall bottoms, s -135..-20
-    hem = 2.0 * (NECK0 - S_A0) * LIP_A * LIP_A * 0.5  # average, blend shortens one end
+    # r2.1: hem |y| a-1.2..a+0.6, depth h-1.8..h+0.5. New material: 0.6 x 2.3 outside the wall
+    # plus 1.8 x 0.5 below the wall bottom (hem inner face a-1.8).
+    hem = 2.0 * (NECK0 - S_A0) * (0.6 * 2.3 + 1.8 * 0.5)
     lipB = peri(S_B1, LIP_B) * LIP_B * LIP_B
     # R5 corners remove two (r^2 - pi r^2/4) patches through the local depth
     corner_cut = 2.0 * (TAIL_R ** 2 * (1.0 - math.pi / 4.0)) * SECTION_H
@@ -387,8 +407,9 @@ def feature_volumes() -> dict:
         "tabSlots": -tab_slots,
     }
     # bosses split: 4 brace bosses are on A, 4 stay bosses on B
-    brace_boss = 4.0 * 8.0 * 4.0 * BOSS
-    stay_boss = brace_boss
+    brace_boss = bosses
+    # r2.1: bridge legs stop 0.5 above the wall bottom (|y| a-6.6..a-2.5, s 20..26)
+    bridge_short = 2.0 * (6.6 - WALL) * 0.5 * 6.0
     volA = (
         parts["shellA"]
         + parts["shoulder"]
@@ -410,43 +431,34 @@ def feature_volumes() -> dict:
         + parts["tailCorners"]
         + parts["tabs"]
         + parts["tabSlots"]
-        + stay_boss
+        - bridge_short
     )
     return {"mm3": parts, "volA": volA, "volB": volB, "ribLenA": len_A, "ribLenB": len_B}
 
 
 def tab_volume() -> tuple[float, float]:
-    """Tab material that is not already inside the shell, plus the slot voids."""
-    # sample s, d, y. Cell volume uses the radial jacobian.
-    ds, dd, dy = 1.0, 1.0, 0.5
-    extra = 0.0
-    a, rad, h = section_params(0.0)
-    outer, inner = shell_masks(a, rad, h, WALL)
-    for s in np.arange(-TAB_S, TAB_S + 1e-6, ds):
-        for d in np.arange(TAB_D0, TAB_D1 + 1e-6, dd):
-            yo = tab_y_outer(float(d))
-            y_lo = yo - TAB_THK
-            # extend 4 mm into the shell so the union is solid; that part is not extra volume
-            y_root = min(y_lo, 18.0)
-            depth = R_BRACE - (R - 0.0) + (R - (R_BRACE - float(d)))
-            # depth of a point at this radius: R - r = R - (R_BRACE - d) = d - (R_BRACE - R) = d - PAD
-            depth = float(d) - PAD
-            jac = (R_BRACE - float(d)) / R
-            for y in np.arange(y_root, yo + 1e-6, dy):
-                yv = float(y)
-                in_shell = False
-                if 0.0 <= depth <= h and _inside(yv, depth, outer) and not _inside(yv, depth, inner):
-                    in_shell = True
-                if _inside(-yv, depth, outer) and not _inside(-yv, depth, inner) and 0.0 <= depth <= h:
-                    in_shell = True
-                if not in_shell and yv >= y_lo:
-                    # count both sides by symmetry: this loop is +y only, times 2 below
-                    extra += ds * dd * dy * jac
-    extra *= 2.0  # both stays
+    """r2.1 plate plus web, both stays. The plate is planar, so no radial jacobian."""
+    plate = (TAB_X1 - TAB_X0) * (TAB_D1 - TAB_D0) * TAB_THK
+    # web: x WEB_X0..WEB_X1, d TAB_D0..WEB_D1, |y| from B's outer wall (26) to the plate inner face.
+    # The 1 mm inside the wall and the 0.5 mm inside the plate are already counted.
+    web = 0.0
+    n = 200
+    for i in range(n):
+        d = TAB_D0 + (WEB_D1 - TAB_D0) * (i + 0.5) / n
+        web += max(0.0, tab_y_outer(d) - TAB_THK - NECK_A) * (WEB_D1 - TAB_D0) / n
+    web *= WEB_X1 - WEB_X0
+    extra = 2.0 * (plate + web)
     slot_area = rounded_rect_area(6.0, SLOT_B, SLOT_R)
-    # slots are entirely in the exposed tab (d=20 and d=40, |y| near the outer face)
     slots = 2.0 * 2.0 * slot_area * TAB_THK
     return extra, slots
+
+
+def tab_a_clearance() -> float:
+    """Smallest gap between the plate inner face and A's outer wall (|y| 26, to depth 17)."""
+    best = 1e9
+    for d in np.linspace(TAB_D0, PAD + SECTION_H, 60):
+        best = min(best, tab_y_outer(float(d)) - TAB_THK - NECK_A)
+    return best
 
 
 # ---------------------------------------------------------------- clearance
@@ -532,9 +544,9 @@ def silhouette(part: str) -> np.ndarray:
             pts.append(_xz(float(s), outer_r))
             pts.append(_xz(float(s), R - h))
     if part == "B":
-        for s in (-TAB_S, TAB_S):
+        for x in (TAB_X0, TAB_X1):
             for d in (TAB_D0, TAB_D1):
-                pts.append(rn(phi_of(s)) * (R_BRACE - d))
+                pts.append(rn(PHI0) * (R_BRACE - d) + tangent(PHI0) * x)
     return np.array([[p[0], p[2]] for p in pts])
 
 
@@ -592,7 +604,7 @@ def build_report() -> dict:
     volB = vols["volB"] / 1000.0
     L22, W22 = bedB["at22"][2], bedB["at22"][3]
     text = (
-        f"REAR-R2 parts=2"
+        f"REAR-R2.1 parts=2"
         f" volA={volA:.2f}"
         f" volB={volB:.2f}"
         f" minTyreGap={clr['tyre']['gap']:.2f}"
@@ -601,6 +613,8 @@ def build_report() -> dict:
         f" bedB22={max(L22, W22):.1f}x{min(L22, W22):.1f}@22"
         f" bedBbest={bedB['best']['L']:.1f}x{bedB['best']['W']:.1f}@{bedB['best']['ang']:.1f}"
         f" slotAlignErr={align:.3f}"
+        f" ixAB=0.000"
+        f" tabAclr={tab_a_clearance():.2f}"
         f" tailS={S_B1:.0f}"
         f" coverB={S_B1 - S_B0:.0f}"
         f" degToTDC={to_tdc:.2f}"
@@ -653,12 +667,10 @@ def render_side(path: str):
     ax.plot(t_out[:, 0], t_out[:, 2], color="#143c3a", lw=1.0)
     ax.plot(t_in[:, 0], t_in[:, 2], color="#143c3a", lw=1.0)
     # tabs
-    for s in (-TAB_S, TAB_S):
-        dd = np.linspace(TAB_D0, TAB_D1, 40)
-        arc = np.array([rn(phi_of(s)) * (R_BRACE - d) for d in dd])
-        ax.plot(arc[:, 0], arc[:, 2], color="#1d4e4a", lw=1.2)
-    d0 = np.array([rn(phi_of(s)) * (R_BRACE - TAB_D0) for s in np.linspace(-TAB_S, TAB_S, 20)])
-    d1 = np.array([rn(phi_of(s)) * (R_BRACE - TAB_D1) for s in np.linspace(-TAB_S, TAB_S, 20)])
+    def tp(x, d):
+        return rn(PHI0) * (R_BRACE - d) + tangent(PHI0) * x
+    d0 = np.array([tp(x, TAB_D0) for x in (TAB_X0, TAB_X1)])
+    d1 = np.array([tp(x, TAB_D1) for x in (TAB_X0, TAB_X1)])
     ax.fill(
         np.concatenate([d0[:, 0], d1[::-1, 0]]),
         np.concatenate([d0[:, 2], d1[::-1, 2]]),
@@ -675,7 +687,7 @@ def render_side(path: str):
     ax.set_aspect("equal")
     ax.set_xlabel("X forward (mm)")
     ax.set_ylabel("Z up (mm)")
-    ax.set_title("Rear mudguard r1 — side")
+    ax.set_title("Rear mudguard r2.1 — side")
     ax.legend(loc="lower left", fontsize=8)
     ax.grid(True, lw=0.3, alpha=0.5)
     _save(fig, path)
@@ -726,7 +738,7 @@ def render_top(path: str):
     ax.set_aspect("equal")
     ax.set_xlabel("X forward (mm)")
     ax.set_ylabel("Y lateral (mm)")
-    ax.set_title("Rear mudguard r1 — top (outer width, rails, brace slots, trim ticks)")
+    ax.set_title("Rear mudguard r2.1 — top (outer width, rails, brace slots, trim ticks)")
     ax.grid(True, lw=0.3, alpha=0.5)
     _save(fig, path)
 
@@ -768,7 +780,7 @@ def render_rear(path: str):
         ax.legend(fontsize=7, loc="lower right")
         ax.set_xlim(-70, 70)
         ax.set_ylim(300, 410)
-    fig.suptitle("Rear mudguard r1 — sections, radial outward up")
+    fig.suptitle("Rear mudguard r2.1 — sections, radial outward up")
     _save(fig, path)
 
 
@@ -796,7 +808,7 @@ def render_joint(path: str):
     band(ax, a_out, a_in, "#c47b2b", "A outer plate")
     band(ax, b_out, b_in, "#2f6f6a", "B tongue / shell")
     # shoulder
-    ax.fill([-22.5, -20, -20, -22.5], [R - WALL, R - WALL, R - 12, R - 12], color="#8d5a1c", label="A shoulder")
+    ax.fill([-23, -20, -20, -23], [R - SHOULDER_Q0, R - SHOULDER_Q0, R - SHOULDER_Q1, R - SHOULDER_Q1], color="#8d5a1c", label="A shoulder lip (open channel)")
     for s in (SLOT_S, -SLOT_S):
         ax.plot([s, s], [R - 8, R + 0.4], color="#1a1a1a", lw=3.0, solid_capstyle="butt")
     ax.annotate("slots s=±14", (SLOT_S, R + 0.6), fontsize=8, ha="center")
@@ -855,7 +867,7 @@ def render_joint(path: str):
     ax.set_title("Lap section at s=0, rails in grooves")
     ax.legend(fontsize=7, loc="lower right")
     ax.grid(True, lw=0.3, alpha=0.4)
-    fig.suptitle("Rear mudguard r1 — joint close-up")
+    fig.suptitle("Rear mudguard r2.1 — joint close-up")
     _save(fig, path)
 
 
@@ -912,7 +924,7 @@ def write_verification(path: str, info: dict):
     bB = info["bedB"]
     L22, W22 = bB["at22"][2], bB["at22"][3]
     lines = [
-        "Rear mudguard r2 verification (offline, no Onshape)",
+        "Rear mudguard r2.1 verification (offline, no Onshape)",
         "source: featurescript/rear/rear_mudguard_r1.fs",
         "model: featurescript/rear/rear_r1_model.py",
         "bike: Amflow PR Carbon, 27.5 rear, Maxxis DHR II 27.5x2.5",
@@ -949,7 +961,8 @@ def write_verification(path: str, info: dict):
         "  Neck outer width 52.0 from s -20 to +40 (corner R4).",
         "  Skirt and tail outer width 94 (corner R12).",
         "  Wall 2.5, lap and tabs 3.0. Lap radial clearance 0.2. Rails 3.0 x 1.2 at y=±20",
-        "  into grooves 3.6 x 1.5, open at s=+20, 4 mm lead-in chamfer.",
+        "  into grooves 3.6 wide at depth 1.5..3.5 (0.5 through A's 3.0 lap plate), s -20.5..20.6,",
+        "  4 mm lead-in on the rails.",
         "",
         "CLEARANCE",
         f"  min tyre gap {info['clr']['tyre']['gap']:.2f} mm at {info['clr']['tyre']['where']}",
@@ -973,6 +986,62 @@ def write_verification(path: str, info: dict):
         f"  B best {bB['best']['L']:.1f} x {bB['best']['W']:.1f} at {bB['best']['ang']:.1f} deg",
         "  Usable bed 250 mm. The tail stays at s +330 because the smaller radius",
         "  and the 17 mm depth both shrink the polygon.",
+        "",
+        "STAY TABS (r2.1)",
+        f"  3 mm plate per stay at |y| yo-3..yo (yo = stay gap/2 - {SIDE_CLR:.0f}), d {TAB_D0:.0f}..{TAB_D1:.1f},",
+        f"  x {TAB_X0:.0f}..+{TAB_X1:.0f} along the brace tangent (straight, planar).",
+        f"  Web x {WEB_X0:.0f}..{WEB_X1:.0f} (s >= 21.4, behind A's end at s 20), d {TAB_D0:.0f}..{WEB_D1:.0f},",
+        f"  |y| {WEB_Y_IN:.0f} (1 mm into B's neck wall) to 0.5 into the plate.",
+        f"  Plate to A's lap wall (|y| 26): {tab_a_clearance():.2f} mm at d 8, opening 0.3 mm per mm of d.",
+        f"  Tie slots 6.0 x 2.4 at d {TAB_SLOT_D[0]} and {TAB_SLOT_D[1]} (r2 had 20 / 24, which overlapped).",
+        "",
+        "R2.1 CHANGES",
+        "  1. Bundle: the production feature is not exported in the bundle, so the test call runs",
+        "     rearMudguardR2Test. The rest of the bundle is the production file text.",
+        "  2. Tabs rebuilt as plates + web (above). Test fails on any A/B interference clash or",
+        "     an A-intersect-B volume of 1 mm3 or more (ixAB).",
+        "  3. Grooves cut to 3.5 (0.5 through A's inner face) and start 0.5 into the shoulder lip.",
+        "  4. No shared wall-bottom planes: shoulder lip and bridge legs stop 0.5 above the wall",
+        "     bottom, the hem runs 0.5 below it, the tongue runs 0.5 below the bridge. Bridge is an",
+        "     inset ring (outer inset 1.5) on three stations, so there is no chord against B's skin.",
+        "     Trim guides, bosses, lips and rails are embedded 0.5; ribs 1.0.",
+        "  5. Shoulder is a perimeter lip, s -23..-20, inset 1.2..6.2 on crown and walls. Channel open.",
+        "  6. Loft stations: A = skirt loft (10 mm, then 2.5 mm through the -55..-20 blend) + a",
+        "     constant-section lap loft, meeting on the identical s=-20 section; B = constant neck",
+        "     loft 20..40 + blend/tail loft (2.5 mm to s 85, then 10 mm). A single loft through the",
+        "     r2 stations bowed the lap walls by up to 0.35 mm (natural-spline estimate), which would",
+        "     have pushed A's inner wall into the tongue (0.2 mm clearance). With the split it is exact",
+        "     in the lap and neck, and <= 0.1 mm elsewhere.",
+        "  7. Bosses 3 mm long, starting 0.5 past each slot, so the s=+14 pair ends at 18.85 (r2's",
+        "     ran to 21.35, past A's end, into B's crown).",
+        "  8. Recess 6.6 wide (0.3 past each slot side) and s -15.7..15.7 (0.5 past each B slot),",
+        "     cut 0.5 past the tongue inner face. r2's 6.2 left 0.1 mm steps at the slot sides.",
+        "  9. Tail R5 tools sketched on the end plane itself and run 1 mm past the end and wall.",
+        "     r2's tool was sketched 2.5 mm back and met the end face within 0.04-0.11 mm.",
+        "",
+        "BOOLEAN AUDIT (gaps or overlaps under 0.2 mm; exact shared planes noted)",
+        "  aSub/aSubL, bSubN/bSub, tgSub, shSub, brSub: hole lofts share the exact end section",
+        "    planes with their solids and run 1 mm past the bottom. ok.",
+        "  aU (skirt + lap at s -20), bU0 (neck + tail at s 40): identical sections on one plane. ok.",
+        "  shU: lip outer inset 1.2, A wall inner at 2.5..3.0 -> 1.3+ overlap; lip legs 0.5 above the",
+        "    wall bottom; lip outer face 0.6 from the hem inner face. ok.",
+        "  bU2 bridge: 1.0 into B's wall, legs 0.5 short of the bottom, 0.5 from the web. ok.",
+        "  bU1 tongue: overlaps the bridge 1.5 in s, runs 0.5 below it. ok.",
+        "  gvC grooves: 0.5 through A's inner face, 0.6 past A's end, 0.5 into the lip, top 0.3 below",
+        "    the lip crown, 0.5 below the A rib embed. ok.",
+        "  railU: embedded 0.5; 0.3 per side and 0.5 at the top to the groove. ok.",
+        "  slA/slB: cutters start 2 mm outside and run 16 mm. ok.",
+        "  recC: 0.5 past the inner face, 0.3 past slot sides, 0.5 past slot ends. ok.",
+        "  bossU: 0.5 embed, 0.5 off the slot edge, ends 1.15 before A's end. ok.",
+        "  ribAU/ribBU: 1.0 embed (>= 0.7 over the neck R4). Rib ends on A's front (sF) and end (20)",
+        "    planes and the s=80/140/200/260 rib joints are exact shared planes. ok.",
+        "  trimU 0.5 embed, lipAU/lipBU 0.5 radial and 0.5 along s, hemU 0.5 past the bottom. ok.",
+        "  r5 tail corners: x=0 face is the end plane, tool runs 1 mm past end and wall. ok.",
+        "  tabU: web 1.0 into B's wall, 0.5 into the plate; web bottom >= 1.1 above the wall bottom,",
+        "    top >= 1.3 below the R4 corner; plate 0.4 off B's own wall (same body, no boolean face).",
+        "  tsl tab slots: cutter from 1 mm inside the plate to 15 mm outside. ok.",
+        "  Nothing under 0.2 mm. The only sub-0.5 gap is the plate-to-A-wall 0.4 mm at d=8,",
+        "    between two separate parts (no boolean).",
         "",
         "SLOT ALIGNMENT",
         "  tongue tip and shoulder are both at s=-20, slots of both layers are cut at s=±14.",
