@@ -29,3 +29,13 @@ Cause: S2-A's plate slot is (0,0), so it stays at the build origin and the later
 Proposed fix (NOT run): rear_s2_coupons_v3_proposed.fs. Slots shifted +200 x; probe and cut target queries limited to qCreatedBy(coupon id);
 unused var bodies removed (the INFO notice in call 2).
 No create_geometry run; no rear-s2-coupons tag.
+
+--- v3 (approved), 2026-11-17 GMT ---
+Offline audit: every build/cut/probe/move query is scoped to qBodyType(qCreatedBy(<coupon id>), SOLID); qAllModifiableSolidBodies
+only in the plate-level checks after all four are placed (nAll, plate size, clash, tiny faces). Slots x 200/295, z 0/-65:
+x gap 14.6, z gap 14.4. Failure string is short, with failures first (worst case ~210 chars, under the ~290-char notice cap).
+Probe code on failure: lip slit notch wall saddle groove tie stay; expect 10010024.
+Call 3 test_feature: PASS, no notices. A 41.74, B 42.18, C 42.64, D 42.41 cm3; plate XZ 175.4x114.8, height(Y) 74.6; clash 0;
+tiny<0.5mm2 105 (the listed ones are embossed text glyph walls at s -30); volTot 168.97; print@4 11.73 h.
+Call 4 create_geometry: workspace 21da7e2c1b7727d147353e78
+https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/21da7e2c1b7727d147353e78/e/6d4ce527def8539685e560ec

@@ -217,7 +217,7 @@ function s2BuildCoupon(context is Context, id is Id, name is string, c is number
     }
     cuts = append(cuts, s2Half(context, id + "trP", 40, true));
     cuts = append(cuts, s2Half(context, id + "trN", -40, false));
-    opBoolean(context, id + "cut", { "targets" : qContainsPoint(qAllModifiableSolidBodies(), pIn), "tools" : qUnion(cuts), "operationType" : BooleanOperationType.SUBTRACTION });
+    opBoolean(context, id + "cut", { "targets" : qContainsPoint(qBodyType(qCreatedBy(id, EntityType.BODY), BodyType.SOLID), pIn), "tools" : qUnion(cuts), "operationType" : BooleanOperationType.SUBTRACTION });
     return { "pIn" : pIn, "nTxt" : nTxt, "top" : top, "lf" : lf, "xi" : xi };
 }
 
@@ -237,18 +237,18 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
     {
         const mm = millimeter;
         const Y = vector(0, 1, 0);
-        // name, c, lip, float, offline volume (s2_coupon_model.py, 0.25 voxel), plate offset (x, z)
-        const V = [["S2-A", 0.5, 1.2, 0.4, 41.72, 0, 0], ["S2-B", 1.0, 1.2, 0.4, 42.16, 95, 0],
-                   ["S2-C", 1.5, 1.6, 0.4, 42.61, 0, -65], ["S2-D", 1.0, 0.8, 1.2, 42.37, 95, -65]];
+        // name, c, lip, float, offline volume (s2_coupon_model.py, 0.25 voxel), plate offset (x, z); no slot at the origin so each coupon leaves the build site before the next is built
+        const V = [["S2-A", 0.5, 1.2, 0.4, 41.72, 200, 0], ["S2-B", 1.0, 1.2, 0.4, 42.16, 295, 0],
+                   ["S2-C", 1.5, 1.6, 0.4, 42.61, 200, -65], ["S2-D", 1.0, 0.8, 1.2, 42.37, 295, -65]];
         var fail = "";
         var rep = "REAR-S2-COUPONS";
-        var bodies = [];
         var vTot = 0;
+        var vs = "";
         var i = 0;
         for (var v in V)
         {
             const r = s2BuildCoupon(context, id + ("c" ~ i), v[0], v[1], v[2], v[3]);
-            const q = qContainsPoint(qAllModifiableSolidBodies(), r.pIn);
+            const q = qContainsPoint(qBodyType(qCreatedBy(id + ("c" ~ i), EntityType.BODY), BodyType.SOLID), r.pIn);
             const nq = size(evaluateQuery(context, q));
             var vol = 0;
             var bb = "";
@@ -290,12 +290,13 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
                 probes = " lip=" ~ lipIn ~ " slit=" ~ (1 - slitOut) ~ " notch=" ~ (1 - notchOut) ~ " wall=" ~ wallIn ~ " saddle=" ~ sadIn ~ " groove=" ~ (1 - grvOut) ~
                     " tie=" ~ tieOpen ~ "/2 stay=" ~ stayOpen ~ "/4 txt=" ~ r.nTxt;
                 if (lipIn != 1 || slitOut != 0 || notchOut != 0 || wallIn != 1 || sadIn != 1 || grvOut != 0 || tieOpen != 2 || stayOpen != 4)
-                    fail = fail ~ " " ~ v[0] ~ ":probes";
+                    fail = fail ~ " " ~ v[0] ~ ":p" ~ lipIn ~ slitOut ~ notchOut ~ wallIn ~ sadIn ~ grvOut ~ tieOpen ~ stayOpen;
                 setProperty(context, { "entities" : q, "propertyType" : PropertyType.NAME, "value" : "Rear " ~ v[0] ~ " saddle coupon (c " ~ c ~ ", lip " ~ v[2] ~ ", float " ~ v[3] ~ ")" });
                 opTransform(context, id + ("mv" ~ i), { "bodies" : q, "transform" : transform(vector(v[5], 0, v[6]) * mm) });
                 vTot += vol;
             }
             rep = rep ~ " | " ~ v[0] ~ " c=" ~ v[1] ~ " lip=" ~ v[2] ~ " float=" ~ v[3] ~ " vol=" ~ roundToPrecision(vol, 2) ~ " (exp " ~ v[4] ~ ") " ~ bb ~ probes;
+            vs = vs ~ " " ~ v[0] ~ "=" ~ roundToPrecision(vol, 2);
             i += 1;
         }
         const all = qAllModifiableSolidBodies();
@@ -336,6 +337,6 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
         rep = rep ~ " | plate XZ " ~ roundToPrecision(pd[0], 1) ~ "x" ~ roundToPrecision(pd[2], 1) ~ " height(Y) " ~ roundToPrecision(pd[1], 1) ~
             " clash=" ~ nClash ~ " tiny<0.5mm2=" ~ nTiny ~ tinyTxt ~ " volTot=" ~ roundToPrecision(vTot, 2) ~ " print@4=" ~ roundToPrecision(vTot * 1000 / 4 / 3600, 2) ~ "h";
         if (fail != "")
-            throw regenError(rep ~ " FAIL:" ~ fail);
+            throw regenError("S2 FAIL:" ~ fail ~ " | vol" ~ vs ~ " | plate " ~ roundToPrecision(pd[0], 1) ~ "x" ~ roundToPrecision(pd[2], 1) ~ " clash=" ~ nClash ~ " tiny=" ~ nTiny);
         println(rep ~ " PASS");
     }, {});
