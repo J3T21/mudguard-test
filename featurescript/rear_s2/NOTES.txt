@@ -14,3 +14,18 @@ Deviations from the spec (all deliberate, for boolean hygiene / buildability):
  - saddle R6.5 fillets, wall root draft/R4 fillet and the 26..36 crown ramps omitted (square corners / step at s 27)
  - panel top z 367.5, wall bottom 368.0, saddle bottom 368.6, crown edge 0.5 inside the panel face (>= 0.5 separations)
 Parse suspects to check first: top-level non-exported consts (RO, RI, YS...), helper names box/outline/reversed colliding with std.
+
+--- 2026-11-17 fix round (GMT) ---
+Call 1 (test_feature) failed: "could not find Trojan feature spec: no features found".
+Offline diagnosis vs test_coupon2_v2.19.3.1.fs / rear_mudguard_r2.2.fs: same header, import, annotation/precondition and
+defineFeature(..., {}) export. The one structural difference was 7 bare top-level consts (RO, RI, NECK_A, NECK_D, BR_LO,
+HBRACE, YS), which no working file has, plus generic helper names (box/outline/reversed...). fslint.py (subset parser and
+scope checker, validated on 5 known-good files and on injected missing-semicolon errors) found no other syntax or scope
+error, and every external name is an exported std 3112 symbol. Fix: constants inlined (YS -> local ysmp in s2Outline),
+helpers renamed with an s2 prefix, unused const O removed.
+Call 2 (test_feature): COMPILED (so the parse error is fixed), but failed at runtime. S2-A passed every check
+(vol 41.74 vs 41.72 expected, bbox x+-40.2 y+-37.3 z354..403.8, all probes OK, txt=4); S2-B/C/D vol=0 (nq != 1).
+Cause: S2-A's plate slot is (0,0), so it stays at the build origin and the later coupons are built overlapping it.
+Proposed fix (NOT run): rear_s2_coupons_v3_proposed.fs. Slots shifted +200 x; probe and cut target queries limited to qCreatedBy(coupon id);
+unused var bodies removed (the INFO notice in call 2).
+No create_geometry run; no rear-s2-coupons tag.

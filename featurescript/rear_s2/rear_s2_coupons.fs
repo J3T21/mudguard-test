@@ -2,19 +2,12 @@ FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
 // Rear S2 (cradle under the brace) saddle test coupons S2-A..S2-D, from Split & Join Planner's sicomte_S2_spec.md section 6.
-// Frame: rear axle at the origin, Y lateral, s = 0 (brace centreline) on +Z, +s toward +X; s is arc length at RO 369.5.
+// Frame: rear axle at the origin, Y lateral, s = 0 (brace centreline) on +Z, +s toward +X; s is arc length at R 369.5.
 // All lengths are plain numbers in mm. Coupons are built at the origin one at a time, then moved to their plate slot
 // (plate = world XZ, print direction = world Y).
 
-const RO = 369.5;
-const RI = 367.0;
-const NECK_A = 28.0;
-const NECK_D = 11.47;
-const BR_LO = 380.0;
-const HBRACE = 20.0;
-const YS = [10, 13, 15.5, 18, 20.5, 23, 25.5, 28];
 
-function hbx(y is number) returns number
+function s2Hb(y is number) returns number
 {
     const ya = abs(y);
     if (ya <= 10)
@@ -23,24 +16,24 @@ function hbx(y is number) returns number
     return 17.5 - 7.5 * sqrt(max(0, 1 - u * u));
 }
 
-function pz(z is number, c is number) returns number
+function s2Pz(z is number, c is number) returns number
 {
     return 30 + 0.3 * (380 - z) - c; // panel contact (outer) face |y| at height z
 }
 
-function rnS(s is number) returns Vector
+function s2Rn(s is number) returns Vector
 {
-    const a = (s / RO) * radian;
+    const a = (s / 369.5) * radian;
     return vector(sin(a), 0, cos(a));
 }
 
-function tS(s is number) returns Vector
+function s2T(s is number) returns Vector
 {
-    const a = (s / RO) * radian;
+    const a = (s / 369.5) * radian;
     return vector(cos(a), 0, -sin(a));
 }
 
-function polyOn(context is Context, sid is Id, pl is Plane, pts is array)
+function s2Poly(context is Context, sid is Id, pl is Plane, pts is array)
 {
     const sk = newSketchOnPlane(context, sid, { "sketchPlane" : pl });
     for (var i = 0; i < size(pts); i += 1)
@@ -51,31 +44,31 @@ function polyOn(context is Context, sid is Id, pl is Plane, pts is array)
     skSolve(sk);
 }
 
-function extr(context is Context, eid is Id, sid is Id, dir is Vector, depth is number) returns Query
+function s2Extr(context is Context, eid is Id, sid is Id, dir is Vector, depth is number) returns Query
 {
     opExtrude(context, eid, { "entities" : qSketchRegion(sid), "direction" : dir, "endBound" : BoundingType.BLIND, "endDepth" : depth * millimeter });
     return qCreatedBy(eid, EntityType.BODY);
 }
 
 // rectangle (y0..y1 lateral, r0..r1 radial) revolved about the axle from s0 to s1
-function revRect(context is Context, rid is Id, y0 is number, y1 is number, r0 is number, r1 is number, s0 is number, s1 is number) returns Query
+function s2RevRect(context is Context, rid is Id, y0 is number, y1 is number, r0 is number, r1 is number, s0 is number, s1 is number) returns Query
 {
-    polyOn(context, rid + "sk", plane(vector(0, 0, 0) * millimeter, tS(s0), vector(0, 1, 0)),
+    s2Poly(context, rid + "sk", plane(vector(0, 0, 0) * millimeter, s2T(s0), vector(0, 1, 0)),
         [vector(y0, r0), vector(y1, r0), vector(y1, r1), vector(y0, r1)]);
     opRevolve(context, rid + "rv", { "entities" : qSketchRegion(rid + "sk"), "axis" : line(vector(0, 0, 0) * millimeter, vector(0, 1, 0)),
-                "angleForward" : ((s1 - s0) / RO) * radian });
+                "angleForward" : ((s1 - s0) / 369.5) * radian });
     return qCreatedBy(rid + "rv", EntityType.BODY);
 }
 
-function revPoly(context is Context, rid is Id, pts is array, s0 is number, s1 is number) returns Query
+function s2RevPoly(context is Context, rid is Id, pts is array, s0 is number, s1 is number) returns Query
 {
-    polyOn(context, rid + "sk", plane(vector(0, 0, 0) * millimeter, tS(s0), vector(0, 1, 0)), pts);
+    s2Poly(context, rid + "sk", plane(vector(0, 0, 0) * millimeter, s2T(s0), vector(0, 1, 0)), pts);
     opRevolve(context, rid + "rv", { "entities" : qSketchRegion(rid + "sk"), "axis" : line(vector(0, 0, 0) * millimeter, vector(0, 1, 0)),
-                "angleForward" : ((s1 - s0) / RO) * radian });
+                "angleForward" : ((s1 - s0) / 369.5) * radian });
     return qCreatedBy(rid + "rv", EntityType.BODY);
 }
 
-function box(context is Context, bid is Id, c1 is Vector, c2 is Vector) returns Query
+function s2Box(context is Context, bid is Id, c1 is Vector, c2 is Vector) returns Query
 {
     const lo = vector(min(c1[0], c2[0]), min(c1[1], c2[1]), min(c1[2], c2[2]));
     const hi = vector(max(c1[0], c2[0]), max(c1[1], c2[1]), max(c1[2], c2[2]));
@@ -84,29 +77,30 @@ function box(context is Context, bid is Id, c1 is Vector, c2 is Vector) returns 
 }
 
 // half-space beyond the radial plane at s (keepBelow = true removes s' > s, false removes s' < s)
-function halfS(context is Context, hid is Id, s is number, removeAbove is boolean) returns Query
+function s2Half(context is Context, hid is Id, s is number, removeAbove is boolean) returns Query
 {
-    const cs = coordSystem(vector(0, 0, 0) * millimeter, rnS(s), tS(s));
+    const cs = coordSystem(vector(0, 0, 0) * millimeter, s2Rn(s), s2T(s));
     fCuboid(context, hid, { "corner1" : vector(-1000, -1000, removeAbove ? 0 : -1000) * millimeter, "corner2" : vector(1000, 1000, removeAbove ? 1000 : 0) * millimeter });
     opTransform(context, hid + "tx", { "bodies" : qCreatedBy(hid, EntityType.BODY), "transform" : toWorld(cs) });
     return qCreatedBy(hid, EntityType.BODY);
 }
 
 // top-view outline points (x, y) of a curve x = sx * (hb(y) + off) for y from -yE to yE
-function outline(off is number, yE is number, sx is number) returns array
+function s2Outline(off is number, yE is number, sx is number) returns array
 {
+    const ysmp = [10, 13, 15.5, 18, 20.5, 23, 25.5, 28];
     var ys = [];
-    for (var i = size(YS) - 1; i >= 0; i -= 1)
-        ys = append(ys, -min(YS[i], yE));
-    for (var v in YS)
+    for (var i = size(ysmp) - 1; i >= 0; i -= 1)
+        ys = append(ys, -min(ysmp[i], yE));
+    for (var v in ysmp)
         ys = append(ys, min(v, yE));
     var pts = [];
     for (var y in ys)
-        pts = append(pts, vector(sx * (hbx(y) + off), y));
+        pts = append(pts, vector(sx * (s2Hb(y) + off), y));
     return pts;
 }
 
-function reversed(a is array) returns array
+function s2Rev(a is array) returns array
 {
     var o = [];
     for (var i = size(a) - 1; i >= 0; i -= 1)
@@ -114,33 +108,32 @@ function reversed(a is array) returns array
     return o;
 }
 
-function buildCoupon(context is Context, id is Id, name is string, c is number, lip is number, flt is number) returns map
+function s2BuildCoupon(context is Context, id is Id, name is string, c is number, lip is number, flt is number) returns map
 {
-    const O = vector(0, 0, 0) * millimeter;
     const X = vector(1, 0, 0);
     const Y = vector(0, 1, 0);
     const Z = vector(0, 0, 1);
-    const lf = BR_LO + HBRACE + flt;      // lip retaining face
+    const lf = 380.0 + 20.0 + flt;      // lip retaining face
     const top = lf + 3.4;                  // wall top (lead-in ends at lf + 2.4; 1.0 of plain wall above)
-    const yc = pz(RO, c) - 0.5;            // widened crown half-width (0.5 inside the panel outer face line)
+    const yc = s2Pz(369.5, c) - 0.5;            // widened crown half-width (0.5 inside the panel outer face line)
     // 1. crown: one revolve, |y| <= yc, trimmed to |y| <= 27.5 beyond |s| 27
-    var crown = revRect(context, id + "cr", -yc, yc, RI, RO, -41, 41);
+    var crown = s2RevRect(context, id + "cr", -yc, yc, 367.0, 369.5, -41, 41);
     var strips = [];
     var k = 0;
     for (var sg in [-1, 1])
     {
-        strips = append(strips, revRect(context, id + ("st" ~ k), sg * 27.5, sg * 40, 360, 375, 27, 42));
-        strips = append(strips, revRect(context, id + ("st" ~ (k + 1)), sg * 27.5, sg * 40, 360, 375, -42, -27));
+        strips = append(strips, s2RevRect(context, id + ("st" ~ k), sg * 27.5, sg * 40, 360, 375, 27, 42));
+        strips = append(strips, s2RevRect(context, id + ("st" ~ (k + 1)), sg * 27.5, sg * 40, 360, 375, -42, -27));
         k += 2;
     }
     opBoolean(context, id + "crTrim", { "targets" : crown, "tools" : qUnion(strips), "operationType" : BooleanOperationType.SUBTRACTION });
     var adds = [];
-    // 2. neck walls |y| 25.5..28, r RO-11.47..368.3, |s| 27.5..41.5 (caps 0.5 past the crown cap at 41)
+    // 2. neck walls |y| 25.5..28, r 369.5-11.47..368.3, |s| 27.5..41.5 (caps 0.5 past the crown cap at 41)
     k = 0;
     for (var sg in [-1, 1])
     {
-        adds = append(adds, revRect(context, id + ("nk" ~ k), sg * 25.5, sg * 28, RO - NECK_D, 368.3, 27.5, 41.5));
-        adds = append(adds, revRect(context, id + ("nk" ~ (k + 1)), sg * 25.5, sg * 28, RO - NECK_D, 368.3, -41.5, -27.5));
+        adds = append(adds, s2RevRect(context, id + ("nk" ~ k), sg * 25.5, sg * 28, 369.5 - 11.47, 368.3, 27.5, 41.5));
+        adds = append(adds, s2RevRect(context, id + ("nk" ~ (k + 1)), sg * 25.5, sg * 28, 369.5 - 11.47, 368.3, -41.5, -27.5));
         k += 2;
     }
     // 3. ribs y +-22, 2.5 proud, 45 deg flanks, top 1.0, embedded 0.6 (base r 368.9, 0.6 above the neck wall top 368.3), |s| 21.7..41.5
@@ -148,30 +141,30 @@ function buildCoupon(context is Context, id is Id, name is string, c is number, 
     for (var sg in [-1, 1])
     {
         const rp = [vector(sg * 22 - 3.6, 368.9), vector(sg * 22 + 3.6, 368.9), vector(sg * 22 + 0.5, 372.0), vector(sg * 22 - 0.5, 372.0)];
-        adds = append(adds, revPoly(context, id + ("rb" ~ k), rp, 21.7, 41.5));
-        adds = append(adds, revPoly(context, id + ("rb" ~ (k + 1)), rp, -41.5, -21.7));
+        adds = append(adds, s2RevPoly(context, id + ("rb" ~ k), rp, 21.7, 41.5));
+        adds = append(adds, s2RevPoly(context, id + ("rb" ~ (k + 1)), rp, -41.5, -21.7));
         k += 2;
     }
     // 4. side panels: planar 4.0 plates parallel to the stay inner faces, contact face c off the stay, z 354..367.5, x -26..26
     k = 0;
     for (var sg in [-1, 1])
     {
-        polyOn(context, id + ("pnS" ~ k), plane(vector(-26, 0, 0) * millimeter, X, Y),
-            [vector(sg * pz(354, c), 354), vector(sg * pz(367.5, c), 367.5), vector(sg * (pz(367.5, c) - 4), 367.5), vector(sg * (pz(354, c) - 4), 354)]);
-        adds = append(adds, extr(context, id + ("pn" ~ k), id + ("pnS" ~ k), X, 52));
+        s2Poly(context, id + ("pnS" ~ k), plane(vector(-26, 0, 0) * millimeter, X, Y),
+            [vector(sg * s2Pz(354, c), 354), vector(sg * s2Pz(367.5, c), 367.5), vector(sg * (s2Pz(367.5, c) - 4), 367.5), vector(sg * (s2Pz(354, c) - 4), 354)]);
+        adds = append(adds, s2Extr(context, id + ("pn" ~ k), id + ("pnS" ~ k), X, 52));
         k += 1;
     }
     // 5. saddle block: brace outline + c + 1 (1.0 into the walls), |y| <= 27.5, z 368.6..380 (flat brace underside)
-    const sadPts = concatenateArrays([outline(c + 1, 27.5, 1), reversed(outline(c + 1, 27.5, -1))]);
-    polyOn(context, id + "sdS", plane(vector(0, 0, 368.6) * millimeter, Z, X), sadPts);
-    adds = append(adds, extr(context, id + "sd", id + "sdS", Z, 380 - 368.6));
+    const sadPts = concatenateArrays([s2Outline(c + 1, 27.5, 1), s2Rev(s2Outline(c + 1, 27.5, -1))]);
+    s2Poly(context, id + "sdS", plane(vector(0, 0, 368.6) * millimeter, Z, X), sadPts);
+    adds = append(adds, s2Extr(context, id + "sd", id + "sdS", Z, 380 - 368.6));
     // 6. snap walls: 3.0 thick from the brace outline + c, |y| <= 28, z 368.0..top
     k = 0;
     for (var sx in [-1, 1])
     {
-        const wp = concatenateArrays([outline(c, 28, sx), reversed(outline(c + 3, 28, sx))]);
-        polyOn(context, id + ("wlS" ~ k), plane(vector(0, 0, 368.0) * millimeter, Z, X), wp);
-        adds = append(adds, extr(context, id + ("wl" ~ k), id + ("wlS" ~ k), Z, top - 368.0));
+        const wp = concatenateArrays([s2Outline(c, 28, sx), s2Rev(s2Outline(c + 3, 28, sx))]);
+        s2Poly(context, id + ("wlS" ~ k), plane(vector(0, 0, 368.0) * millimeter, Z, X), wp);
+        adds = append(adds, s2Extr(context, id + ("wl" ~ k), id + ("wlS" ~ k), Z, top - 368.0));
         k += 1;
     }
     // 7. lips |y| <= 6.5: retaining face lf, flat 1.2, lead-in to the wall face at lf + 2.4 (continued 0.25*lip into the wall)
@@ -181,16 +174,16 @@ function buildCoupon(context is Context, id is Id, name is string, c is number, 
     {
         const lp = [vector(sx * (xi + 1), lf), vector(sx * (xi - lip), lf), vector(sx * (xi - lip), lf + 1.2),
                     vector(sx * (xi + 0.25 * lip), lf + 2.7), vector(sx * (xi + 1), lf + 2.7)];
-        polyOn(context, id + ("lpS" ~ k), plane(vector(0, 6.5, 0) * millimeter, -Y, X), lp);
-        adds = append(adds, extr(context, id + ("lp" ~ k), id + ("lpS" ~ k), -Y, 13));
+        s2Poly(context, id + ("lpS" ~ k), plane(vector(0, 6.5, 0) * millimeter, -Y, X), lp);
+        adds = append(adds, s2Extr(context, id + ("lp" ~ k), id + ("lpS" ~ k), -Y, 13));
         k += 1;
     }
     // 8. embossed ID on the crown at s -30: 6 mm text, 0.6 proud (sketch 0.5 inside the crown, extruded 1.1)
-    const tPl = plane(rnS(-30) * (RO - 0.5) * millimeter, rnS(-30), Y);
+    const tPl = plane(s2Rn(-30) * (369.5 - 0.5) * millimeter, s2Rn(-30), Y);
     const tsk = newSketchOnPlane(context, id + "idS", { "sketchPlane" : tPl });
     skText(tsk, "id", { "text" : name, "fontName" : "OpenSans-Bold.ttf", "firstCorner" : vector(-8, -3) * millimeter, "secondCorner" : vector(8, 3) * millimeter });
     skSolve(tsk);
-    opExtrude(context, id + "idX", { "entities" : qSketchRegion(id + "idS", true), "direction" : rnS(-30), "endBound" : BoundingType.BLIND, "endDepth" : 1.1 * millimeter });
+    opExtrude(context, id + "idX", { "entities" : qSketchRegion(id + "idS", true), "direction" : s2Rn(-30), "endBound" : BoundingType.BLIND, "endDepth" : 1.1 * millimeter });
     const nTxt = size(evaluateQuery(context, qCreatedBy(id + "idX", EntityType.BODY)));
     adds = append(adds, qCreatedBy(id + "idX", EntityType.BODY));
     opBoolean(context, id + "u", { "tools" : qUnion(concatenateArrays([[crown], adds])), "operationType" : BooleanOperationType.UNION });
@@ -201,34 +194,34 @@ function buildCoupon(context is Context, id is Id, name is string, c is number, 
     for (var sg in [-1, 1])
     {
         // brace tie: wall slots + saddle groove in one cutter, y 7.25..12.75, z 378.2..380.5
-        cuts = append(cuts, box(context, id + ("tc" ~ k), vector(-40, sg * 7.25, 378.2), vector(40, sg * 12.75, 380.5)));
+        cuts = append(cuts, s2Box(context, id + ("tc" ~ k), vector(-40, sg * 7.25, 378.2), vector(40, sg * 12.75, 380.5)));
         for (var sx in [-1, 1])
         {
             const xo = 13 + c;
             // wall outer-face groove 1.0 deep, from z 379.0 (inside the slot band) to above the top
-            cuts = append(cuts, box(context, id + ("gv" ~ k ~ "_" ~ (sx + 1)), vector(sx * (xo - 1), sg * 7.25, 379.0), vector(sx * (xo + 3), sg * 12.75, top + 1)));
+            cuts = append(cuts, s2Box(context, id + ("gv" ~ k ~ "_" ~ (sx + 1)), vector(sx * (xo - 1), sg * 7.25, 379.0), vector(sx * (xo + 3), sg * 12.75, top + 1)));
             // wall-top notch 1.3 deep
-            cuts = append(cuts, box(context, id + ("nt" ~ k ~ "_" ~ (sx + 1)), vector(sx * (xi - 1), sg * 7.25, top - 1.3), vector(sx * (xo + 1), sg * 12.75, top + 1)));
+            cuts = append(cuts, s2Box(context, id + ("nt" ~ k ~ "_" ~ (sx + 1)), vector(sx * (xi - 1), sg * 7.25, top - 1.3), vector(sx * (xo + 1), sg * 12.75, top + 1)));
             // finger slit 1.0 wide at |y| 13.75, down to z 384
-            cuts = append(cuts, box(context, id + ("sl" ~ k ~ "_" ~ (sx + 1)), vector(sx * 5, sg * 13.25, 384), vector(sx * 25, sg * 14.25, top + 1)));
+            cuts = append(cuts, s2Box(context, id + ("sl" ~ k ~ "_" ~ (sx + 1)), vector(sx * 5, sg * 13.25, 384), vector(sx * 25, sg * 14.25, top + 1)));
             // stay-tie slot through the panel, 2.0 (x) at x +-21, z 359.5..365.0
-            polyOn(context, id + ("psS" ~ k ~ "_" ~ (sx + 1)), plane(vector(sx * 21 - 1, 0, 0) * millimeter, X, Y),
-                [vector(sg * (pz(359.5, c) - 5), 359.5), vector(sg * (pz(359.5, c) + 1), 359.5), vector(sg * (pz(365, c) + 1), 365), vector(sg * (pz(365, c) - 5), 365)]);
-            cuts = append(cuts, extr(context, id + ("ps" ~ k ~ "_" ~ (sx + 1)), id + ("psS" ~ k ~ "_" ~ (sx + 1)), X, 2));
+            s2Poly(context, id + ("psS" ~ k ~ "_" ~ (sx + 1)), plane(vector(sx * 21 - 1, 0, 0) * millimeter, X, Y),
+                [vector(sg * (s2Pz(359.5, c) - 5), 359.5), vector(sg * (s2Pz(359.5, c) + 1), 359.5), vector(sg * (s2Pz(365, c) + 1), 365), vector(sg * (s2Pz(365, c) - 5), 365)]);
+            cuts = append(cuts, s2Extr(context, id + ("ps" ~ k ~ "_" ~ (sx + 1)), id + ("psS" ~ k ~ "_" ~ (sx + 1)), X, 2));
         }
         // panel inner-face tie recess 1.5 deep, x -21.5..21.5 (ends inside the slots), z 359.0..365.5
-        polyOn(context, id + ("prS" ~ k), plane(vector(-21.5, 0, 0) * millimeter, X, Y),
-            [vector(sg * (pz(359, c) - 5), 359), vector(sg * (pz(359, c) - 2.5), 359), vector(sg * (pz(365.5, c) - 2.5), 365.5), vector(sg * (pz(365.5, c) - 5), 365.5)]);
-        cuts = append(cuts, extr(context, id + ("pr" ~ k), id + ("prS" ~ k), X, 43));
+        s2Poly(context, id + ("prS" ~ k), plane(vector(-21.5, 0, 0) * millimeter, X, Y),
+            [vector(sg * (s2Pz(359, c) - 5), 359), vector(sg * (s2Pz(359, c) - 2.5), 359), vector(sg * (s2Pz(365.5, c) - 2.5), 365.5), vector(sg * (s2Pz(365.5, c) - 5), 365.5)]);
+        cuts = append(cuts, s2Extr(context, id + ("pr" ~ k), id + ("prS" ~ k), X, 43));
         k += 1;
     }
-    cuts = append(cuts, halfS(context, id + "trP", 40, true));
-    cuts = append(cuts, halfS(context, id + "trN", -40, false));
+    cuts = append(cuts, s2Half(context, id + "trP", 40, true));
+    cuts = append(cuts, s2Half(context, id + "trN", -40, false));
     opBoolean(context, id + "cut", { "targets" : qContainsPoint(qAllModifiableSolidBodies(), pIn), "tools" : qUnion(cuts), "operationType" : BooleanOperationType.SUBTRACTION });
     return { "pIn" : pIn, "nTxt" : nTxt, "top" : top, "lf" : lf, "xi" : xi };
 }
 
-function fmtB(b is Box3d) returns string
+function s2FmtB(b is Box3d) returns string
 {
     const a = b.minCorner / millimeter;
     const c = b.maxCorner / millimeter;
@@ -254,7 +247,7 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
         var i = 0;
         for (var v in V)
         {
-            const r = buildCoupon(context, id + ("c" ~ i), v[0], v[1], v[2], v[3]);
+            const r = s2BuildCoupon(context, id + ("c" ~ i), v[0], v[1], v[2], v[3]);
             const q = qContainsPoint(qAllModifiableSolidBodies(), r.pIn);
             const nq = size(evaluateQuery(context, q));
             var vol = 0;
@@ -265,7 +258,7 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
             else
             {
                 vol = evVolume(context, { "entities" : q }) / (centimeter ^ 3);
-                bb = fmtB(evBox3d(context, { "topology" : q, "tight" : true }));
+                bb = s2FmtB(evBox3d(context, { "topology" : q, "tight" : true }));
                 if (abs(vol - v[4]) > 0.08 * v[4])
                     fail = fail ~ " " ~ v[0] ~ ":vol";
                 // probes (coupon still at the origin)
@@ -288,7 +281,7 @@ export const rearS2SaddleCoupons = defineFeature(function(context is Context, id
                 {
                     for (var sx in [-1, 1])
                     {
-                        const y0 = pz(362.25, c) - 4 - 3;
+                        const y0 = s2Pz(362.25, c) - 4 - 3;
                         const h = evRaycast(context, { "entities" : q, "ray" : line(vector(sx * 21, sg * y0, 362.25) * mm, sg * Y), "closest" : true });
                         if (size(h) == 0 || h[0].distance > 9 * mm)
                             stayOpen += 1;

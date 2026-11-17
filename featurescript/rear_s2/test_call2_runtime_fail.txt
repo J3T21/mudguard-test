@@ -1,0 +1,137 @@
+<cursor_untrusted_data_1337 source="CallDynamicTool">
+
+Evaluation notices:
+[
+  {
+    "btType": "BTNotice-227",
+    "tryNode": null,
+    "expressionErrorInfo": null,
+    "stackTrace": [
+      {
+        "btType": "BTLocationInfo-226",
+        "document": "a9cdb66596aa3072bafb083f",
+        "character": 12555,
+        "languageVersion": 3112,
+        "parseNodeId": "PcN/ASC5/XNcDcqvh",
+        "endCharacter": 18343,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "documentId": "",
+          "elementId": "a9cdb66596aa3072bafb083f",
+          "versionId": ""
+        },
+        "endLine": 341,
+        "endColumn": 6,
+        "line": 237,
+        "column": 5,
+        "elementMicroversion": "9ca2879a194a79dee97dc2e5",
+        "topLevel": "",
+        "version": "9ca2879a194a79dee97dc2e5",
+        "nodeId": "iCgXkyg6wHlmB8ku"
+      }
+    ],
+    "message": "Variable bodies set but not used",
+    "type": "SEMANTIC",
+    "level": "INFO",
+    "nodeId": "vI7kzmSl7/97neZo",
+    "parameterId": ""
+  },
+  {
+    "btType": "BTNotice-227",
+    "tryNode": {
+      "btType": "BTNodeReference-21",
+      "nodeId": "PgpAnhBn3WJthDpvW"
+    },
+    "expressionErrorInfo": null,
+    "stackTrace": [
+      {
+        "btType": "BTLocationInfo-226",
+        "document": "6d4ce527def8539685e560ec",
+        "character": 0,
+        "languageVersion": 0,
+        "parseNodeId": "PkM+Xt6WjdAHEVmC7",
+        "endCharacter": 0,
+        "moduleIds": null,
+        "endLine": 0,
+        "endColumn": 0,
+        "line": 0,
+        "column": 0,
+        "elementMicroversion": "755aed07a0befaae0051657e",
+        "topLevel": "main",
+        "version": "755aed07a0befaae0051657e",
+        "nodeId": "S23yAf1soceeo6wY"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "document": "6d4ce527def8539685e560ec",
+        "character": 0,
+        "languageVersion": 0,
+        "parseNodeId": "PNgoTouuv76L/mLYb",
+        "endCharacter": 0,
+        "moduleIds": null,
+        "endLine": 0,
+        "endColumn": 0,
+        "line": 0,
+        "column": 0,
+        "elementMicroversion": "755aed07a0befaae0051657e",
+        "topLevel": "",
+        "version": "755aed07a0befaae0051657e",
+        "nodeId": "VXyiKH2NOqwXfOB/"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "document": "onshape/std/feature.fs",
+        "character": 3279,
+        "languageVersion": 3112,
+        "parseNodeId": "PoY0pYT2kKkjrx7DQ",
+        "endCharacter": 3308,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "documentId": "12312312345abcabcabcdeff",
+          "elementId": "c2e68972a0b14c709954d6ca",
+          "versionId": "c31f2dcea3a7abd54f9bf94c"
+        },
+        "endLine": 61,
+        "endColumn": 46,
+        "line": 61,
+        "column": 17,
+        "elementMicroversion": "fdb0440b32ec9d20019fc403",
+        "topLevel": "defineFeature",
+        "version": "3112.0",
+        "nodeId": "0Vlnweap3kiKO+Vk"
+      },
+      {
+        "btType": "BTLocationInfo-226",
+        "document": "a9cdb66596aa3072bafb083f",
+        "character": 18265,
+        "languageVersion": 3112,
+        "parseNodeId": "PMJtEQmra9pLgGOPO",
+        "endCharacter": 18305,
+        "moduleIds": {
+          "btType": "BTDocumentVersionElementIds-1897",
+          "documentId": "",
+          "elementId": "a9cdb66596aa3072bafb083f",
+          "versionId": ""
+        },
+        "endLine": 339,
+        "endColumn": 53,
+        "line": 339,
+        "column": 13,
+        "elementMicroversion": "9ca2879a194a79dee97dc2e5",
+        "topLevel": "const rearS2SaddleCoupons",
+        "version": "9ca2879a194a79dee97dc2e5",
+        "nodeId": "UkRpLkCxtpcPZ/8q"
+      }
+    ],
+    "message": "throw REAR-S2-COUPONS | S2-A c=0.5 lip=1.2 float=0.4 vol=41.74 (exp 41.72) x-40.2..40.2 y-37.3..37.3 z354..403.8 lip=1 slit=1 notch=1 wall=1 saddle=1 groove=1 tie=2/2 stay=4/4 txt=4 | S2-B c=1 lip=1.2 float=0.4 vol=0 (exp 42.16)  | S2-C c=1.5 lip=1.6 float=0.4 vol=0 (exp 42.61)  | S2-D c=1 lip=0....",
+    "type": "OTHER",
+    "level": "INFO",
+    "nodeId": "Xq7Im+srmQBnyY1+",
+    "parameterId": ""
+  }
+]
+"$file:/workspace/mudguard/featurescript/rear_s2/rear_s2_coupons.fs" was replaced with the contents of /workspace/mudguard/featurescript/rear_s2/rear_s2_coupons.fs (18350 bytes) before the call.
+Structured content (JSON) the tool also returned:
+{"result":"Evaluation notices:\n[\n  {\n    \"btType\": \"BTNotice-227\",\n    \"tryNode\": null,\n    \"expressionErrorInfo\": null,\n    \"stackTrace\": [\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"document\": \"a9cdb66596aa3072bafb083f\",\n        \"character\": 12555,\n        \"languageVersion\": 3112,\n        \"parseNodeId\": \"PcN/ASC5/XNcDcqvh\",\n        \"endCharacter\": 18343,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"documentId\": \"\",\n          \"elementId\": \"a9cdb66596aa3072bafb083f\",\n          \"versionId\": \"\"\n        },\n        \"endLine\": 341,\n        \"endColumn\": 6,\n        \"line\": 237,\n        \"column\": 5,\n        \"elementMicroversion\": \"9ca2879a194a79dee97dc2e5\",\n        \"topLevel\": \"\",\n        \"version\": \"9ca2879a194a79dee97dc2e5\",\n        \"nodeId\": \"iCgXkyg6wHlmB8ku\"\n      }\n    ],\n    \"message\": \"Variable bodies set but not used\",\n    \"type\": \"SEMANTIC\",\n    \"level\": \"INFO\",\n    \"nodeId\": \"vI7kzmSl7/97neZo\",\n    \"parameterId\": \"\"\n  },\n  {\n    \"btType\": \"BTNotice-227\",\n    \"tryNode\": {\n      \"btType\": \"BTNodeReference-21\",\n      \"nodeId\": \"PgpAnhBn3WJthDpvW\"\n    },\n    \"expressionErrorInfo\": null,\n    \"stackTrace\": [\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"document\": \"6d4ce527def8539685e560ec\",\n        \"character\": 0,\n        \"languageVersion\": 0,\n        \"parseNodeId\": \"PkM+Xt6WjdAHEVmC7\",\n        \"endCharacter\": 0,\n        \"moduleIds\": null,\n        \"endLine\": 0,\n        \"endColumn\": 0,\n        \"line\": 0,\n        \"column\": 0,\n        \"elementMicroversion\": \"755aed07a0befaae0051657e\",\n        \"topLevel\": \"main\",\n        \"version\": \"755aed07a0befaae0051657e\",\n        \"nodeId\": \"S23yAf1soceeo6wY\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"document\": \"6d4ce527def8539685e560ec\",\n        \"character\": 0,\n        \"languageVersion\": 0,\n        \"parseNodeId\": \"PNgoTouuv76L/mLYb\",\n        \"endCharacter\": 0,\n        \"moduleIds\": null,\n        \"endLine\": 0,\n        \"endColumn\": 0,\n        \"line\": 0,\n        \"column\": 0,\n        \"elementMicroversion\": \"755aed07a0befaae0051657e\",\n        \"topLevel\": \"\",\n        \"version\": \"755aed07a0befaae0051657e\",\n        \"nodeId\": \"VXyiKH2NOqwXfOB/\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"document\": \"onshape/std/feature.fs\",\n        \"character\": 3279,\n        \"languageVersion\": 3112,\n        \"parseNodeId\": \"PoY0pYT2kKkjrx7DQ\",\n        \"endCharacter\": 3308,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"documentId\": \"12312312345abcabcabcdeff\",\n          \"elementId\": \"c2e68972a0b14c709954d6ca\",\n          \"versionId\": \"c31f2dcea3a7abd54f9bf94c\"\n        },\n        \"endLine\": 61,\n        \"endColumn\": 46,\n        \"line\": 61,\n        \"column\": 17,\n        \"elementMicroversion\": \"fdb0440b32ec9d20019fc403\",\n        \"topLevel\": \"defineFeature\",\n        \"version\": \"3112.0\",\n        \"nodeId\": \"0Vlnweap3kiKO+Vk\"\n      },\n      {\n        \"btType\": \"BTLocationInfo-226\",\n        \"document\": \"a9cdb66596aa3072bafb083f\",\n        \"character\": 18265,\n        \"languageVersion\": 3112,\n        \"parseNodeId\": \"PMJtEQmra9pLgGOPO\",\n        \"endCharacter\": 18305,\n        \"moduleIds\": {\n          \"btType\": \"BTDocumentVersionElementIds-1897\",\n          \"documentId\": \"\",\n          \"elementId\": \"a9cdb66596aa3072bafb083f\",\n          \"versionId\": \"\"\n        },\n        \"endLine\": 339,\n        \"endColumn\": 53,\n        \"line\": 339,\n        \"column\": 13,\n        \"elementMicroversion\": \"9ca2879a194a79dee97dc2e5\",\n        \"topLevel\": \"const rearS2SaddleCoupons\",\n        \"version\": \"9ca2879a194a79dee97dc2e5\",\n        \"nodeId\": \"UkRpLkCxtpcPZ/8q\"\n      }\n    ],\n    \"message\": \"throw REAR-S2-COUPONS | S2-A c=0.5 lip=1.2 float=0.4 vol=41.74 (exp 41.72) x-40.2..40.2 y-37.3..37.3 z354..403.8 lip=1 slit=1 notch=1 wall=1 saddle=1 groove=1 tie=2/2 stay=4/4 txt=4 | S2-B c=1 lip=1.2 float=0.4 vol=0 (exp 42.16)  | S2-C c=1.5 lip=1.6 float=0.4 vol=0 (exp 42.61)  | S2-D c=1 lip=0....\",\n    \"type\": \"OTHER\",\n    \"level\": \"INFO\",\n    \"nodeId\": \"Xq7Im+srmQBnyY1+\",\n    \"parameterId\": \"\"\n  }\n]"}
+
+</cursor_untrusted_data_1337>

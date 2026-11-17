@@ -1,0 +1,8 @@
+<cursor_untrusted_data_1337 source="CallDynamicTool">
+
+Error: could not find Trojan feature spec: no features found. This may indicate syntax errors in the FeatureScript.
+"$file:/workspace/mudguard/featurescript/rear_s2/rear_s2_coupons.fs" was replaced with the contents of /workspace/mudguard/featurescript/rear_s2/rear_s2_coupons.fs (18380 bytes) before the call.
+Structured content (JSON) the tool also returned:
+{"result":"Error: could not find Trojan feature spec: no features found. This may indicate syntax errors in the FeatureScript."}
+
+</cursor_untrusted_data_1337>
