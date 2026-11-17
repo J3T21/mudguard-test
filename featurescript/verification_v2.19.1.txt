@@ -1,0 +1,41 @@
+v2.19.1 verification (offline, no Onshape)
+
+Why v2.19 failed
+  Onshape threw BOOLEAN_BAD_INPUT at the intersection that trimmed the wing outline to the
+  bowed slab (id wing + "ix"). That slab was a loft of 21 rectangles, and on the long flat
+  run many of those sections were the same rectangle. The flat outer face also lay exactly
+  on the |y|=48.5 wall plane. The production file still contained the v2.18 checks (indent
+  at |y|=42.7, the R10 blend, and a hard fail on leg clearance), so it would have thrown
+  after a successful build.
+
+What the sheet is now
+  One closed profile in the YZ plane, extruded once along X. No loft.
+  Above the wall edge the outer face is 0.05 mm proud of |y|=48.5, so the union with the
+  guard shares volume instead of two coincident faces. The clip that already limits the
+  guard to |y|<=48.5 shaves that proud strip back flush.
+  From the wall edge the profile is three circular arcs, each tangent to the next:
+    radius 30 mm turning 15.5 deg, radius 40 mm turning back through 31 deg, radius 30 mm
+    turning 15.5 deg onto the lower flat. The lower flat is |y|=48.5 down to the tip.
+  The inner boundary is the same curves offset 2.5 mm. The two bottom corners are R8 bites,
+  subtracted, each tool overlapping the sheet.
+
+Offline checks on that profile (featurescript/v2_19_1_profile.py)
+  Closed area 273.7 mm2. 120 vertices. Zero-length edges: 0. Self-intersections: 0.
+  Offset distance 2.5 mm at every sample.
+  The only corner that is not tangent is the 0.05 mm step where the proud embed meets the
+  wall plane. The three arcs meet with continuous tangent, and the path returns to
+  |y|=48.5 with a vertical tangent.
+  Embed overlap with the wall, one side: 8.8 mm2. That is shared volume, not a shared face.
+  Belly |y|=45.95 at 50.7 mm below the brace. Collar intrusion 0.95 mm.
+  The root line is still 2.6 mm into the upper leg; that is the tangent on the wall plane.
+  Max-tyre gap of the inner face: 8.9 mm. OD 45 clearance 1.5 mm. Stanchion clearance 6.0 mm.
+
+The check
+  featurescript/mudguard_v2.19.1.fs and featurescript/test_bundle_v2.19.1.fs throw the same
+  string: v2.19.1 volA volB tyreGap stanchion collar od45 legMin holes bedB rootY bowY.
+  Collar and OD 45 numbers do not fail the build. Tyre under 8 mm, a stanchion intersection,
+  a missing bow, or a volume outside ±8% (A 57.5-67.5, B 114-134) does.
+
+Renders
+  out/v2.19.1_top.png, v2.19.1_front.png, v2.19.1_left.png
+  out/v2.19.1_leg_wing.png, v2.19.1_leg_wing_inside.png
