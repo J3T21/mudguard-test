@@ -1,0 +1,90 @@
+Rear mudguard r2.2 verification (offline). Base: rear-mudguard @ 499dd03 (r2.1.1, never run in Onshape).
+Source rear_mudguard_r2.2.fs, test bundle test_bundle_r2.2.fs (production text, export dropped, plus the
+rearMudguardR2Test feature), model rear_r2_2_model.py, bed check bed_r2_2.py. Review: print_review_rear_r2.md.
+
+CHANGES (James / Print Checker)
+  1. addHem: the hem was 0.6 proud of the wall face (A sat on a 2.3 mm strip). James asked for xLip = a (flush).
+     Built as xLip = a - 0.5: the outer face is 0.5 inside the wall face. Under the audit rule a flush hem face would be a
+     shared face between the hem loft and the shell loft. The wall face is still the outermost face, so A lies flat on it.
+     The hem is now |y| a-1.8..a-0.5, depth h-1.8..h+0.5 (0.5 below the wall bottom, unchanged).
+  2. lapClear 0.2 -> 0.4: tongue outer inset 3.4, inner 6.4. Shoulder lip inner inset 6.4 (flush with the tongue),
+     bridge hole 6.8, recess and rails follow qTongue. Rail top to groove floor 0.7, engagement 0.8.
+  3. Grooves 3.6 -> 3.8, depth 1.5..3.5 (0.5 through A's inner face, >= 3.5 kept). Inner side at |y| 18.1 (0.4 to the
+     rail). The outboard side would be at 21.9, 0.1 mm short of the inner corner tangency at |y| 22, which leaves a
+     0.1 mm strip of A's inner flat. So it runs on to 22.5 and cuts the R1 inner corner cleanly. The outer rail-side gap is
+     1.0, but the rail pair still locates to 0.4 per side, because the other rail's inner side limits each direction.
+  4. Tab plate: 1.5 x 1.5 chamfer on the inner top edge. It runs from |y| yi(8)+1.5 on the top face (d 8) to the inner
+     face at d 9.5. Clearance to A's wall (|y| 26) is >= 0.85 at d 9.5 (was 0.40 at d 8). FS throws if the cut removes
+     anything other than ~52 mm3 per plate. TAB_D0 is unchanged.
+  5. wideCorner 12 -> 6: the plate contact band on B is 11 mm (depth 6..17), 25.8 cm2 incl. the tail trim.
+  6. Ribs: 45 deg flanks, 6.0 base, 1.0 top, 2.5 proud. The sides drop to a 2.0 embed, because the base edge at |y| 25
+     sits 1.35 above the neck R4 corner surface; 2.0 keeps it >= 0.65 inside the wall, and the bottom is 0.5 off the
+     2.5 wall's inner face. A's ribs are now unioned BEFORE the grooves, so the groove cuts the rib embed where they
+     cross (s -20.5..-15 and 15..20).
+  7. Trim guides 1.0 along s x 0.6 proud (0.5 embed).
+  8. Tie recess 1.5 deep (1.5 skin under the tongue outer face).
+  9. Tail stays at s 330.
+ 10. Audit-driven: the web top is now d 8.5 (it was the plate's top plane, d 8) and the web ends at x 29.5 (it was the
+     plate's end plane, x 30). The tail corner tool is now an R6.5 arc tangent to x = +0.5 and |y| = a + 0.5 (it was R5
+     tangent to the end face and the wall). It crosses both 3.5 mm from the corner at about 23 deg and stays 1.0 off
+     the tail lip (|y| <= 40).
+
+BOOLEAN AUDIT, every union and subtract in order. Rule: two bodies built differently do not share a face exactly;
+where a face, closing line or tangency was meant to be shared, one side moves >= 0.5. Exactly coplanar planar
+faces sketched on the same plane (loft end caps on the same arcFrame plane) are kept and listed.
+  aSub / aSubL / bSubN / bSub / tgSub / shSub / brSub (hole lofts from solids): holes close at bottom + 1 (solid at
+    bottom), walls inset >= 1.2. End caps are on the same station planes (planar, same sketch plane). KEPT.
+  aU (skirt + lap at s -20) and bU0 (neck + tail at s 40): identical sections on one plane. KEPT.
+  shU (A + shoulder lip): lip outer inset 1.2 (1.3+ into the 2.5..3.0 wall); legs end 0.5 above the wall bottom;
+    lip s -23..-20, and its -20 face is on A's seam plane. ok.
+  bU2 (B + bridge): bridge outer inset 1.5 (1.0 into the 2.5 wall); legs 0.5 short of the bottom; start cap on B's
+    s 20 plane (planar; the overlap band 1.5..2.5 is inside the wall). ok.
+  bU1 (B + tongue): tongue 3.4..6.4 inside the bridge 1.5..6.8 for s 20..21.5, bottom 0.5 below the bridge. ok.
+  ribAU (A + ribs) [moved before gvC]: rib sides and bottom inside the wall (>= 0.5 off the inner face, >= 0.65 under
+    the corner surface). Rib caps at sF and s 20 are on A's end planes (planar, same planes); the front lip covers the sF
+    cap's outer part. ok.
+  gvC (A - grooves): y 18.1..22.5, depth 1.5..3.5. Bottom is 0.5 past A's inner flat (3.0) and 0.37 past the inner R1
+    corner at |y| 22.5; s -20.5 (0.5 into the lip) .. 20.6 (0.6 past A's end); cuts the rib embed transversally. ok.
+  railU (B + rails): 0.5 embed into the tongue; rails 18.5..21.5 are 0.5 off the tongue's outer corner tangency (22).
+    The rail start cap is on the tongue tip plane s -20 (planar). ok.
+  slA / slB brace slots: cutters from 2 mm outside to 14 deep. ok.
+  recC (B - recess): 6.6 x 1.5 (depth 4.9..6.9, 0.5 past the tongue inner face), 0.3 / 0.5 past the slot sides / ends. ok.
+  bossU: 0.5 embed, 0.5 off the slot edge, ends 1.15 before A's end. ok.
+  ribBU (B + ribs): the s 26 cap sits on the bridge's end plane. The coplanar overlap (depth 1.5..2.0) is inside B's
+    wall after bU2. Joints at s 80/140/200/260 are identical caps. The last rib ends at 325, 5 short of the tail. ok.
+  trimU: 0.5 embed, |y| <= 18 (1 mm off the rib base). ok.
+  lipAU / lipBU: 0.5 radial and 0.5 along s into the shell; |y| <= a - r - 1 = 40. ok.
+  hemU: outer face a-0.5 (CHANGED), inner a-1.8 (0.7 off the inner face), top h-1.8, bottom h+0.5. End caps are on
+    A's sF / -20 planes (planar). ok.
+  r5 tail corners: CHANGED to the offset R6.5 tool (above). The tool runs to x 1.5 and 1.5 outside the wall. ok.
+  tab plates - chamfer (NEW): the cutter runs 1 mm past the plate in x (-17..31) and 1.0 above the top face; its other
+    sides are in air. ok.
+  tabU (B + plates + webs): web 1.0 into B's wall, 0.5 into the plate; top d 8.5 (CHANGED from 8, which was the plate's
+    top plane), end x 29.5 (CHANGED from 30, the plate's end plane); bottom >= 1.1 above the wall bottom. Plate 0.4+
+    off B's own wall, which is no boolean face. ok.
+  tsl tab slots: cutter from 1 mm inside the plate to 15 outside; the d 13.5 slot (10.5..16.5) is 1.0 below the chamfer. ok.
+  Test-only: the tyre body is a revolve, used for distance and then deleted; the ixAB intersection is on copies.
+  Nothing left under 0.5 mm except the exact coplanar end caps listed above.
+
+VOLUME (cm3, rear_r2_2_model.py)
+  volA 43.99   volB 107.05   window +/-8%: A 40.47..47.51  B 98.49..115.61
+  shellA 41.68 shoulder 0.77 grooves -0.53 slotsA -0.19 ribsA 1.53 trims 0.09 lipA+hem 0.55
+  shellB 88.50 tongue 7.81 rails 0.27 slotsB -0.17 recess -0.53 bosses 0.10 ribsB 5.41 lipB 0.49
+  tailCorners -0.15 tabs 5.60 tabSlots -0.17
+  (r2.1.1: A 43.11 / B 103.87. B is up mainly because the R6 corners add shell area: +3.5 cm3.)
+
+CLEARANCES: min tyre gap 15.29 (tab tip d 27.5, unchanged); tongue inner R 372.1 (22.1 off the crown); side 3.00;
+  tab plate to A 0.85 at d 9.5.
+
+BED (P1S, bed_r2_2.py; render out/rear/r2.2_bed_B_P1S.png)
+  B on its side, rotated 170 deg (not flipped). Hull bbox X 3.5..252.3, Y 13.5..252.0 (248.8 x 238.5).
+  Clear of the 0..18 x 0..28 keep-out (105 mm), 3.3 mm off the load line and its X 240 jog, 3.5 from the plate edge.
+  Mouse ears (5 mm) at the 4 contact-band corners (tail end and s 85 end) all on the plate and clear. No brim.
+  A: best 120.3 x 120.2 at 69.9 deg, no constraint.
+
+PRINT SETTINGS (Print Checker, 72D TPU on P1S)
+  Nozzle 230 (first layer 235), bed 40-45 textured PEI, max volumetric 4 mm3/s, retraction 0.6 at 25 mm/s,
+  dry 65-70 C for 6-8 h, print from a dry box. Both parts on their sides, same side down.
+  Supports: tree, build plate only OFF, threshold 40, top/bottom Z 0.3, interface 3 layers, XY 0.8,
+  blockers in the brace / tab slots, tie recesses, grooves and rails. B ~92 cm2 of support (~74 with the 45 deg ribs),
+  A ~36 cm2. Mouse ears at the tail corners and the s 85 ends of the band; no brim.
