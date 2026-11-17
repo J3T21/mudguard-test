@@ -1,0 +1,18 @@
+Mudguard v2.11 verification (Onshape FeatureScript std 3112, test_feature + create_geometry)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/54071b89e85cf1792a2cc1d3/e/5b67a4974a5ea64603396eec
+
+Change from v2.10: stepped joint, so the front brace-tie row is on A and the rear row on B.
+  Flange stack unchanged behind the brace (A 11.5..19.5, B 19.5..23.5, mating plane 19.5, |y| <= 23, 3 x M3, tongue/groove).
+  Outboard of the flange (|y| > 23) the split steps forward to s = 7 (param earFront): B gets two "ears" (top corner, side wall, sheet root) from s 7 to 19.5, carrying the rear tie slots at s +12.5.
+  Joint faces: transverse step at s = 7 (radial plane, |y| 23..48.5, under the rear edge of the brace); longitudinal seam at |y| = 23, s 7..19.5 (beside flange A); flange face at 19.5.
+Ties: rows s -12.5 (A) / +12.5 (B), y +-30, 25 mm centres, 22.6 mm between inner slot edges, 1.3 mm from each brace face.
+  Strip of B ear ahead of the rear slot: 4.3 mm. Rear slot cutters to flange A 4.0, flange B 7.45, nuts 9.08, groove 7.28, bolt holes 9.82.
+  Slot rays through the skin: clear (both rows); exits clear 30 mm.
+  Step joint surface mismatch A vs B at s=7 (outer + inner, y 24..40): 0.051 mm max, so the tie's inner run along the inside of the shell crosses the joint flush.
+  (v2.10's "inner run clear" ray was a flawed check: at y 30 the run lies in the R6 corner, so a fixed-depth straight ray starts inside the wall. Replaced by this continuity check.)
+How the ties clamp: tie tension pulls A's front-slot strip rearward and B's ear strip forward, putting the s=7 step faces and the flange stack in compression, in series with the M3 bolts.
+Solids 2 (A=1, B=1), A/B interfere 0, abut 121; flange bolts 0 hits; groove-nut 1.25; root fillet ok
+A bbox 181.5 x 97.1 x 71.1 mm, 66.0 cm3 (on its side as modelled)
+B bbox 276.0 x 98.5 x 149.6 mm, 115.5 cm3; on its side (-Y down, ~27 deg on the bed) 244.0 x 241.3, H 98.5: unchanged, fits 250
+Tyre clearance [69.2 / Assegai]: A 8.17/9.70, B 8.19/9.72 (B now includes the waist corner at s 7..10), sheets 11.22/12.94
+Legs: clashes 0/0 (A 20.08 now, since the sheet roots moved to B; B 0.59); wing slots 12/12

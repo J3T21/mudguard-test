@@ -1,0 +1,41 @@
+v2.19 verification (offline, no Onshape)
+
+What changed from v2.18
+  The collar blister loft, the matching cut, and the R10 tyre-side blend are not built.
+  The outer R4 join fillet is not applied, so nothing is added outside the wall plane.
+  The leg sheet is one surface. It leaves the guard side wall in the same plane (|y| = 48.5),
+  bows away from the leg, and returns to that plane. Thickness is 2.5 mm measured normal
+  to the face. The only wing holes are the D125 pair. Brace ties, the stepped joint,
+  the R32 ends and the 250 mm bed fit are unchanged.
+
+The bow
+  Starts at the wall edge, D = 31.99 mm below the brace, tangent to the vertical plane.
+  Depth 2.8 mm over 10 mm, then back to the plane over the next 22 mm. Both ends are
+  quintic smoothsteps, so slope and curvature are zero there.
+  Belly |y| = 45.7 at D = 42.0. Against the OD 55 collar (surface at |y| = 45.0) that is
+  0.7 mm of interference. Against the local taper at that station the belly is 0.87 mm clear.
+  The flush root line itself is still 2.64 mm into the upper leg. That zone is only D 32.0
+  to 36.8 (4.7 mm of height); below that the face is within 1 mm, and from D = 44 it is clear
+  of the taper. The root has to stay on the wall plane, so that short tangent is the
+  interference plastic flex still covers.
+  Back on the plane by D = 64. The D125 holes are in the flat sheet.
+  OD 45 leg (D >= 90): the flat face at |y| = 48.5 is 1.50 mm clear.
+  Stanchion OD 36: 6.0 mm clear at the flat face, more at the belly. No intersection.
+  Max tyre (69.2): the bowed inner face is 9.15 mm clear at its closest sample
+  (D = 47, inner |y| = 43.45). The 8 mm floor holds. Assegai is further away.
+
+What the test reports, and what fails
+  One string, also the throw message:
+    v2.19 volA volB tyreGap stanchion collar od45 legMin holes bedB rootY bowY
+  collar is the belly's intrusion into the OD 55 radius (0.70in). od45 is the flat
+  sheet's clearance to the OD 45 leg (1.50clr). legMin is the worst signed gap of the
+  face to the design leg, negative where it still intersects (the root tangent).
+  None of those three fail the test.
+  It does fail if the tyre gap is under 8 mm, the sheet meets the stanchion, the root
+  is not on the wall plane, the belly is missing, the sheet does not return to the plane,
+  anything sticks past |y| = 48.5, the hole count is wrong, the bed exceeds 250 mm,
+  or a volume is outside ±8% (A 57.5–67.5 around 62.5, B 114–134 around 124).
+
+Renders
+  out/v2.19_top.png, v2.19_front.png, v2.19_left.png
+  out/v2.19_leg_wing.png (leg side of the root), v2.19_leg_wing_inside.png (tyre side)

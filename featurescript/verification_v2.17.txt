@@ -1,0 +1,82 @@
+v2.17 offline verification (no Onshape)
+source: featurescript/mudguard_v2.17.fs from v2.16 (be36587)
+datum: brace underside. leg centre |y|=72.5. sheet plane |y|=48.5 thickness 2.5.
+
+COLLAR (owner, this round)
+  OD 55 mm, height 20 mm, top at the brace underside (D=0).
+  Brace blends into the collar; the wing uses a cylinder and the plastic can flex the rest.
+  Radial clearance 1.5 mm -> effective OD 58 mm.
+  Leg-facing face |y|=43.50  (72.5 - 27.5 - 1.5).
+
+BLISTER (enabled)
+  The 19 deg leg-zone wall reaches |y|=43.50 at D=17.47 (already >= 1.5 mm clear above that).
+  Flat wrap: D 17.47 .. 39.47 (22 mm) at |y|=43.50, full sheet width 56 mm, wall 2.5 mm.
+  Top transition: the existing wall, tangent onto the flat (cut depth starts at 0, no feather).
+  Bottom transition: linear ramp D 39.47 .. 90.47 (51 mm) back to |y|=48.5.
+  51 mm is the length that stays 1.5 mm off a straight taper from OD 55 at D=20 to OD 45 at D=90.
+  No seal window. Nothing left under 1 mm: skin 2.5, overlaps 2 mm (consumed or buried), rib end radius 1.5.
+
+RIB
+  Tyre side of the wing/guard junction, not proud of the leg-facing face.
+  A bead on the leg face would eat the 1.5 mm collar gap (face is already on the 58 mm cylinder).
+  Proud 2 mm toward the tyre, 3 mm down the sheet, stadium ends R1.5 (modelled, not an edge fillet).
+  Sits on the blister inner face |y|=41.0, so the rib's inner face is |y|=39.0.
+
+TIE HOLES
+  Wing rows were 90 / 110 / 125 mm. Kept the lowest pair only: D=125 mm, pitch 22 mm, both sides (4 holes).
+  Rows at 90 and 110 are solid. Brace ties stay at s = +/-12.5 on both parts.
+
+CLEARANCE (centreline unless noted), design leg = collar then linear to OD 45 at 90 mm
+  D=   4.9  |y|=39.16  design  +5.84 mm   repo-tape  +3.34 mm
+  D=   5.0  |y|=39.22  design  +5.78 mm   repo-tape  +3.28 mm
+  D=  14.9  |y|=42.62  design  +2.38 mm   repo-tape  -0.12 mm
+  D=  15.1  |y|=42.68  design  +2.32 mm   repo-tape  -0.18 mm
+  D=  17.4  |y|=43.46  design  +1.54 mm   repo-tape  -0.96 mm
+  D=  17.5  |y|=43.50  design  +1.50 mm   repo-tape  -1.00 mm
+  D=  19.9  |y|=43.50  design  +1.50 mm   repo-tape  -1.00 mm
+  D=  20.1  |y|=43.50  design  +1.51 mm   repo-tape  -1.00 mm
+  D=  27.9  |y|=43.50  design  +2.06 mm   repo-tape  -1.00 mm
+  D=  28.1  |y|=43.50  design  +2.08 mm   repo-tape  -1.00 mm
+  D=  31.9  |y|=43.50  design  +2.35 mm   repo-tape  -1.00 mm
+  D=  32.1  |y|=43.50  design  +2.36 mm   repo-tape  -1.00 mm
+  D=  39.9  |y|=43.54  design  +2.88 mm   repo-tape  -1.04 mm
+  D=  40.0  |y|=43.56  design  +2.88 mm   repo-tape  -1.05 mm
+  D=  49.9  |y|=44.53  design  +2.61 mm   repo-tape  -0.54 mm
+  D=  50.1  |y|=44.54  design  +2.61 mm   repo-tape  -0.53 mm
+  D=  69.9  |y|=46.48  design  +2.08 mm   repo-tape  +0.50 mm
+  D=  70.0  |y|=46.50  design  +2.08 mm   repo-tape  +0.51 mm
+  D=  90.0  |y|=48.45  design  +1.55 mm   repo-tape  +1.54 mm
+  D=  90.1  |y|=48.47  design  +1.53 mm   repo-tape  +1.53 mm
+  D= 109.9  |y|=48.50  design  +1.50 mm   repo-tape  +1.50 mm
+  D= 110.1  |y|=48.50  design  +1.50 mm   repo-tape  +1.50 mm
+  D= 125.0  |y|=48.50  design  +1.50 mm   repo-tape  +1.50 mm
+  D= 125.1  |y|=48.50  design  +1.50 mm   repo-tape  +1.50 mm
+  minimum vs design leg: 1.50 mm at D=17.5
+  minimum vs design leg anywhere on the flat face |dx|<=28: 1.50 mm at D=17.5 dx=0.0
+  minimum vs stanchion OD 36: 6.00 mm
+  tyre, sampled on blister inner face, rib and lower sheet: max-tyre 9.16 mm, Assegai 10.79 mm
+  lower sheet at D>=90 vs OD 45: 1.50 mm (the original 1.5 mm flush gap)
+
+REPO TAPE (OD 60 at 40 mm, OD 45 at 90 mm) — NOT what this blister is built to
+  The owner's collar measurement (OD 55 at the top) replaces that 60 mm station for the seal.
+  Against the old tape solid the skin still intersects: minimum -1.05 mm at D=40.0.
+  If the leg really is OD 60 at 40 mm, the face would need to be |y|<=41.0, not 43.5.
+
+VOLUME (offline estimate, cm^3)
+  v2.16 measured A 62.5 / B 112.131
+  A is unchanged (blister, rib and tie-hole edits are on B, aft of the stepped joint).
+  B delta +16.54 cm^3  ->  B about 128.7
+  of which restoring the 90/110 slots+channels is 0.49 cm^3; the rest is the closed window minus the blister cut plus the shell and rib.
+  Test band used in the feature: A 62.2..62.8, B 123..135.
+
+BED
+  B on its side still 241.3 x 238.3 (unchanged: blister and rib stay inside |y|<=48.5; XZ box is the v2.16 box). Limit 250 mm. A footprint is the v2.16 footprint (about 182 x 69).
+
+HOLES / WINDOW
+  wing zip holes 4 (was 12). brace tie slots 4. bolt holes 3.
+  old window centre (D=50, on the taper) is solid skin, not an opening.
+
+FILLETS
+  R4 join fillets still run before the blister, as in v2.16. The blister cut then removes that fillet
+  where it crosses the flat (the fillet sat at |y|~46-48.5, the cut takes everything outboard of 43.5).
+  No new edge fillet. R1 sheet-end rounds are not retried. New ends are a 1.5 mm stadium radius on a 3 mm rib.

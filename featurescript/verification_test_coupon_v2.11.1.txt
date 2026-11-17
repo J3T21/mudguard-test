@@ -1,0 +1,15 @@
+Joint test coupon from v2.11.1 (rib off), rev 2: coupon B extended so the whole leg sheet and seal window are intact
+Feature "Mudguard joint test coupon v2.11.1" (mudguardJointCoupon) = mudguardV2 + two radial-plane trims (cutA -25, cutB +115)
+Onshape (new branched workspace; create_geometry always branches, so the earlier coupon ws 12295830145b40df97e8c231 still has the s +80 cut):
+  https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/af67272cd0b1dfb0885ee86d/e/5b67a4974a5ea64603396eec
+Why s 115: the leg sheets are vertical in world Z (x = xC +- 28, xC = -44.9) and tip at z 257.4. A radial cut tilts, so the sheet's rear-bottom corner (x -72.9) sits at s-equivalent ~108.6.
+  The old s 80 cut (and a trial at s 95) still clipped the sheet. At s 115 the cut passes 4.6 mm behind the corner at tip height.
+Coupon A (unchanged): s -25 .. rear edge; 45.2 x 83.4 x 46.9 mm, 17.22 cm3; flat cut face 3.61 cm2
+Coupon B: front edge .. s +115; 106.9 x 98.5 x 149.6 mm, 53.24 cm3 (was 38.07)
+  cut face: 1 flat region, 2.85 cm2, lowest point at radius 365.9 mm (U-section only; sheets reach radius ~258) -> sheets and windows not touched
+  sheet probes (Y rays): all 6 strap slots (D 90/110/125, x +-11) open; window open (incl. 1 mm inside its rear edge);
+    front and rear 8 mm strips solid (incl. 1 mm behind the window edge); sheet body and rear-bottom corner solid
+Checks: 2 solids (1 + 1); A/B interfere 0, abut 121; bolt axes 0 hits (holes aligned), 4 mm-offset controls 4 hits each
+  tie slots s -12.5 / +12.5: all open; wing slots 12/12
+On its side (-Y down): B 149.6 x 106.9 footprint (142.2 x 107.0 turned 18 deg), 98.5 tall; A 46.9 x 45.2, 83.4 tall
+Print estimate (PETG 1.27 g/cm3): A ~22 g, B ~68 g -> ~90 g parts + ~15-25 g supports; P1S standard PETG ~1 h (A) + ~2.5-3 h (B), ~3.5-4 h total

@@ -1,0 +1,17 @@
+v2.19.3.1 test coupon 2 (James t100u: keep both entire legs)
+Source: featurescript/test_coupon2_v2.19.3.1.fs = mudguard_v2.19.3.1.fs (bb4917f) + coupon2 feature (first export).
+Full v2.19.3.1 build, then two planar subtractions. No new geometry; A and B both kept.
+  front: radial plane s -21 (remove s < -21). Nearest planar face: front tie-boss end s -17.7 (3.3 mm).
+  rear:  world plane x = -74 (remove x < -74). Leg-sheet rear vertical edge x = xC - 28 = -72.85 (1.15 mm);
+         root end planes s 76 at x -61..-71.6 (>= 2.4); root R2 corner fillets reach ~x -71.7 (>= 2.3);
+         the whole tail is at x < -74 for s > 80.8. Transversal to the guard (~79 deg to the crown).
+No cut face within 0.5 mm of an existing face. Both leg sheets whole to the D 135 tips, D 125 slots and channel intact.
+Offline estimates: A ~16.4 cm3, B ~54.0 cm3 (test windows A 10..25, B 40..70).
+
+Onshape (user-onshape--new): 1 test_feature PASS (no notices), 1 create_geometry OK. Calls: 2.
+COUPON2-v2.19.3.1 n0=2 solids=2 volA=16.06 volB=53.56 A[dims(mm) X=41.2 Y=89.8 Z=44.7 min=(-20.2,-44.9,362.7) max=(21,44.9,407.4)] B[dims(mm) X=67.5 Y=98 Z=149.6 min=(-74,-49,257.4) max=(-6.5,49,407)] sideA[minArea 44.7x41.2x89.8@90 minSq 44x43.6@84] sideB[minArea 149.6x67.5x98@0 minSq 133.6x133@39] tip=2/2 root=2/2 bow=2/2 legSlots=4/4 braceSlots=4/4 interfere=0 print@4=4.83h
+Tiny faces (< 1 mm2): full part A 0; full part B 4, all inherited from v2.19.3.1 (same 4 in the coupon):
+  (-8,+-28,393.9) and (-17,+-28,393.6), 0.4 mm2, 1 mm across = s ~8 and ~17 at y +-28, on the 1 mm proud rear
+  brace-tie bosses on B's ears (boss s 7.3..17.7), where the boss skin meets the crown. Not from the coupon cuts.
+Workspace: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/48acd65913abcbc2217c0533/e/6d4ce527def8539685e560ec
+Previews: out/v2.19.3.1_coupon2_onshape_{top,front,left}.png

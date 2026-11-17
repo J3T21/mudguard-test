@@ -1,0 +1,19 @@
+Mudguard v2.8 verification (Onshape FeatureScript std 3112, test_feature + create_geometry)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/206fbd42c82bab257e38e1e4/e/5b67a4974a5ea64603396eec
+
+Change: Mudhugger-style flat leg sheets, flush with the guard side wall in the lower-leg inner-face plane, with a rectangular seal-bulge window.
+Widths: 82 under the brace (s -15..10, unchanged saddle, top flat 60 = PH5); transition s 10->22;
+  leg zone 97 (outer |y| 48.5, top flat 76, depth 30.5) s 22..68; front and tail 97.
+Leg sheets: 2.5 mm, vertical (splay 0), outer face |y| 48.5 = flush with the wall, s 17..73 (56 wide, centred s 45),
+  from the wall edge (d 30.5) down to D 135 below the brace, R8 tip corners, strap slot pairs at D 90/110/125 (12/12 open).
+Seal window: through the wall and sheet, s 25..65 (40 long), D 12..84; strips 8 mm fore and aft.
+Solids: 2 (A=1, B=1). A/B interfere 0 (face contact only).
+A bbox 181.5 x 97.1 x 71.1 mm, 69.0 cm3
+B bbox 208.5 x 98.5 x 149.6 mm, 89.8 cm3 -> on its side 208.5 x 149.6, H 98.5: fits a 250 bed
+Tyre clearance [max 69.2 / Assegai 63.5]: A 8.17 / 9.70 (brace waist s~-6), B 11.40 / 14.25, sheets 11.22 / 12.94
+  v2.7 for comparison: A 8.69 / 10.22, B 8.50 / 10.04, wings 11.4
+Legs (measured taper model): A/legs, B/legs clashes 0/0; min dist A 5.66, B 0.59 (window bottom edge, D 84, leg-axis side)
+Tie slots s -12.5 and s +28: all 5 y-samples clear; rear row to flange B 3.3 mm, front row to brace 1.3 mm
+Tie cutter to flange A 8.67, to flange B 5.61; groove-to-nut 1.25; bolts y -15/0/15: 0 hits; root fillet ok
+Assumptions: leg gap 85 from D 0..40 (not measured above 40); brace geometry unchanged since v2.7; photos not readable on the box.
+Note: the sheet front strip s 17..22 sits in the 82->97 transition, so it is about 3 mm proud/non-flush locally.

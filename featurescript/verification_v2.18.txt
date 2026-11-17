@@ -1,0 +1,34 @@
+v2.18 offline verification (no Onshape). Base is v2.17.2 (abfcecb), which built in Onshape.
+
+Ridge on the leg-facing face
+  Two things stacked. The shell outer stations sat at |y|=43.0 while the cut plane sat at |y|=42.7,
+  so a 0.3 mm ledge ran along the flat. The R4 crease fillet (applied on the old |y|=48.5 junction,
+  then sliced by that cut) left a second step at the cut boundary. v2.18 uses one curve for the
+  shell and the cut: an R10 circular ease off the 19 deg wall (tangent length 1.67 mm), a flat at
+  |y|=42.7, then a smoothstep (zero slope at both ends) back to |y|=48.5. Nothing is left proud of that curve.
+
+Collar flat
+  |y|=42.7. Centre |y|=72.5, collar radius 27.5. Gap = 72.5 - 42.7 - 27.5 = 2.30 mm.
+  Flat runs from D 16.82 (end of the R10 ease) for 22 mm, to D 38.82.
+
+Leg clearance, design leg (OD 55 to D=20, then straight to OD 45 at D=90)
+  Flat and ease: 2.30 mm at the flat, higher on the ease.
+  Smoothstep ramp D 38.82 to 102.82: stays above 1.50 mm. The minimum of the whole skin is
+  1.50 mm where the ramp has rejoined the original sheet (the designed flush gap to OD 45).
+  That is the number the test's legGap should come back near. Threshold in the bundle is 1.45 mm.
+
+Tyre side blend (replaces the 2 mm stadium rib)
+  R10 arc, 2.4 mm bulge toward the tyre, 1.2 mm buried in the wall, full width of the wing root.
+  A full R6-R10 quarter-round reaches the 69.2 mm tyre in under 8 mm (R6 horizontal point is 6.5 mm).
+  This bulge is the largest R10 arc that stays clear: minimum 8.38 mm to the 69.2 mm tyre,  at the junction.
+  The sheet inner face further down the ramp is closer, about 6.1 mm, which the blister already caused in v2.17.2.
+  The test reports that whole-body tyre gap and only fails it below 5 mm.
+
+Volumes (sanity, +/-8%)
+  A unchanged, centre 62.5, bounds 57.5..67.5.
+  B centre 124.5 (v2.17.2 about 122.9, rib removed ~1 cm3, blend added ~2.6 cm3). Bounds 114.5..134.5.
+
+Bed still inside 250 mm (the new material is inboard of |y|=48.5).
+Wing holes remain the D=125 pair only (4 open, 8 upper rows solid). No window.
+The result string, which is also the throw text, is:
+  v2.18 volA=.. volB=.. legGap=.. tyreGap=.. tyreAsg=.. indentY=.. holes=.. bedB=.. stanchion=..

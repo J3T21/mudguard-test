@@ -1,0 +1,19 @@
+Mudguard V2.5 - fitted to James's measured legs (Onshape FeatureScript, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/cebfd1f1e404c8fa591d005d/e/5b67a4974a5ea64603396eec
+test_feature + create_geometry: no errors/notices; nSolids=2 (Guard Front A, Guard Rear B); A/B interfere=0 (abut only)
+Measured legs (D = below brace underside, along the leg): inner face-to-face 85 @ D40, 100 @ D90 (const below), OD 60 @ D40, 45 @ D90;
+  centre spacing 145 (|y| 72.5). Modelled as a cone (linear taper D40-90, extrapolated above D40 -> inner half-gap 36.5 at D0) + cylinder below.
+  Params: PH2=100 (gap at/below taper end), legGapUpper=85, legTaperTop=40, legTaperEnd=90, PH6=45 (OD at ties).
+Wings (part B): flat 2.5 mm plates, leg-side face |y|=48.5 (1.5 pad to the 100 gap), tyre side 46.0; centred s=+45 (leg axis).
+  Above ~D75 the plate is relieved around the leg cone + 1.5 mm and joins the guard via a rear strip (root su +5..+40 behind the leg axis);
+  full 40 mm paddle from D78 down; tip D135 (z=257.4). Slots 6.0x2.4 pairs at s+34/+56, rows D85/110/125: 12/12 open.
+Tyre clearance (torus envelope, crown R375):
+  wing plates: 11.40 (69.2 max tyre) / 14.25 (63.5 Assegai) per side
+  whole part min: A 10.18 / 11.36 ; B 9.09 / 10.31  (>= 8)
+  measured legs themselves to tyre: 9.64 / 12.07 (pinch ~D50, where the tyre is widest)
+Guard to measured legs: A 10.11, B 1.48 (= pad allowance at the wing relief); no interference.
+Guard at the legs narrowed 84 -> 76 (legZoneWidth; s+30 = 77) so the side walls clear the 85 mm gap at D40.
+Brace ties: front s=-14 (A), rear s=+29 (B) 5/5 + 5/5 clear; cutter 8.7 from flange A, 5.6 from flange B; bolts 3 axes clear; groove-nut web 1.25
+Bounding boxes: A X=182.5 Y=110.2 Z=72.9 (72.3 cm3); B X=206.4 Y=97.0 Z=149.5 (92.6 cm3)
+On side: A 182.5 x 72.9 (110.2 tall); B 206.4 x 149.5 (97.0 tall) -> both fit 250 without rotation
+Brace (PH3=22 depth, PH5=60 underside flat, PH4=25) unchanged: photos not readable by the build agent (see mudguard_refs/fork_photos.md)

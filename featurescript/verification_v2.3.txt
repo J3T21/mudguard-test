@@ -1,0 +1,14 @@
+Mudguard V2.3 – integral flat leg wings (Onshape FeatureScript console, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/6e34d14a5ae5e724004e2dd1/e/5b67a4974a5ea64603396eec
+nSolids=2 (Guard Front A, Guard Rear B); no errors/notices; A/B interfere=0 (abut only)
+Wings: one per side, flat, parallel to wheel plane, centred s=+45 (legTieOffset), 2.5 mm (wingThk); tyre-side face |y|=46.0, leg-side face |y|=48.5 (=PH2/2-padThk)
+  outline: 40 wide paddle s+25..+65, root s+21..+77 at d=12, tip d=112 (z=278.9), 100 mm below root, R8 tip corners
+  root flares: tangent arcs R80.1 (front) / R32.0 (rear) - R25 not geometrically possible through the given points
+  joggle: solid wedge from the 19 deg side wall to the wing, d 12..28; no R10 root fillet
+  slots 6.0 (along leg) x 2.4 at s+34/+56, rows d 48/74/100: 12/12 open (lateral ray traces); 0.8 x 5.5 strap channels on the tyre side
+Tyre clearance (torus envelope, crown R375, circular section):
+  wing plates: 11.40 mm per side (69.2 max tyre), 14.25 mm (63.5 Assegai), both sides equal
+  whole part min: A 10.14 / 11.33 ; B 9.96 / 11.40  (Fox min 8)
+A box X=248.1 Y=110.3 Z=107.2, 103.3 cm3 ; B box X=141.2 Y=97.0 Z=128.0, 77.9 cm3
+On side: A 248.1 x 107.2 (110.3 tall); B 141.2 x 128.0 (97.0 tall) - fits 250; B min-area 146.9 x 119.6
+Unchanged from v2.2: brace tie slots 10/10 open, cutter 4.0 mm from flange A; groove-nut web 1.25; bolt axes clear; flange root fillets 4/4

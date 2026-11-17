@@ -1,0 +1,19 @@
+Mudguard V2.4 - flipped split (long rear B with wings), flange between brace tie rows (Onshape FeatureScript, std 3112)
+Onshape: https://cad.onshape.com/documents/b4a53e8390655572002075ff/w/f7a8708351f8db57d71d95a0/e/5b67a4974a5ea64603396eec
+test_feature + create_geometry: no errors/notices; nSolids=2 (Guard Front A, Guard Rear B); A/B interfere=0 (abut only, 97 face contacts)
+Lengths (arc on outer top, s=0 brace centre): frontLen=165 (tip s=-165), tailLen=240 (tip s=+240), total 405
+  A = s -165..+20.5 (185.5 arc incl. 8 mm flange A); B = s +20.5..+240 (219.5 arc incl. wings)
+Stations: tip zone + 25 mm kicker anchored to the tip (100 -> 110 by s=-95), 110 plateau -95..-70, flare -70..-15 to the 78 waist
+  (unchanged, anchored to brace), 78 waist s-15..+15, 82/84/84 at s+30/+45/+60, 83 @ s+128.6, 82 @ s+188.6, 80x22 @ s+240
+  stations closer than 8 mm after re-spacing are dropped (-88.75, -76.25, -70). Front max width 110.2.
+Brace tie rows (params braceTieFront / braceTieRear, y=+/-30): front s=-14 (part A, slot edge 1.8 mm ahead of brace front face s=-11);
+  rear s=+29 (part B, just behind B's flange; slot front edge 3.3 mm behind B rear face s=24.5, cutter 5.6 mm from flange B, 8.7 from flange A)
+Flange stack: A front face s=12.5 (= PH3/2 + pad, butts brace rear face), mating plane s=20.5, B rear face s=24.5; flange |y|<=23, tie strap at |y| 27..33 runs outboard of it
+Brace tie slots radial ray traces: s=-14 5/5 clear, s=+29 5/5 clear (tieCutDepth 20)
+Bolts: 3 axes y=-15/0/+15 unobstructed through the flange stack (0 hits); groove-nut web 1.25 mm; flange root fillets 4/4 ok
+Wings: unchanged, centred s=+45 from brace centre (16 mm behind the rear tie row); 12/12 slots open; faces |y| 46.0 / 48.5; tip d=112
+Tyre clearance (torus envelope): wings 11.40 (69.2 max) / 14.25 (63.5 Assegai) per side; part min A 10.14/11.33, B 9.96/11.40 (Fox min 8)
+Bounding boxes (as modelled, X fore-aft, Y lateral, Z up):
+  A X=182.5 Y=110.2 Z=72.9, 72.3 cm3 ; B X=206.4 Y=97.0 Z=128.0, 99.4 cm3
+On side (Y = height): A 182.5 x 72.9 (110.2 tall); B 206.4 x 128.0 (97.0 tall) -> both fit 250 axis-aligned, no diagonal needed
+  min-area rotation: A 187.9 x 44.4 @78 deg; B 220.3 x 119.6 @108 deg
