@@ -33,9 +33,16 @@ nutThk   4.2 mm   (≈ DIN 985 height + 0.2)
 
 Onshape
 -------
-MCP auth is not available in this cloud-agent environment. Paste / update
-the Feature Studio from mudguard_v2.19.4.fs on doc 3da26eeb… (clone workspace
-from ecd92e54 / v2.19.3.1), rebuild once, then drop the workspace URL here.
+Desktop MCP (user-onshape): 1 test_feature PASS (no notices), 1 create_geometry
+OK with clean=false. Branched workspace kept (did not overwrite ecd92e54 / v2.19.3.1).
+
+Workspace: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/303c7c31d1cb051374f5a49c/e/6d4ce527def8539685e560ec
+Name: create_geometry_Mudguard V2.19.4 (Fox AWL 36)_45dc9dff
+
+Console (report prefix still says v2.19.3.1 in the FS string):
+v2.19.3.1 volA=64.03 volB=123.42 tyreGap=8.86 stanchion=5.56 collar=0.95in od45=1clr legMin=-2.57 holes=4/4 bedB=241.3x238.3 bowY=45.95 bowV=51.95 flatY=49 root=s22.5-76 v25=0 stepOut=0 stepIn=0 tiny=0 fil=2/4 PASS
+
+Previews: out/v2.19.4_onshape_{top,front,left}.png
 
 Offline checks (0 API)
 ----------------------
