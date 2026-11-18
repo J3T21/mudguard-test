@@ -19,8 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-OUTER_W = 88.0
-CHORD = 82.0  # wall-to-wall at the fillet (matches production C1 width)
+OUTER_W = 88.0  # vertical walls at ±44 — seats in ~90 mm brace cavity
 CORNER_R = 18.0  # production C1 corner radius
 WALL = 2.5
 DEPTH = 30.0
@@ -31,6 +30,8 @@ RISES = {
     "A3": 5.5,
     "A4": 7.0,
 }
+# Wall-to-wall equals outer width (no floor flare) so wall→R18 is G1.
+CHORD = OUTER_W
 
 
 @dataclass
@@ -106,64 +107,70 @@ def _tangent_point_crown_fillet(c: Crown, left: bool) -> np.ndarray:
     return C + (c.radius / np.linalg.norm(v)) * v
 
 
-def outer_polyline(c: Crown, n_fillet: int = 12, n_crown: int = 36) -> np.ndarray:
-    """Outer path: floor flare → wall → R18 fillet → crown → fillet → wall → floor.
+def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
+    """Outer path: vertical wall → R18 fillet → crown → R18 → wall (all G1).
 
-    Coordinates: x lateral, y outward (crown +y). Chord / old flat at y=0.
+    Coordinates: x lateral, y outward (crown +y). Old C1 flat would sit at y=0.
     """
-    half_outer = OUTER_W / 2.0
     half_w = c.half_chord
     rC = c.corner_r
+    fy = c.fillet_cy
+    fx_l, fx_r = c.fillet_cx, -c.fillet_cx
 
-    left_bottom = np.array([-half_outer, -DEPTH])
-    right_bottom = np.array([half_outer, -DEPTH])
-    # Wall meets left fillet at (-half_w, -rC)
+    left_bottom = np.array([-half_w, -DEPTH])
+    right_bottom = np.array([half_w, -DEPTH])
+    # Vertical wall meets fillet with shared tangent (both vertical).
     left_wall_top = np.array([-half_w, -rC])
     right_wall_top = np.array([half_w, -rC])
 
-    # Left fillet: centre (fillet_cx, -rC). From wall tangent (angle pi) to crown tangent.
-    # Wall tangent: from centre, direction to wall point is (-1, 0) → angle pi.
     tp_l = _tangent_point_crown_fillet(c, left=True)
     tp_r = _tangent_point_crown_fillet(c, left=False)
-    fx_l, fy = c.fillet_cx, c.fillet_cy
-    fx_r = -c.fillet_cx
 
-    a_wall_l = math.pi  # left wall attachment
+    # Left fillet: wall (angle π) → crown tangency (angle in (π/2, π)).
+    a_wall_l = math.pi
     a_crown_l = math.atan2(tp_l[1] - fy, tp_l[0] - fx_l)
-    # Sweep from wall to crown (decreasing angle: pi → a_crown_l, a_crown_l is in Q1-ish)
     left_fillet = _arc_points(fx_l, fy, rC, a_wall_l, a_crown_l, n_fillet)
-
-    a_crown_r = math.atan2(tp_r[1] - fy, tp_r[0] - fx_r)
-    a_wall_r = 0.0  # right wall attachment
-    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, a_wall_r, n_fillet)
-
-    # Crown arc from tp_l to tp_r about (0, center_y), through the peak.
-    cy = c.center_y
-    a0 = math.atan2(tp_l[1] - cy, tp_l[0] - 0.0)
-    a1 = math.atan2(tp_r[1] - cy, tp_r[0] - 0.0)
-    if a1 < a0:
-        a1 += 2 * math.pi
-    mid = 0.5 * (a0 + a1)
-    mid_pt_y = cy + c.radius * math.sin(mid)
-    if mid_pt_y < c.rise * 0.5:
-        a0, a1 = a1 - 2 * math.pi, a0
-    crown = _arc_points(0.0, cy, c.radius, a0, a1, n_crown)
-    # Snap ends to exact tangent points.
-    crown[0] = tp_l
-    crown[-1] = tp_r
     left_fillet[0] = left_wall_top
     left_fillet[-1] = tp_l
+
+    # Right fillet: crown tangency → wall (angle 0).
+    a_crown_r = math.atan2(tp_r[1] - fy, tp_r[0] - fx_r)
+    a_wall_r = 0.0
+    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, a_wall_r, n_fillet)
     right_fillet[0] = tp_r
     right_fillet[-1] = right_wall_top
+
+    # Crown: left → right through the peak. Both tangency angles sit in (0, π);
+    # the short upper arc is the decreasing sweep a_l → a_r (e.g. 110° → 70°).
+    cy = c.center_y
+    a_l = math.atan2(tp_l[1] - cy, tp_l[0])
+    a_r = math.atan2(tp_r[1] - cy, tp_r[0])
+    # Ensure we take the arc whose midpoint is the peak (y ≈ rise), not the long way under.
+    if a_l < a_r:
+        # Unusual; force left angle above right by wrapping.
+        a_l += 2 * math.pi
+    mid = 0.5 * (a_l + a_r)
+    if cy + c.radius * math.sin(mid) < c.rise * 0.5:
+        # Midpoint went the wrong way — should not happen with a_l > a_r in (0, π).
+        a_r, a_l = a_l, a_r
+    crown = _arc_points(0.0, cy, c.radius, a_l, a_r, n_crown)
+    crown[0] = tp_l
+    crown[-1] = tp_r
+
+    # Peak must lie on the crown polyline (sanity for the STL / plot).
+    peak_i = int(np.argmax(crown[:, 1]))
+    if abs(crown[peak_i, 1] - c.rise) > 0.05:
+        raise RuntimeError(
+            f"crown peak y={crown[peak_i, 1]:.3f} != rise={c.rise} "
+            f"(a_l={math.degrees(a_l):.1f} a_r={math.degrees(a_r):.1f})"
+        )
 
     return np.vstack(
         [
             left_bottom,
-            left_wall_top,
-            left_fillet[1:-1],
-            crown,
-            right_fillet[1:-1],
-            right_wall_top,
+            left_fillet,
+            crown[1:-1],
+            right_fillet,
             right_bottom,
         ]
     )

@@ -4,9 +4,8 @@ import(path : "onshape/std/common.fs", version : "3112.0");
 // Under-brace arch fit coupons A1–A4. Offline design; paste into Onshape only when exporting.
 // No API usage required — STLs come from featurescript/brace_arch_coupons.py.
 //
-// Outer width 88 mm (~1 mm/side vs ~90 mm cavity at tyre-top height).
-// Final-style C1: walls at ±41 (82 mm), R18 top-corner fillets (production C1),
-// circular crown tangent to both fillets with the given rise at x=0.
+// Outer width 88 mm, vertical walls (no floor flare) so wall→R18 is G1.
+// Production-style R18 top-corner fillets; circular crown tangent to both fillets.
 // Wall 2.5 mm; length 50 mm; depth 30 mm.
 // Rises: A1 2.5, A2 4.0, A3 5.5, A4 7.0 mm.
 // Sketch: x = lateral, y = outward (crown +y). Extrude along +Z.
@@ -14,7 +13,7 @@ import(path : "onshape/std/common.fs", version : "3112.0");
 function crownRadiusTangent(halfChord is number, rise is number, cornerR is number) returns number
 {
     // Fillet centres at (±(halfChord - cornerR), -cornerR).
-    // |C - F| = R - cornerR with C = (0, rise - R) ⇒ R = (hx² + (rise+cornerR)² - cornerR²) / (2 rise)
+    // |C - F| = R - cornerR with C = (0, rise - R)
     const hx = halfChord - cornerR;
     return (hx * hx + (rise + cornerR) * (rise + cornerR) - cornerR * cornerR) / (2 * rise);
 }
@@ -23,39 +22,36 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
 {
     const mm = millimeter;
     const outerW = 88;
-    const chord = 82;
     const cornerR = 18;
     const wall = 2.5;
     const depth = 30;
     const length = 50;
-    const halfC = chord / 2;
-    const halfO = outerW / 2;
+    const halfC = outerW / 2; // vertical walls at ±44
     const R = crownRadiusTangent(halfC, rise, cornerR);
     const cy = rise - R;
-    const fx = halfC - cornerR; // |fillet centre x|
+    const fx = halfC - cornerR; // |fillet centre x| = 26
     const fy = -cornerR;
 
-    // Crown–fillet tangency point (left): C + (R / |F-C|) * (F - C)
+    // Crown–fillet tangency (left): C + (R / |F-C|) * (F - C)
     const Fx = -fx;
     const F = vector(Fx, fy);
     const C = vector(0, cy);
     const FC = F - C;
-    const tp = C + (R / norm(FC)) * FC; // left tangent point
+    const tp = C + (R / norm(FC)) * FC;
     const tpR = vector(-tp[0], tp[1]);
 
-    const pl = plane(vector(0, 0, 0) * mm, vector(0, 0, 1), vector(1, 0, 0));
-
-    // --- Outer solid U: flare → wall → R18 → crown → R18 → wall → flare ---
-    const sk = newSketchOnPlane(context, id + "sk", { "sketchPlane" : pl });
     const aWallL = PI;
     const aCrownL = atan2(tp[1] - fy, tp[0] - Fx);
     const aMidL = 0.5 * (aWallL + aCrownL);
     const aCrownR = atan2(tpR[1] - fy, tpR[0] - fx);
-    const aWallR = 0;
-    const aMidR = 0.5 * (aCrownR + aWallR);
+    const aMidR = 0.5 * (aCrownR + 0);
 
+    const pl = plane(vector(0, 0, 0) * mm, vector(0, 0, 1), vector(1, 0, 0));
+
+    // Outer: vertical wall → R18 → crown → R18 → wall (G1 throughout)
+    const sk = newSketchOnPlane(context, id + "sk", { "sketchPlane" : pl });
     skLineSegment(sk, "ol", {
-                "start" : vector(-halfO, -depth) * mm,
+                "start" : vector(-halfC, -depth) * mm,
                 "end" : vector(-halfC, -cornerR) * mm });
     skArc(sk, "ofl", {
                 "start" : vector(-halfC, -cornerR) * mm,
@@ -71,10 +67,10 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
                 "end" : vector(halfC, -cornerR) * mm });
     skLineSegment(sk, "or", {
                 "start" : vector(halfC, -cornerR) * mm,
-                "end" : vector(halfO, -depth) * mm });
+                "end" : vector(halfC, -depth) * mm });
     skLineSegment(sk, "of", {
-                "start" : vector(halfO, -depth) * mm,
-                "end" : vector(-halfO, -depth) * mm });
+                "start" : vector(halfC, -depth) * mm,
+                "end" : vector(-halfC, -depth) * mm });
     skSolve(sk);
     opExtrude(context, id + "ex", {
                 "entities" : qSketchRegion(id + "sk"),
@@ -82,31 +78,24 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
                 "endBound" : BoundingType.BLIND,
                 "endDepth" : length * mm });
 
-    // --- Inner void: offset ~wall (concentric crown + inset fillets/walls) ---
+    // Inner void: concentric / inset by wall
     const Ri = R - wall;
     const rCi = cornerR - wall;
     const halfCi = halfC - wall;
-    const halfOi = halfO - wall;
     const fxi = halfCi - rCi;
     const fyi = -rCi;
-    const cyi = cy; // same crown centre; radius shrunk
-    // Recompute inner tangency with concentric crown and inset fillet.
+    const cyi = cy;
     const Fi = vector(-fxi, fyi);
     const Ci = vector(0, cyi);
     const FCi = Fi - Ci;
-    // Use |Ci-Fi| based point at radius Ri along Fi-Ci
     const tpi = Ci + (Ri / norm(FCi)) * FCi;
     const tpiR = vector(-tpi[0], tpi[1]);
-
-    const aWallLi = PI;
-    const aCrownLi = atan2(tpi[1] - fyi, tpi[0] + fxi);
-    const aMidLi = 0.5 * (aWallLi + aCrownLi);
-    const aCrownRi = atan2(tpiR[1] - fyi, tpiR[0] - fxi);
-    const aMidRi = 0.5 * (aCrownRi + 0);
+    const aMidLi = 0.5 * (PI + atan2(tpi[1] - fyi, tpi[0] + fxi));
+    const aMidRi = 0.5 * (atan2(tpiR[1] - fyi, tpiR[0] - fxi) + 0);
 
     const ski = newSketchOnPlane(context, id + "ski", { "sketchPlane" : pl });
     skLineSegment(ski, "il", {
-                "start" : vector(-halfOi, -depth + wall) * mm,
+                "start" : vector(-halfCi, -depth + wall) * mm,
                 "end" : vector(-halfCi, -rCi) * mm });
     skArc(ski, "ifl", {
                 "start" : vector(-halfCi, -rCi) * mm,
@@ -122,10 +111,10 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
                 "end" : vector(halfCi, -rCi) * mm });
     skLineSegment(ski, "ir", {
                 "start" : vector(halfCi, -rCi) * mm,
-                "end" : vector(halfOi, -depth + wall) * mm });
+                "end" : vector(halfCi, -depth + wall) * mm });
     skLineSegment(ski, "iff", {
-                "start" : vector(halfOi, -depth + wall) * mm,
-                "end" : vector(-halfOi, -depth + wall) * mm });
+                "start" : vector(halfCi, -depth + wall) * mm,
+                "end" : vector(-halfCi, -depth + wall) * mm });
     skSolve(ski);
     opExtrude(context, id + "exi", {
                 "entities" : qSketchRegion(id + "ski"),
@@ -140,7 +129,6 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
                 "targets" : qCreatedBy(id + "ex", EntityType.BODY),
                 "operationType" : BooleanOperationType.SUBTRACTION });
 
-    // ID nubs on the inner floor: 1..4 boxes for A1..A4 (matches Python STLs).
     const nNub = { "A1" : 1, "A2" : 2, "A3" : 3, "A4" : 4 }[label];
     var nubQs = [];
     for (var k = 0; k < nNub; k += 1)
@@ -164,7 +152,7 @@ function makeCoupon(context is Context, id is Id, rise is number, label is strin
                 "value" : "Brace coupon " ~ label ~ " rise " ~ toString(rise) ~ " mm R18" });
 }
 
-annotation { "Feature Type Name" : "Brace arch coupons A1-A4 (88 mm, R18)" }
+annotation { "Feature Type Name" : "Brace arch coupons A1-A4 (88 mm, R18 G1)" }
 export const braceArchCoupons = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
@@ -191,6 +179,6 @@ export const braceArchCoupons = defineFeature(function(context is Context, id is
             const i = definition.variant - 1;
             makeCoupon(context, id + "one", rises[i], labels[i]);
         }
-        println("brace coupons: outerW=88 chord=82 cornerR=18 wall=2.5 length=50 depth=30 rises=" ~ toString(rises));
+        println("brace coupons: outerW=88 vertical walls cornerR=18 wall=2.5 length=50 depth=30 rises=" ~ toString(rises));
         println("print STLs offline: python featurescript/brace_arch_coupons.py (zero Onshape API calls)");
     }, { "buildAll" : true, "variant" : 1 });

@@ -9,46 +9,44 @@ Optional Onshape paste: featurescript/brace_arch_coupons.fs (FeatureScript 3112)
 
 Intent
 ------
-The production C1 under-brace section is still a flat top (PH5=60, R18, W=82).
-Photos of the Fox AWL brace show a continuous arch over the tyre, not a flat.
-These four short coupons are print-fit probes for that arch before changing C1.
-They are NOT the mudguard; they only seat in the brace cavity at tyre-top height.
-Top corners use the same R18 fillets as production C1 so a winning rise can drop
-straight into the final under-brace profile.
+Print-fit probes for an arched under-brace section before changing production C1.
+Top corners use production-style R18 fillets with a crown arc tangent to both, so
+wall → fillet → crown is G1 (no sharp lump at the shoulder).
 
 Geometry (all mm)
 -----------------
-Outer width          88.0   (~1 mm clearance per side vs ~90 mm cavity)
-Wall-to-wall         82.0   (matches production C1 width)
-Corner fillets       18.0   (production C1; centres at ±23, y=-18)
+Outer width          88.0   (vertical walls at ±44; ~1 mm/side vs ~90 mm cavity)
+Corner fillets       18.0   (centres at ±26, y=-18)
 Wall thickness        2.5
 Length (extrusion)   50.0
 Depth (U opening)    30.0
-Crown shape          circular arc through (0, rise), internally tangent to both R18 fillets
-                     R = (hx² + (rise+18)² - 18²) / (2·rise),  hx = 23
+Crown                circular through (0, rise), internally tangent to both R18 fillets
+                     R = (hx² + (rise+18)² - 18²) / (2·rise),  hx = 26
 
 Variant  rise   R_crown  ID nubs
-A1         2.5  125.050  1
-A2         4.0   86.125  2
-A3         5.5   68.841  3
-A4         7.0   59.286  4
+A1         2.5  154.450  1
+A2         4.0  104.500  2
+A3         5.5   82.205  3
+A4         7.0   69.786  4
+
+Fix notes
+---------
+Earlier STLs had a broken crown polyline (arc traversed the wrong way, then
+endpoints snapped), which put a sharp lump at the top corner. Regenerated with
+left→right crown through the peak and vertical walls so wall–fillet is G1.
 
 Offline checks (python featurescript/brace_arch_coupons.py)
 -----------------------------------------------------------
-A1: rise=2.5 R=125.050 cornerR=18 wall=±41 filletC=(-23,-18) tris 428
-A2: rise=4.0 R=86.125  cornerR=18 wall=±41 filletC=(-23,-18) tris 440
-A3: rise=5.5 R=68.841  cornerR=18 wall=±41 filletC=(-23,-18) tris 452
-A4: rise=7.0 R=59.286  cornerR=18 wall=±41 filletC=(-23,-18) tris 464
-Section plot overlays outer (solid) and wall-offset inner (dashed) for all four.
+A1..A4: peaks match rise; upper path x monotonic; wall–fillet / fillet–crown
+junction turns < 3° (sampling). STLs regenerated.
 
 How to print / fit
 ------------------
 1. Slice any A*.stl in Bambu Studio (PETG, P1S). Flat floor on bed.
-2. Seat the coupon under the brace at the tyre-top height with crown toward the brace.
-3. Pick the rise that seats without rocking and without forcing the legs apart.
-4. Only then paste brace_arch_coupons.fs (or bake the winning rise into C1 with R18 kept).
+2. Seat under the brace at tyre-top height, crown up.
+3. Pick the rise that seats without rocking.
+4. Bake the winning rise into C1 (keep R18); optional paste brace_arch_coupons.fs.
 
 Onshape economy
 ---------------
-Do not open or regenerate the production Part Studio for this fit test.
-STLs are the delivery. FeatureScript is optional paste-only export.
+STLs are the delivery. FeatureScript is optional paste-only. No Part Studio API.
