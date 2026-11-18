@@ -26,10 +26,11 @@ SEAT_W = SEAT_OPEN - 2.0
 BRACE_THK = 12.0
 HANDLE = 8.0  # sticks out of the tyre face so the coupon can be held
 LENGTH = HANDLE + BRACE_THK  # 20 mm
-DEPTH = 16.0  # how far the shell wraps down the brace
+DEPTH = 16.0  # brace height the cavity still wraps
 WALL = 2.5
-FLARE = 10.0  # past the cavity, onto the stay, each side
-FLARE_TURN = math.radians(70)
+FLARE = 20.0  # how far the skirt reaches out over the stay, each side
+SKIRT = 45.0  # how far the skirt runs down the stay
+FLARE_TURN = math.radians(82)  # ends heading down the stay, not curled back under
 CLEARANCES = {"C0": 0.0, "C1": 0.4, "C2": 0.8}
 # Two pairs along the crest, so a side view shows four holes. Long axis lateral.
 SLOT_X = (-16.0, -8.0, 4.0, 11.0)
@@ -131,17 +132,17 @@ def cavity_curve(width: float, clearance: float) -> np.ndarray:
     return np.column_stack([src[:, 0] * scale, src[:, 1] - clearance])
 
 
-def _flare(origin: np.ndarray, tangent: np.ndarray, side: int, n: int = 10) -> np.ndarray:
-    """Continue past a cavity end, bending down onto the stay.
+def _flare(origin: np.ndarray, tangent: np.ndarray, side: int, n: int = 16) -> np.ndarray:
+    """Continue past a cavity end, down and out over the seatstay.
 
-    side is -1 on the left and +1 on the right. The turn is the one that
-    drops the tip and carries it FLARE millimetres further out.
+    side is -1 on the left and +1 on the right. The turn drops the tip
+    about SKIRT millimetres and carries it FLARE millimetres further out.
     """
     heading = _unit(tangent)
     # Clockwise on the right, counterclockwise on the left: both pitch down.
     dth = (-1 if side > 0 else 1) * FLARE_TURN / n
     c, s = math.cos(dth), math.sin(dth)
-    step = (FLARE + DEPTH) / n
+    step = (FLARE + SKIRT) / n
     p = origin.astype(float).copy()
     pts = []
     for _ in range(n):
@@ -358,13 +359,17 @@ def side_checks() -> tuple[list[str], dict]:
     cavity = width_at(0.0, 0.0)
     if span < cavity + 2 * FLARE - 2:
         fails.append(f"shell span {span:.1f} mm, want flares past the {cavity:.0f} mm cavity")
+    drop = float(ys.max() - ys.min())
+    if drop < SKIRT:
+        fails.append(f"skirt drop {drop:.0f} mm, want at least {SKIRT:.0f} down the stay")
+    # The photo is a crop of the crown. Scale it to the cavity, not the whole skirt.
     px, py = _photo_top()
-    photo_x = (px - px.min()) / (px.max() - px.min()) * span + xs[0]
-    photo_y = (py - py.min()) / (px.max() - px.min()) * span
+    crest_x = float(xs[i])
+    photo_x = (px - px.mean()) / (px.max() - px.min()) * cavity + crest_x
+    photo_y = (py - py.min()) / (px.max() - px.min()) * cavity
     photo_y = photo_y - photo_y.max() + ys.max()
     shell_y = np.interp(photo_x, xs, ys)
-    # The photo is cropped through the flares, so compare the crown, not the tips.
-    band = (photo_x > xs[0] + 0.15 * span) & (photo_x < xs[0] + 0.85 * span)
+    band = (photo_x > crest_x - 0.35 * cavity) & (photo_x < crest_x + 0.35 * cavity)
     err = float(np.mean(np.abs(shell_y[band] - photo_y[band])))
     if err > 2.0:
         fails.append(f"side outline {err:.2f} mm from the photo, want under 2")

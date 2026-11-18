@@ -2,7 +2,7 @@ FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
 // Shell that fits around the rear brace. The cavity is the brace arch.
-// The skin is 2.5 mm thick and flares 10 mm past the cavity onto the stays.
+// The skin is 2.5 mm thick and the skirt runs 45 mm down the stay, 20 mm out.
 // STLs come from featurescript/brace_arch_coupons.py.
 
 const CROWN_X = [
@@ -18,8 +18,9 @@ const CROWN_Y = [
 
 const WALL = 2.5;
 const DEPTH = 16;
-const FLARE = 10;
-const FLARE_N = 10;
+const FLARE = 20;
+const SKIRT = 45;
+const FLARE_N = 16;
 const TYRE_W = 58;
 const SEAT_W = 48;
 const HANDLE = 8;
@@ -43,10 +44,10 @@ function addClosed(sk is Sketch, pts is array)
 function flarePts(origin is Vector, tangent is Vector, side is number) returns array
 {
     var heading = tangent / norm(tangent);
-    const dth = (side > 0 ? -1 : 1) * (70 * PI / 180) / FLARE_N;
+    const dth = (side > 0 ? -1 : 1) * (82 * PI / 180) / FLARE_N;
     const c = cos(dth);
     const s = sin(dth);
-    const step = (FLARE + DEPTH) / FLARE_N;
+    const step = (FLARE + SKIRT) / FLARE_N;
     var p = origin;
     var pts = [];
     for (var i = 0; i < FLARE_N; i += 1)
@@ -186,7 +187,7 @@ export const braceArchCoupons = defineFeature(function(context is Context, id is
             makeCoupon(context, id + ("c" ~ i), clearances[i], labels[i]);
             opTransform(context, id + ("tx" ~ i), {
                         "bodies" : qCreatedBy(id + ("c" ~ i) + "out", EntityType.BODY),
-                        "transform" : transform(vector(i * 110, 0, 0) * millimeter) });
+                        "transform" : transform(vector(i * 140, 0, 0) * millimeter) });
         }
-        println("brace shell C0-C2: cavity 58 to 48, flare 10, wall 2.5, clearances 0/0.4/0.8");
+        println("brace shell C0-C2: cavity 58 to 48, skirt 45 down and 20 out, wall 2.5");
     }, {});

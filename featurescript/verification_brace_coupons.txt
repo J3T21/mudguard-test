@@ -26,7 +26,7 @@ Geometry (all mm)
 -----------------
 Cavity, tyre face         58   (1 mm per side inside the 60 mm mouth)
 Cavity, seat face         48   (1 mm per side inside the 50 mm mouth)
-Flare past the cavity     10   each side, rolling down onto the stay
+Skirt                     45 down the stay, 20 out past the cavity, each side
 Handle past the tyre face  8   (total length 20)
 Taper                     linear across the 12 mm brace thickness
 Wrap                      16   down the brace, inside the 20 mm height
@@ -42,12 +42,13 @@ C2        0.8                                                    3
 
 Verified distinct (2026-11-18 Europe/London)
 -------------------------------------------
-C0: cavity 58.0 STL sha 9168cce27b02  tris 3808
-C1: cavity 57.2 STL sha ccf4781bcfca  tris 3832
-C2: cavity 56.4 STL sha 40cf4c5aeac6  tris 3860
+C0: cavity 58.0 STL sha 4b48824416a0  tris 4816
+C1: cavity 57.2 STL sha 707d808f9289  tris 4840
+C2: cavity 56.4 STL sha caa8f33b239b  tris 4868
 
 Side-view gate (python featurescript/brace_arch_coupons.py): PASS
-crest 0.43 of the width, outline 1.99 mm from the photo, span 81.8 mm.
+crest 0.43 of the width, outline 0.92 mm from the photo, span 116.3 mm.
+The skirt drops about 50 mm down the stay.
 No vertical wall. A failed check exits non-zero and writes no STLs.
 
 The dotted line on the section plot is the brace face. The solid line is the
