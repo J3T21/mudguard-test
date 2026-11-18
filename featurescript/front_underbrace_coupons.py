@@ -1,8 +1,8 @@
 """Front mudguard under-brace arch coupons (Fox AWL). Offline only — no Onshape.
 
-A4 (rise 7.0 mm, four ID notches) fitted best. 100 mm outer was a touch wide;
-back off 2 mm each side → TOP_W = 96 mm outer, then vertical walls (no floor
-flare). Quick verify: 10 mm extrusion. Inner ≈ 91 mm (wall 2.5).
+A4 (rise 7.0 mm, four ID notches) fitted best. Shoulder outer TOP_W = 94 mm
+(−1 mm/side from the 96 mm trial). Sides then angle out to FLOOR_W = 100 mm.
+10 mm extrusion. Inner at shoulder ≈ 89 mm (wall 2.5).
 """
 from __future__ import annotations
 
@@ -17,8 +17,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-# OUTER wall-to-wall where the R18 meets the vertical side.
-TOP_W = 96.0  # was 100; −2 mm each side
+# OUTER wall-to-wall where the R18 meets the side wall (shoulder).
+TOP_W = 94.0  # was 96; −1 mm each side at the shoulder
+FLOOR_W = 100.0  # sides angle out to this at y = -DEPTH
 CORNER_R = 18.0
 WALL = 2.5
 DEPTH = 30.0
@@ -29,7 +30,7 @@ RISES = {
     "A3": 5.5,
     "A4": 7.0,
 }
-CHORD = TOP_W  # vertical outer walls at ±48 after the R18
+CHORD = TOP_W  # R18 → side junction at ±TOP_W/2; floor at ±FLOOR_W/2
 
 
 @dataclass
@@ -90,16 +91,20 @@ def _tangent_point_crown_fillet(c: Crown, left: bool) -> np.ndarray:
 
 
 def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
-    """Outer path: vertical wall → R18 → crown → R18 → wall (G1). Constant outer width TOP_W."""
-    half_w = c.half_chord
+    """Outer path: angled wall → R18 → crown → R18 → wall (G1 at R18/crown).
+
+    Shoulder width TOP_W at the R18; floor flares to FLOOR_W.
+    """
+    half_s = c.half_chord  # shoulder half-width
+    half_f = FLOOR_W / 2.0
     rC = c.corner_r
     fy = c.fillet_cy
     fx_l, fx_r = c.fillet_cx, -c.fillet_cx
 
-    left_bottom = np.array([-half_w, -DEPTH])
-    right_bottom = np.array([half_w, -DEPTH])
-    left_wall_top = np.array([-half_w, -rC])
-    right_wall_top = np.array([half_w, -rC])
+    left_bottom = np.array([-half_f, -DEPTH])
+    right_bottom = np.array([half_f, -DEPTH])
+    left_wall_top = np.array([-half_s, -rC])
+    right_wall_top = np.array([half_s, -rC])
 
     tp_l = _tangent_point_crown_fillet(c, left=True)
     tp_r = _tangent_point_crown_fillet(c, left=False)
@@ -151,11 +156,14 @@ def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
         else:
             t = poly[i + 1] - poly[i - 1]
         ln = math.hypot(float(t[0]), float(t[1])) or 1.0
+        # CCW path: inward is left of travel → (-ty, tx) after unitising? here (ny, -nx) with
+        # nx,ny = (ty/ln, -tx/ln) was the prior vertical-wall convention; keep it.
         nx, ny = t[1] / ln, -t[0] / ln
         out[i] = poly[i] + dist * np.array([nx, ny])
+    # Floor ends: keep constant horizontal wall thickness at the flared foot.
     out[0, 1] = -DEPTH + dist
     out[-1, 1] = -DEPTH + dist
-    half_inner = TOP_W / 2.0 - dist
+    half_inner = FLOOR_W / 2.0 - dist
     out[0, 0] = -half_inner
     out[-1, 0] = half_inner
     return out
@@ -290,17 +298,24 @@ def section_plot(crowns: list[Crown], out_path: str) -> None:
             outer[:, 1],
             color=col,
             lw=2.5 if c.label == "A4" else 1.2,
-            label=f"{c.label} rise {c.rise} outer {TOP_W:.0f} (inner ~{TOP_W - 2 * WALL:.0f})",
+            label=(
+                f"{c.label} rise {c.rise} shoulder {TOP_W:.0f} → floor {FLOOR_W:.0f} "
+                f"(inner ~{TOP_W - 2 * WALL:.0f})"
+            ),
         )
         if c.label == "A4":
             ax.plot(inner[:, 0], inner[:, 1], color=col, lw=1, ls="--", alpha=0.7)
     ax.axhline(0, color="#888", lw=0.6)
     ax.axvline(-TOP_W / 2, color="#bbb", lw=0.5, ls=":")
     ax.axvline(TOP_W / 2, color="#bbb", lw=0.5, ls=":")
+    ax.axvline(-FLOOR_W / 2, color="#ccc", lw=0.5, ls="--")
+    ax.axvline(FLOOR_W / 2, color="#ccc", lw=0.5, ls="--")
     ax.set_aspect("equal")
     ax.set_xlabel("lateral (mm)")
     ax.set_ylabel("outward from chord (mm)")
-    ax.set_title(f"Front A4 — curve to outer {TOP_W:.0f} mm, then vertical (no floor flare)")
+    ax.set_title(
+        f"Front A4 — shoulder {TOP_W:.0f} mm, sides out to floor {FLOOR_W:.0f} mm"
+    )
     ax.legend(loc="lower center", fontsize=8)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
@@ -314,8 +329,8 @@ def main() -> None:
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
     print(
-        f"OUTER at R18/vertical = {TOP_W:.0f} mm; "
-        f"INNER ≈ {TOP_W - 2 * WALL:.0f} mm (wall {WALL})"
+        f"SHOULDER outer = {TOP_W:.0f} mm (inner ≈ {TOP_W - 2 * WALL:.0f}); "
+        f"FLOOR outer = {FLOOR_W:.0f} mm (wall {WALL})"
     )
     crowns = [crown_for(k, v) for k, v in RISES.items()]
     for c in crowns:
@@ -323,7 +338,7 @@ def main() -> None:
         inner = offset_inward(outer, WALL)
         print(
             f"{c.label}: rise={c.rise} R_crown={c.radius:.3f} "
-            f"outerW={TOP_W:.0f} innerW≈{TOP_W - 2 * WALL:.0f} "
+            f"shoulder={TOP_W:.0f} inner≈{TOP_W - 2 * WALL:.0f} "
             f"floor_outer={outer[-1, 0] - outer[0, 0]:.1f} length={LENGTH}"
         )
         tris = solid_shell_tris(c) + label_bump_tris(c.label)
