@@ -11,9 +11,8 @@ Side-view gate: out/brace_coupon_side.png against refs/brace_side_ref.png
 
 Intent
 ------
-A short saddle that seats on the photographed rear brace, with four zip slots
-in two pairs. The earlier A1–A4 set (88 mm, circular rises 2.5–7 mm) was a
-guess and is replaced.
+The black plastic shell in refs/brace_side_ref.png. The cavity is the brace.
+The shell flares onto the seatstays. The earlier coupons modelled the brace.
 
 Calipers (James)
 ----------------
@@ -25,17 +24,16 @@ Plastic flap on top of the brace: ignored
 
 Geometry (all mm)
 -----------------
-Tyre-face outer width     58   (1 mm per side inside the 60 mm mouth)
-Seat-face outer width     48   (1 mm per side inside the 50 mm mouth)
-Handle past the tyre face  8   (so the coupon can be held; total length 20)
+Cavity, tyre face         58   (1 mm per side inside the 60 mm mouth)
+Cavity, seat face         48   (1 mm per side inside the 50 mm mouth)
+Flare past the cavity     10   each side, rolling down onto the stay
+Handle past the tyre face  8   (total length 20)
 Taper                     linear across the 12 mm brace thickness
-Depth                     16   (inside the 20 mm arch height)
-Wall                       2.5
+Wrap                      16   down the brace, inside the 20 mm height
+Wall                       2.5  between the brace face and the outer skin
 Zip slots                  6.0 long × 2.4 wide, two pairs on the crest
                           centres x = -16, -8, +4, +11, all at z = 14
-Crown                     smooth degree-4 fit to the bridge underside in the
-                          cropped scan, mouth scaled to 60 mm. Rise 6.4 mm,
-                          crest at 0.44 of the width. Not a circular arc.
+Cavity arch               the brace underside, rise 6.4 mm, crest at 0.43
 
 Variant   extra clearance (per side, and dropped off the crown)   ID bars
 C0        0                                                      1
@@ -44,24 +42,22 @@ C2        0.8                                                    3
 
 Verified distinct (2026-11-18 Europe/London)
 -------------------------------------------
-C0: tyreW 58.0 seatW 48.0 peak 6.40  STL sha c23919b9296e  tris 2540
-C1: tyreW 57.2 seatW 47.2 peak 6.00  STL sha ad2892c7d02d  tris 2568
-C2: tyreW 56.4 seatW 46.4 peak 5.60  STL sha 6f50c5fb3651  tris 2596
-All three STL binaries differ. ID: 1/2/3 raised bars on the inner handle floor
-plus matching ridges on the tyre-face end (outer).
+C0: cavity 58.0 STL sha 9168cce27b02  tris 3808
+C1: cavity 57.2 STL sha ccf4781bcfca  tris 3832
+C2: cavity 56.4 STL sha 40cf4c5aeac6  tris 3860
 
 Side-view gate (python featurescript/brace_arch_coupons.py): PASS
-crest 0.44 of the width, rise 6.40 mm, one slope reversal, four slots on the
-upper third in two pairs. A failed check exits non-zero and writes no STLs.
+crest 0.43 of the width, outline 1.99 mm from the photo, span 81.8 mm.
+No vertical wall. A failed check exits non-zero and writes no STLs.
 
-The dashed line on the section plot is the levelled bridge underside. C0 is
-the smooth fit, 1 mm inside each wall.
+The dotted line on the section plot is the brace face. The solid line is the
+outer skin, flaring past it.
 
 How to print / fit
 ------------------
-1. Slice C0.stl first (PETG, P1S). Floor down, crown up. Count the end ridges: 1=C0, 2=C1, 3=C2.
-2. The narrow end is the seat-tube end. It has to enter first.
-3. If C0 will not start, try C1, then C2.
+1. Slice C0.stl first (PETG, P1S). Count the bars on the tyre side: 1=C0, 2=C1, 3=C2.
+2. The cavity faces the brace. The narrow end is the seat-tube end and enters first.
+3. If C0 will not start, try C1, then C2. The flares lap onto the stays.
 4. The crown comes from the bridge in the cropped scan (scan X 135–158).
    If it rocks, that was not the contact face and the crown needs another pass.
 

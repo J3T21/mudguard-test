@@ -1,11 +1,9 @@
 FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
-// Scan-fit brace saddles C0–C2. The crown is a smooth fit to the bridge
-// underside in the cropped Kiri scan, mapped onto the 60 mm tyre-side mouth.
-// The coupon is 1 mm per side inside that mouth, tapers to 48 mm over the
-// 12 mm brace thickness, and carries an 8 mm handle on the tyre face. The
-// plastic flap is ignored. STLs come from featurescript/brace_arch_coupons.py.
+// Shell that fits around the rear brace. The cavity is the brace arch.
+// The skin is 2.5 mm thick and flares 10 mm past the cavity onto the stays.
+// STLs come from featurescript/brace_arch_coupons.py.
 
 const CROWN_X = [
             -30.00, -27.50, -25.00, -22.50, -20.00, -17.50, -15.00, -12.50,
@@ -20,6 +18,8 @@ const CROWN_Y = [
 
 const WALL = 2.5;
 const DEPTH = 16;
+const FLARE = 10;
+const FLARE_N = 10;
 const TYRE_W = 58;
 const SEAT_W = 48;
 const HANDLE = 8;
@@ -40,35 +40,70 @@ function addClosed(sk is Sketch, pts is array)
         skLineSegment(sk, "e" ~ i, { "start" : pts[i] * millimeter, "end" : pts[i + 1] * millimeter });
 }
 
-function outerPoints(width is number, clearance is number) returns array
+function flarePts(origin is Vector, tangent is Vector, side is number) returns array
 {
-    const scale = width / 60;
-    const half = width / 2;
-    const floor = crownMin() - clearance - DEPTH;
-    const y0 = CROWN_Y[0] - clearance;
-    const y1 = CROWN_Y[size(CROWN_Y) - 1] - clearance;
-    var pts = [vector(-half, floor), vector(-half, y0)];
-    for (var i = 0; i < size(CROWN_X); i += 1)
-        pts = append(pts, vector(CROWN_X[i] * scale, CROWN_Y[i] - clearance));
-    pts = append(pts, vector(half, y1));
-    pts = append(pts, vector(half, floor));
-    pts = append(pts, vector(-half, floor));
+    var heading = tangent / norm(tangent);
+    const dth = (side > 0 ? -1 : 1) * (70 * PI / 180) / FLARE_N;
+    const c = cos(dth);
+    const s = sin(dth);
+    const step = (FLARE + DEPTH) / FLARE_N;
+    var p = origin;
+    var pts = [];
+    for (var i = 0; i < FLARE_N; i += 1)
+    {
+        heading = vector(c * heading[0] - s * heading[1], s * heading[0] + c * heading[1]);
+        p = p + step * heading;
+        pts = append(pts, p);
+    }
     return pts;
 }
 
-function innerPoints(width is number, clearance is number) returns array
+function contactPts(width is number, clearance is number) returns array
 {
     const scale = width / 60;
-    const half = width / 2 - WALL;
-    const floor = crownMin() - clearance - DEPTH + WALL;
-    const y0 = CROWN_Y[0] - clearance - WALL;
-    const y1 = CROWN_Y[size(CROWN_Y) - 1] - clearance - WALL;
-    var pts = [vector(-half, floor), vector(-half, y0)];
+    var cav = [];
     for (var i = 0; i < size(CROWN_X); i += 1)
-        pts = append(pts, vector(CROWN_X[i] * scale, CROWN_Y[i] - clearance - WALL));
-    pts = append(pts, vector(half, y1));
-    pts = append(pts, vector(half, floor));
-    pts = append(pts, vector(-half, floor));
+        cav = append(cav, vector(CROWN_X[i] * scale, CROWN_Y[i] - clearance));
+    const n = size(cav);
+    const left = flarePts(cav[0], cav[0] - cav[1], -1);
+    const right = flarePts(cav[n - 1], cav[n - 1] - cav[n - 2], 1);
+    var pts = [];
+    for (var i = size(left) - 1; i >= 0; i -= 1)
+        pts = append(pts, left[i]);
+    for (var i = 0; i < n; i += 1)
+        pts = append(pts, cav[i]);
+    for (var i = 0; i < size(right); i += 1)
+        pts = append(pts, right[i]);
+    return pts;
+}
+
+function offsetTyre(pts is array) returns array
+{
+    var out = [];
+    for (var i = 0; i < size(pts); i += 1)
+    {
+        var t;
+        if (i == 0)
+            t = pts[1] - pts[0];
+        else if (i == size(pts) - 1)
+            t = pts[i] - pts[i - 1];
+        else
+            t = pts[i + 1] - pts[i - 1];
+        t = t / norm(t);
+        out = append(out, pts[i] + WALL * vector(t[1], -t[0]));
+    }
+    return out;
+}
+
+function shellPoints(width is number, clearance is number) returns array
+{
+    // Outer skin left to right, then the brace face back to the start.
+    const contact = contactPts(width, clearance);
+    const outer = offsetTyre(contact);
+    var pts = outer;
+    for (var i = size(contact) - 1; i >= 0; i -= 1)
+        pts = append(pts, contact[i]);
+    pts = append(pts, outer[0]);
     return pts;
 }
 
@@ -90,25 +125,10 @@ function makeCoupon(context is Context, id is Id, clearance is number, label is 
     var outerQ = [];
     for (var i = 0; i < 3; i += 1)
     {
-        sectionSketch(context, id + ("o" ~ i), zOuter[i], outerPoints(wOuter[i], clearance));
+        sectionSketch(context, id + ("o" ~ i), zOuter[i], shellPoints(wOuter[i], clearance));
         outerQ = append(outerQ, qSketchRegion(id + ("o" ~ i)));
     }
     opLoft(context, id + "out", { "profileSubqueries" : outerQ, "bodyType" : ToolBodyType.SOLID });
-
-    // Inner void runs 1 mm past each end so the cut does not leave a cap.
-    const zInner = [-1, HANDLE, HANDLE + BRACE_THK + 1];
-    const wInner = [tyre, tyre, seat];
-    var innerQ = [];
-    for (var i = 0; i < 3; i += 1)
-    {
-        sectionSketch(context, id + ("i" ~ i), zInner[i], innerPoints(wInner[i], clearance));
-        innerQ = append(innerQ, qSketchRegion(id + ("i" ~ i)));
-    }
-    opLoft(context, id + "inn", { "profileSubqueries" : innerQ, "bodyType" : ToolBodyType.SOLID });
-    opBoolean(context, id + "shell", {
-                "tools" : qCreatedBy(id + "inn", EntityType.BODY),
-                "targets" : qCreatedBy(id + "out", EntityType.BODY),
-                "operationType" : BooleanOperationType.SUBTRACTION });
 
     // Four zip slots, two pairs, long axis lateral. Cut through the crown only.
     const slotX = [-16, -8, 4, 11];
@@ -126,20 +146,21 @@ function makeCoupon(context is Context, id is Id, clearance is number, label is 
                 "targets" : qCreatedBy(id + "out", EntityType.BODY),
                 "operationType" : BooleanOperationType.SUBTRACTION });
 
-    // ID marks: 1/2/3 bars for C0/C1/C2 on the inner handle floor + tyre-face end.
+    // ID marks sit on the tyre side of the shell, clear of the brace face.
     const nBar = { "C0" : 1, "C1" : 2, "C2" : 3 }[label];
+    const ySkin = 6.4 - clearance - WALL;
     var markQs = [];
     for (var k = 0; k < nBar; k += 1)
     {
         const z0 = 1.2 + k * 2.2;
         fCuboid(context, id + ("markI" ~ k), {
-                    "corner1" : vector(-10, -DEPTH + WALL, z0) * millimeter,
-                    "corner2" : vector(10, -DEPTH + WALL + 1.2, z0 + 1.4) * millimeter });
+                    "corner1" : vector(-6, ySkin - 1.2, z0) * millimeter,
+                    "corner2" : vector(6, ySkin + 0.4, z0 + 1.4) * millimeter });
         markQs = append(markQs, qCreatedBy(id + ("markI" ~ k), EntityType.BODY));
         const x0 = -8 + k * 6;
         fCuboid(context, id + ("markE" ~ k), {
-                    "corner1" : vector(x0, -DEPTH, -1.2) * millimeter,
-                    "corner2" : vector(x0 + 4, -DEPTH + 1.5, 0) * millimeter });
+                    "corner1" : vector(x0, ySkin - 1.2, -1.2) * millimeter,
+                    "corner2" : vector(x0 + 3, ySkin + 0.6, 0) * millimeter });
         markQs = append(markQs, qCreatedBy(id + ("markE" ~ k), EntityType.BODY));
     }
     opBoolean(context, id + "marks", {
@@ -165,7 +186,7 @@ export const braceArchCoupons = defineFeature(function(context is Context, id is
             makeCoupon(context, id + ("c" ~ i), clearances[i], labels[i]);
             opTransform(context, id + ("tx" ~ i), {
                         "bodies" : qCreatedBy(id + ("c" ~ i) + "out", EntityType.BODY),
-                        "transform" : transform(vector(i * 80, 0, 0) * millimeter) });
+                        "transform" : transform(vector(i * 110, 0, 0) * millimeter) });
         }
-        println("brace coupons C0-C2: tyre 58 seat 48 length 20 depth 16 wall 2.5 clearances 0/0.4/0.8");
+        println("brace shell C0-C2: cavity 58 to 48, flare 10, wall 2.5, clearances 0/0.4/0.8");
     }, {});
