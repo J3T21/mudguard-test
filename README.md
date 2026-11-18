@@ -90,6 +90,10 @@ v2.19.3's one test failed at the guard + boss merge (BOOLEAN_BAD_INPUT). The gua
 
 Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/ecd92e540acf3ba840fcb13e/e/6d4ce527def8539685e560ec (A 62.84 / B 122.75 cm³, tyre gap 8.86, OD45 1.0 clr). Previews: `out/v2.19.3.1_onshape_*.png`.
 
-## Under-brace scan-fit coupons (C0–C2, quick C4)
+## Front under-brace arch coupons (A1–A4)
 
-Three short saddles for the photographed rear brace. Calipers: 60 mm inside on the tyre face, 50 mm on the seat-tube face, 12 mm thick, 20 mm tall. The plastic flap on top of the brace is ignored. The cavity is that brace (58 mm tapering to 48 mm across the 12 mm thickness). The part itself is the black plastic: a 2.5 mm shell whose skirt runs 45 mm down each seatstay and 20 mm out past the cavity, with an 8 mm handle and four 6.0×2.4 mm zip slots in two pairs on the crest. Extra clearance C0 / C1 / C2: 0 / 0.4 / 0.8 mm (cavity widths 58.0 / 57.2 / 56.4). Quick size check **C4**: C0 crown, flat/cavity +4 mm/side (66 / 56), 20 mm extrusion, short skirt, 4 ID bars → `out/brace_coupon_C4.stl`. ID: 1 / 2 / 3 / 4 bars. `python featurescript/brace_arch_coupons.py` writes the STLs only when the side silhouette stays within 2 mm of the photo, the crest is in the middle third, and there is no vertical wall. Outputs: `out/brace_coupon_C*.stl`, `out/brace_coupon_sections.png`, `out/brace_coupon_side.png`. Optional paste: `featurescript/brace_arch_coupons.fs`. Scan: `refs/rear_brace_edit2.glb`. Notes: `featurescript/verification_brace_coupons.txt`.
+Fox AWL **front** mudguard fit probes (separate from the rear brace shell). A4 (rise 7.0 mm, **four ID notches**) fitted best. Revised A4 keeps top width **88 mm** with R18 shoulders, then continues the walls so the floor is **96 mm** (+4 mm each side). Extrusion **20 mm**. Generator: `python featurescript/front_underbrace_coupons.py` → `out/front_brace_coupon_A4.stl` (alias `out/brace_coupon_A4.stl`). Notes: `featurescript/verification_front_underbrace.txt`.
+
+## Rear brace shell coupons (C0–C2)
+
+Three short saddles for the photographed **rear** brace. Calipers: 60 mm inside on the tyre face, 50 mm on the seat-tube face, 12 mm thick, 20 mm tall. The cavity is that brace (58→48 mm); the part is the black plastic shell with skirt down the stays. Clearance C0 / C1 / C2: 0 / 0.4 / 0.8 mm. `python featurescript/brace_arch_coupons.py` → `out/brace_coupon_C*.stl`. Scan: `refs/rear_brace_edit2.glb`. Notes: `featurescript/verification_brace_coupons.txt`.

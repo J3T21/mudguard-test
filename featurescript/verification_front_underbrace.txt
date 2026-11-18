@@ -1,0 +1,29 @@
+Front mudguard under-brace coupon A4 (revised)
+==============================================
+Date: 2026-11-18 (Europe/London)
+Onshape API / MCP calls: 0
+Generator: featurescript/front_underbrace_coupons.py
+STL: out/front_brace_coupon_A4.stl (also out/brace_coupon_A4.stl alias)
+Section: out/front_brace_coupon_sections.png
+Optional paste: featurescript/front_underbrace_coupons.fs
+
+This is the FRONT Fox AWL under-brace fit coupon — not the rear brace shell
+(C0–C2 in brace_arch_coupons.py).
+
+James: variant 4 (four ID notches) fitted best. Revise keeps the A4 crown
+(rise 7.0 mm, R18 shoulders) at top width 88 mm, then continues the walls so
+the floor is 8 mm wider (4 mm each side) → bottom 96 mm. Extrusion 20 mm for
+a quick print check.
+
+Geometry (mm)
+-------------
+Top wall-to-wall (at R18)   88
+Bottom floor width          96   (+4 / side)
+Corner fillets              18
+Rise                         7.0
+Wall                         2.5
+Depth                       30
+Length                      20
+ID notches                   4 on the inner floor
+
+Print: PETG, P1S, floor down. Four notches = A4.
