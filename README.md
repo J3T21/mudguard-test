@@ -92,7 +92,7 @@ Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/ecd92e540acf
 
 ## Front under-brace arch coupons (A1–A4)
 
-Fox AWL **front** mudguard fit probes (separate from the rear brace shell). A4 (rise 7.0 mm, **four ID notches**) fitted best. Revised A4 keeps top width **88 mm** with R18 shoulders, then continues the walls so the floor is **96 mm** (+4 mm each side). Extrusion **20 mm**. Generator: `python featurescript/front_underbrace_coupons.py` → `out/front_brace_coupon_A4.stl` (alias `out/brace_coupon_A4.stl`). Notes: `featurescript/verification_front_underbrace.txt`.
+Fox AWL **front** mudguard fit probes (separate from the rear brace shell). A4 (rise 7.0 mm, **four ID notches**) fitted best. Same crown + R18 profile as before (top **88 mm**); no straight flares — the side curve continues so the floor lands at **96 mm** (+4 mm/side). Extrusion **20 mm**. Generator: `python featurescript/front_underbrace_coupons.py` → `out/front_brace_coupon_A4.stl` (alias `out/brace_coupon_A4.stl`). Notes: `featurescript/verification_front_underbrace.txt`.
 
 ## Rear brace shell coupons (C0–C2)
 

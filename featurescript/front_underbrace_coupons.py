@@ -1,10 +1,11 @@
 """Front mudguard under-brace arch coupons (Fox AWL). Offline only — no Onshape.
 
-Separate from the rear brace shell coupons in brace_arch_coupons.py.
+Separate from the rear brace shell in brace_arch_coupons.py.
 
-A4 (rise 7.0 mm, four ID notches) fitted best. This revise keeps the A4 crown
-and R18 shoulders at TOP_W = 88 mm, then continues the walls so the floor is
-8 mm wider (4 mm each side): BOTTOM_W = 96 mm. Quick verify: 20 mm extrusion.
+A4 (rise 7.0 mm, four ID notches) fitted best. Same crown + R18 profile as
+before: no straight wall flares. Below the R18 the side continues as a G1
+circular arc so the floor lands 4 mm further out each side (88 → 96).
+Quick verify extrusion: 20 mm.
 """
 from __future__ import annotations
 
@@ -19,12 +20,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-TOP_W = 88.0  # wall-to-wall at the R18 fillet — the A4 size that fitted
-BOTTOM_W = 96.0  # floor width: +4 mm each side vs the top
-CORNER_R = 18.0  # production C1 corner radius
+TOP_W = 88.0  # wall-to-wall at the R18 — the A4 size that fitted
+BOTTOM_W = 96.0  # floor width after continuing the side curve (+4 mm/side)
+CORNER_R = 18.0
 WALL = 2.5
 DEPTH = 30.0
-LENGTH = 20.0  # quick verify extrusion
+LENGTH = 20.0
 RISES = {
     "A1": 2.5,
     "A2": 4.0,
@@ -68,11 +69,10 @@ def crown_radius_tangent_to_fillets(half_chord: float, rise: float, corner_r: fl
 
 def crown_for(label: str, rise: float) -> Crown:
     half = CHORD / 2.0
-    radius = crown_radius_tangent_to_fillets(half, rise, CORNER_R)
     return Crown(
         label=label,
         rise=rise,
-        radius=radius,
+        radius=crown_radius_tangent_to_fillets(half, rise, CORNER_R),
         half_chord=half,
         corner_r=CORNER_R,
     )
@@ -87,15 +87,33 @@ def _tangent_point_crown_fillet(c: Crown, left: bool) -> np.ndarray:
     fx = c.fillet_cx if left else -c.fillet_cx
     fy = c.fillet_cy
     F = np.array([fx, fy])
-    C = np.array([0.0, c.center_y])
-    v = F - C
-    return C + (c.radius / np.linalg.norm(v)) * v
+    Ccen = np.array([0.0, c.center_y])
+    v = F - Ccen
+    return Ccen + (c.radius / np.linalg.norm(v)) * v
 
 
-def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
-    """R18 + crown at TOP_W, then walls continue out to BOTTOM_W at the floor.
+def _side_continue_radius(half_top: float, half_bot: float, y_attach: float, y_floor: float) -> float:
+    """Radius of a side arc with vertical tangent at the R18 wall point, through the floor corner.
 
-    Wall meets the fillet vertically (G1), then slants +4 mm/side down to the floor.
+    Left attach (-half_top, y_attach), floor (-half_bot, y_floor), center outboard
+    so the arc opens the U. Solved from G1 + endpoint.
+    """
+    # dy = y_floor - y_attach < 0; dx_out = half_bot - half_top > 0
+    dy = y_floor - y_attach
+    dx = half_bot - half_top
+    # r(1 - cosθ) = dx, r sinθ = dy  (θ from horizontal, downward) → sinθ = dy/r
+    # 1 - cosθ = dx/r, cosθ = 1 - dx/r
+    # (dy/r)^2 + (1 - dx/r)^2 = 1  →  dy²/r² + 1 - 2 dx/r + dx²/r² = 1
+    # (dy² + dx²)/r² = 2 dx/r  →  r = (dx² + dy²) / (2 dx)
+    if dx <= 0:
+        raise ValueError("bottom must be wider than top")
+    return (dx * dx + dy * dy) / (2.0 * dx)
+
+
+def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48, n_side: int = 16) -> np.ndarray:
+    """Same A4 crown + R18 as before; side continues as a curve to a wider floor.
+
+    No straight vertical walls and no straight flares.
     """
     half_top = c.half_chord
     half_bot = BOTTOM_W / 2.0
@@ -103,27 +121,28 @@ def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarra
     fy = c.fillet_cy
     fx_l, fx_r = c.fillet_cx, -c.fillet_cx
 
+    # R18 meets the side with a vertical tangent at (±half_top, -rC).
+    left_attach = np.array([-half_top, -rC])
+    right_attach = np.array([half_top, -rC])
     left_bottom = np.array([-half_bot, -DEPTH])
     right_bottom = np.array([half_bot, -DEPTH])
-    # Vertical at the fillet so wall→R18 stays G1; flare starts below.
-    left_wall_top = np.array([-half_top, -rC])
-    right_wall_top = np.array([half_top, -rC])
 
     tp_l = _tangent_point_crown_fillet(c, left=True)
     tp_r = _tangent_point_crown_fillet(c, left=False)
 
+    # --- R18 fillets (unchanged A4 profile) ---
     a_wall_l = math.pi
     a_crown_l = math.atan2(tp_l[1] - fy, tp_l[0] - fx_l)
     left_fillet = _arc_points(fx_l, fy, rC, a_wall_l, a_crown_l, n_fillet)
-    left_fillet[0] = left_wall_top
+    left_fillet[0] = left_attach
     left_fillet[-1] = tp_l
 
     a_crown_r = math.atan2(tp_r[1] - fy, tp_r[0] - fx_r)
-    a_wall_r = 0.0
-    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, a_wall_r, n_fillet)
+    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, 0.0, n_fillet)
     right_fillet[0] = tp_r
-    right_fillet[-1] = right_wall_top
+    right_fillet[-1] = right_attach
 
+    # --- Crown through the peak (unchanged) ---
     cy = c.center_y
     a_l = math.atan2(tp_l[1] - cy, tp_l[0])
     a_r = math.atan2(tp_r[1] - cy, tp_r[0])
@@ -135,30 +154,54 @@ def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarra
     crown = _arc_points(0.0, cy, c.radius, a_l, a_r, n_crown)
     crown[0] = tp_l
     crown[-1] = tp_r
+    if abs(crown[:, 1].max() - c.rise) > 0.05:
+        raise RuntimeError(f"crown peak {crown[:, 1].max():.3f} != rise {c.rise}")
 
-    peak_i = int(np.argmax(crown[:, 1]))
-    if abs(crown[peak_i, 1] - c.rise) > 0.05:
-        raise RuntimeError(
-            f"crown peak y={crown[peak_i, 1]:.3f} != rise={c.rise} "
-            f"(a_l={math.degrees(a_l):.1f} a_r={math.degrees(a_r):.1f})"
-        )
+    # --- Side continue: circle, vertical tangent at attach, through floor corner ---
+    r_side = _side_continue_radius(half_top, half_bot, -rC, -DEPTH)
+    # Left: center outboard of attach so the arc opens the U.
+    c_l = np.array([-half_top - r_side, -rC])
+    c_r = np.array([half_top + r_side, -rC])
+    # Attach is the inboard point of each side circle (angle 0 on left? left center
+    # is at x=-half_top-r_side; attach (-half_top,-rC) is to the RIGHT of center → angle 0.
+    a0_l = 0.0
+    a1_l = math.atan2(left_bottom[1] - c_l[1], left_bottom[0] - c_l[0])
+    # Going down from attach: angle 0 → negative (CW).
+    if a1_l > 0:
+        a1_l -= 2 * math.pi
+    left_side = _arc_points(c_l[0], c_l[1], r_side, a0_l, a1_l, n_side)
+    left_side[0] = left_attach
+    left_side[-1] = left_bottom
 
-    # Path: floor → flared wall → fillet → crown → fillet → flared wall → floor
+    a0_r = math.pi  # right attach is left of its outboard center
+    a1_r = math.atan2(right_bottom[1] - c_r[1], right_bottom[0] - c_r[0])
+    if a1_r < a0_r:
+        # want sweep downward: from π toward π+… or down to ~π/2? right bottom is
+        # further out (+x) and down; from center (half_top+r_side, -rC), bottom is
+        # left-and-down of? right_bottom (half_bot, -DEPTH) is left of center.
+        # angle of bottom should be between π and 3π/2 if going down-inward-of-center...
+        pass
+    # Force increasing through the lower arc: π → a1_r with a1_r in (π, 2π)
+    if a1_r < math.pi:
+        a1_r += 2 * math.pi
+    right_side = _arc_points(c_r[0], c_r[1], r_side, a0_r, a1_r, n_side)
+    right_side[0] = right_attach
+    right_side[-1] = right_bottom
+
+    # Path left→right: floor-left ← up side ← fillet ← crown → fillet → side → floor-right
+    # Start at left bottom, up the left side (reverse), through fillet/crown, down right side.
     return np.vstack(
         [
-            left_bottom,
-            left_wall_top,
+            left_side[::-1],
             left_fillet[1:],
             crown[1:-1],
             right_fillet[:-1],
-            right_wall_top,
-            right_bottom,
+            right_side[1:],
         ]
     )
 
 
 def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
-    """Offset a downward-opening U toward its interior."""
     n = len(poly)
     out = np.zeros_like(poly)
     for i in range(n):
@@ -168,7 +211,7 @@ def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
             t = poly[-1] - poly[-2]
         else:
             t = poly[i + 1] - poly[i - 1]
-        ln = math.hypot(t[0], t[1]) or 1.0
+        ln = math.hypot(float(t[0]), float(t[1])) or 1.0
         nx, ny = t[1] / ln, -t[0] / ln
         out[i] = poly[i] + dist * np.array([nx, ny])
     out[0, 1] = -DEPTH + dist
@@ -180,10 +223,9 @@ def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
 
 
 def solid_shell_tris(c: Crown) -> list[np.ndarray]:
-    outer = outer_polyline(c, n_fillet=16, n_crown=48)
+    outer = outer_polyline(c)
     inner = offset_inward(outer, WALL)
     assert len(outer) == len(inner)
-
     z0, z1 = 0.0, LENGTH
     tris: list[np.ndarray] = []
 
@@ -250,16 +292,12 @@ def solid_shell_tris(c: Crown) -> list[np.ndarray]:
 
 def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
     with open(path, "wb") as f:
-        header = name.encode("ascii", "ignore")[:80].ljust(80, b"\0")
-        f.write(header)
+        f.write(name.encode("ascii", "ignore")[:80].ljust(80, b"\0"))
         f.write(struct.pack("<I", len(tris)))
         for t in tris:
             n = np.cross(t[1] - t[0], t[2] - t[0])
             ln = np.linalg.norm(n)
-            if ln < 1e-18:
-                n = np.array([0.0, 0.0, 1.0])
-            else:
-                n = n / ln
+            n = np.array([0.0, 0.0, 1.0]) if ln < 1e-18 else n / ln
             f.write(struct.pack("<3f", *n))
             for v in t:
                 f.write(struct.pack("<3f", *v))
@@ -267,38 +305,34 @@ def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
 
 
 def label_bump_tris(label: str) -> list[np.ndarray]:
-    """1..4 raised notches on the inner floor — A4 has four."""
     idx = {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[label]
     tris = []
     y0 = -DEPTH + WALL
     y1 = y0 + 1.0
-    x0 = -8.0
     for k in range(idx):
         z0 = 2.0 + k * 4.0
         z1 = z0 + 2.5
-        x1 = x0 + 5.0
+        x0, x1 = -8.0, -3.0
         corners = [
-            (x0, y0, z0),
-            (x1, y0, z0),
-            (x1, y0, z1),
-            (x0, y0, z1),
-            (x0, y1, z0),
-            (x1, y1, z0),
-            (x1, y1, z1),
-            (x0, y1, z1),
+            np.array([x0, y0, z0]),
+            np.array([x1, y0, z0]),
+            np.array([x1, y0, z1]),
+            np.array([x0, y0, z1]),
+            np.array([x0, y1, z0]),
+            np.array([x1, y1, z0]),
+            np.array([x1, y1, z1]),
+            np.array([x0, y1, z1]),
         ]
-        c = [np.array(p, dtype=float) for p in corners]
-        faces = [
+        for a, b, d, e in (
             (0, 1, 2, 3),
             (4, 7, 6, 5),
             (0, 4, 5, 1),
             (1, 5, 6, 2),
             (2, 6, 7, 3),
             (3, 7, 4, 0),
-        ]
-        for a, b, d, e in faces:
-            tris.append(np.vstack([c[a], c[b], c[d]]))
-            tris.append(np.vstack([c[a], c[d], c[e]]))
+        ):
+            tris.append(np.vstack([corners[a], corners[b], corners[d]]))
+            tris.append(np.vstack([corners[a], corners[d], corners[e]]))
     return tris
 
 
@@ -311,12 +345,11 @@ def section_plot(crowns: list[Crown], out_path: str) -> None:
             outer[:, 0],
             outer[:, 1],
             color=col,
-            lw=2 if c.label == "A4" else 1.2,
-            label=f"{c.label} rise {c.rise} top {TOP_W:.0f} bottom {BOTTOM_W:.0f}",
+            lw=2.5 if c.label == "A4" else 1.2,
+            label=f"{c.label} rise {c.rise}  {TOP_W:.0f}→{BOTTOM_W:.0f} continued curve",
         )
         if c.label == "A4":
-            inner = offset_inward(outer, WALL)
-            ax.plot(inner[:, 0], inner[:, 1], color=col, lw=1, ls="--", alpha=0.7)
+            ax.plot(offset_inward(outer, WALL)[:, 0], offset_inward(outer, WALL)[:, 1], color=col, lw=1, ls="--", alpha=0.7)
     ax.axhline(0, color="#888", lw=0.6)
     ax.axvline(-TOP_W / 2, color="#bbb", lw=0.5, ls=":")
     ax.axvline(TOP_W / 2, color="#bbb", lw=0.5, ls=":")
@@ -325,8 +358,8 @@ def section_plot(crowns: list[Crown], out_path: str) -> None:
     ax.set_aspect("equal")
     ax.set_xlabel("lateral (mm)")
     ax.set_ylabel("outward from chord (mm)")
-    ax.set_title(f"Front under-brace A4 revise — top {TOP_W:.0f} → bottom {BOTTOM_W:.0f} (+4/side)")
-    ax.legend(loc="lower center")
+    ax.set_title("Front A4 — same R18/crown, side curve continued (no straight flare)")
+    ax.legend(loc="lower center", fontsize=8)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
     fig.savefig(out_path)
@@ -338,25 +371,23 @@ def main() -> None:
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
-    # Primary deliverable: A4 with flared bottom. Also write A1–A3 for reference.
+    r_side = _side_continue_radius(TOP_W / 2, BOTTOM_W / 2, -CORNER_R, -DEPTH)
+    print(f"side continue R={r_side:.3f} mm (G1 at R18, floor at ±{BOTTOM_W/2:.0f})")
     crowns = [crown_for(k, v) for k, v in RISES.items()]
     for c in crowns:
-        tp = _tangent_point_crown_fillet(c, left=True)
+        outer = outer_polyline(c)
         print(
-            f"{c.label}: rise={c.rise} R={c.radius:.3f} topW={TOP_W} bottomW={BOTTOM_W} "
-            f"length={LENGTH} filletC=({c.fillet_cx:.1f},{c.fillet_cy:.1f}) "
-            f"tp=({tp[0]:.2f},{tp[1]:.2f})"
+            f"{c.label}: rise={c.rise} R_crown={c.radius:.3f} "
+            f"top={TOP_W:.0f} bottom={BOTTOM_W:.0f} "
+            f"x_range=[{outer[0,0]:.1f},{outer[-1,0]:.1f}] length={LENGTH}"
         )
         tris = solid_shell_tris(c) + label_bump_tris(c.label)
         path = os.path.join(out, f"front_brace_coupon_{c.label}.stl")
         write_stl(path, tris, f"front_brace_{c.label}")
-        print("wrote", path, "tris", len(tris), "idNotches", {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[c.label])
-    # Convenience copy of the verify piece under the old A4 name too.
+        print("wrote", path, "tris", len(tris), "notches", {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[c.label])
     a4 = next(c for c in crowns if c.label == "A4")
-    tris = solid_shell_tris(a4) + label_bump_tris("A4")
-    alias = os.path.join(out, "brace_coupon_A4.stl")
-    write_stl(alias, tris, "brace_A4")
-    print("wrote", alias, "(A4 alias for the front verify print)")
+    write_stl(os.path.join(out, "brace_coupon_A4.stl"), solid_shell_tris(a4) + label_bump_tris("A4"), "brace_A4")
+    print("wrote", os.path.join(out, "brace_coupon_A4.stl"), "(A4 alias)")
     section_plot(crowns, os.path.join(out, "front_brace_coupon_sections.png"))
 
 

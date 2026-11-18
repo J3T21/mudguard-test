@@ -1,29 +1,27 @@
-Front mudguard under-brace coupon A4 (revised)
-==============================================
+Front mudguard under-brace coupon A4 (continued curve)
+======================================================
 Date: 2026-11-18 (Europe/London)
 Onshape API / MCP calls: 0
 Generator: featurescript/front_underbrace_coupons.py
-STL: out/front_brace_coupon_A4.stl (also out/brace_coupon_A4.stl alias)
+STL: out/front_brace_coupon_A4.stl (alias out/brace_coupon_A4.stl)
 Section: out/front_brace_coupon_sections.png
-Optional paste: featurescript/front_underbrace_coupons.fs
 
-This is the FRONT Fox AWL under-brace fit coupon — not the rear brace shell
-(C0–C2 in brace_arch_coupons.py).
+FRONT Fox AWL under-brace — not the rear brace shell (C0–C2).
 
-James: variant 4 (four ID notches) fitted best. Revise keeps the A4 crown
-(rise 7.0 mm, R18 shoulders) at top width 88 mm, then continues the walls so
-the floor is 8 mm wider (4 mm each side) → bottom 96 mm. Extrusion 20 mm for
-a quick print check.
+A4 (four ID notches, rise 7.0 mm) fitted best. Same crown + R18 profile as
+before. No straight wall flares. Below the R18 the side continues as a G1
+circular arc (R=20) so the floor lands 4 mm further out each side.
 
 Geometry (mm)
 -------------
-Top wall-to-wall (at R18)   88
-Bottom floor width          96   (+4 / side)
-Corner fillets              18
-Rise                         7.0
-Wall                         2.5
-Depth                       30
-Length                      20
-ID notches                   4 on the inner floor
+Top at R18                88   (±44)
+Floor after side curve    96   (±48)  — continued curve, not a straight flare
+Side continue R           20   (vertical tangent at R18, through floor corner)
+Corner fillets            18
+Rise                       7.0
+Wall                       2.5
+Depth                     30
+Length                    20
+ID notches                 4
 
 Print: PETG, P1S, floor down. Four notches = A4.
