@@ -13,29 +13,32 @@ The production C1 under-brace section is still a flat top (PH5=60, R18, W=82).
 Photos of the Fox AWL brace show a continuous arch over the tyre, not a flat.
 These four short coupons are print-fit probes for that arch before changing C1.
 They are NOT the mudguard; they only seat in the brace cavity at tyre-top height.
+Top corners use the same R18 fillets as production C1 so a winning rise can drop
+straight into the final under-brace profile.
 
 Geometry (all mm)
 -----------------
 Outer width          88.0   (~1 mm clearance per side vs ~90 mm cavity)
-Crown chord          82.0   (arc ends; walls flare out to outer width)
+Wall-to-wall         82.0   (matches production C1 width)
+Corner fillets       18.0   (production C1; centres at ±23, y=-18)
 Wall thickness        2.5
 Length (extrusion)   50.0
 Depth (U opening)    30.0
-Crown shape          circular arc, R = (c^2 + h^2) / (2h), c = half chord
+Crown shape          circular arc through (0, rise), internally tangent to both R18 fillets
+                     R = (hx² + (rise+18)² - 18²) / (2·rise),  hx = 23
 
-Variant  rise   R        ID nubs on inner floor
-A1         2.5  337.450  1
-A2         4.0  212.125  2
-A3         5.5  155.568  3
-A4         7.0  123.571  4
+Variant  rise   R_crown  ID nubs
+A1         2.5  125.050  1
+A2         4.0   86.125  2
+A3         5.5   68.841  3
+A4         7.0   59.286  4
 
 Offline checks (python featurescript/brace_arch_coupons.py)
 -----------------------------------------------------------
-A1: rise=2.5 R=337.450 chord=82.0 outerW=88.0  tris 348
-A2: rise=4.0 R=212.125 chord=82.0 outerW=88.0  tris 360
-A3: rise=5.5 R=155.568 chord=82.0 outerW=88.0  tris 372
-A4: rise=7.0 R=123.571 chord=82.0 outerW=88.0  tris 384
-STLs binary, header name brace_Ak, file sizes ~17–19 KB.
+A1: rise=2.5 R=125.050 cornerR=18 wall=±41 filletC=(-23,-18) tris 428
+A2: rise=4.0 R=86.125  cornerR=18 wall=±41 filletC=(-23,-18) tris 440
+A3: rise=5.5 R=68.841  cornerR=18 wall=±41 filletC=(-23,-18) tris 452
+A4: rise=7.0 R=59.286  cornerR=18 wall=±41 filletC=(-23,-18) tris 464
 Section plot overlays outer (solid) and wall-offset inner (dashed) for all four.
 
 How to print / fit
@@ -43,7 +46,7 @@ How to print / fit
 1. Slice any A*.stl in Bambu Studio (PETG, P1S). Flat floor on bed.
 2. Seat the coupon under the brace at the tyre-top height with crown toward the brace.
 3. Pick the rise that seats without rocking and without forcing the legs apart.
-4. Only then paste brace_arch_coupons.fs (or bake the winning rise into C1).
+4. Only then paste brace_arch_coupons.fs (or bake the winning rise into C1 with R18 kept).
 
 Onshape economy
 ---------------
