@@ -1,22 +1,21 @@
 FeatureScript 3112;
 import(path : "onshape/std/common.fs", version : "3112.0");
 
-// Scan-fit brace saddles C0–C2. The crown is the levelled Kiri underside of
-// the rear brace (3-point smooth) across the 60 mm tyre-side mouth. The
-// coupon is 1 mm per side inside that mouth, tapers to 48 mm over the 12 mm
-// brace thickness, and carries an 8 mm handle on the tyre face. A plastic
-// flap on top of the brace is ignored. STLs come from
-// featurescript/brace_arch_coupons.py — paste this in only when exporting.
+// Scan-fit brace saddles C0–C2. The crown is a smooth fit to the bridge
+// underside in the cropped Kiri scan, mapped onto the 60 mm tyre-side mouth.
+// The coupon is 1 mm per side inside that mouth, tapers to 48 mm over the
+// 12 mm brace thickness, and carries an 8 mm handle on the tyre face. The
+// plastic flap is ignored. STLs come from featurescript/brace_arch_coupons.py.
 
 const CROWN_X = [
-            -30.12, -27.41, -24.10, -21.82, -19.11, -16.83, -14.55, -12.04,
-            -9.74, -7.38, -4.81, -2.50, 0.14, 2.42, 4.80, 7.12, 9.58, 12.01,
-            14.48, 16.83, 19.44, 21.94, 24.42, 27.33, 29.88
+            -30.00, -27.50, -25.00, -22.50, -20.00, -17.50, -15.00, -12.50,
+            -10.00, -7.50, -5.00, -2.50, 0.00, 2.50, 5.00, 7.50, 10.00, 12.50,
+            15.00, 17.50, 20.00, 22.50, 25.00, 27.50, 30.00
         ];
 const CROWN_Y = [
-            4.30, 2.57, 1.45, 0.32, 0.64, 0.95, 1.56, 2.15, 2.62, 2.99, 3.35,
-            3.33, 3.71, 3.98, 4.71, 5.18, 5.59, 5.78, 6.13, 6.24, 6.30, 6.17,
-            5.62, 5.01, 4.30
+            0.00, 1.01, 1.98, 2.89, 3.72, 4.46, 5.09, 5.60, 6.00, 6.26, 6.40,
+            6.40, 6.28, 6.05, 5.70, 5.25, 4.73, 4.13, 3.49, 2.83, 2.17, 1.55,
+            0.99, 0.52, 0.19
         ];
 
 const WALL = 2.5;
@@ -112,8 +111,8 @@ function makeCoupon(context is Context, id is Id, clearance is number, label is 
                 "operationType" : BooleanOperationType.SUBTRACTION });
 
     // Four zip slots, two pairs, long axis lateral. Cut through the crown only.
-    const slotX = [-11, 11, -11, 11];
-    const slotZ = [5, 5, 15, 15];
+    const slotX = [-16, -8, 4, 11];
+    const slotZ = [14, 14, 14, 14];
     var slotQs = [];
     for (var k = 0; k < 4; k += 1)
     {
