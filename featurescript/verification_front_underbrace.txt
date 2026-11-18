@@ -1,19 +1,19 @@
-Front mudguard under-brace coupon A4 (shoulder 94 → floor 100, 10 mm long)
-==========================================================================
+Front mudguard under-brace coupon A4 (G1 flare, chord 94 → floor 100, 10 mm)
+=============================================================================
 Date: 2026-11-18 (Europe/London)
 Onshape API / MCP calls: 0
 Generator: featurescript/front_underbrace_coupons.py
 STL: out/front_brace_coupon_A4.stl (alias out/brace_coupon_A4.stl)
 Section: out/front_brace_coupon_sections.png
 
-Shoulder −1 mm/side from the 96 mm trial → 94 mm at the R18. Sides then
-angle out slightly to a 100 mm floor. Extrusion still 10 mm.
+Shoulder chord 94 mm (R18 centres). Straight sides run to floor 100 mm and
+leave the R18 at matching tangent (G1) — no visible step at the blend.
 
 Geometry (mm)
 -------------
-Shoulder outer (R18 → side)  94   (±47)
-Shoulder inner               ~89   (wall 2.5 each side)
-Floor outer                 100   (±50)
+R18 / chord ref              94
+G1 junction (approx)       ~93.2
+Floor outer                 100
 Corner fillets               18
 Rise                        7.0
 Wall                        2.5

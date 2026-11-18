@@ -30,7 +30,7 @@ RISES = {
     "A3": 5.5,
     "A4": 7.0,
 }
-CHORD = TOP_W  # R18 → side junction at ±TOP_W/2; floor at ±FLOOR_W/2
+CHORD = TOP_W  # R18 centres from this chord; floor at ±FLOOR_W/2
 
 
 @dataclass
@@ -90,33 +90,60 @@ def _tangent_point_crown_fillet(c: Crown, left: bool) -> np.ndarray:
     return C + (c.radius / np.linalg.norm(v)) * v
 
 
-def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
-    """Outer path: angled wall → R18 → crown → R18 → wall (G1 at R18/crown).
+def flare_fillet_phi(half_s: float, half_f: float, r: float, depth: float) -> float:
+    """Wall angle from vertical so the straight flare is G1 with the R fillet.
 
-    Shoulder width TOP_W at the R18; floor flares to FLOOR_W.
+    Fillet centres sit at (±(half_s - r), -r). Floor is at (±half_f, -depth).
+    Solves (δ + r) cos φ − (depth − r) sin φ = r for φ > 0.
     """
-    half_s = c.half_chord  # shoulder half-width
+    delta = half_f - half_s
+    if delta < -1e-9:
+        raise ValueError("FLOOR_W must be >= TOP_W for an outward flare")
+    if abs(delta) < 1e-12:
+        return 0.0
+    A = delta + r
+    B = depth - r
+    M = math.hypot(A, B)
+    if M < r - 1e-9:
+        raise ValueError("geometry too tight for G1 R fillet to floor")
+    theta = math.atan2(B, A)
+    phi = math.acos(max(-1.0, min(1.0, r / M))) - theta
+    if phi < -1e-9:
+        raise ValueError(f"no positive G1 flare angle (phi={phi})")
+    return max(0.0, phi)
+
+
+def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
+    """Outer path: G1 flare → R18 → crown → R18 → G1 flare.
+
+    R18 centres from TOP_W chord; sides leave the fillet at matching tangent
+    and run straight to FLOOR_W (no kink at the shoulder).
+    """
+    half_s = c.half_chord
     half_f = FLOOR_W / 2.0
     rC = c.corner_r
     fy = c.fillet_cy
     fx_l, fx_r = c.fillet_cx, -c.fillet_cx
+    phi = flare_fillet_phi(half_s, half_f, rC, DEPTH)
 
     left_bottom = np.array([-half_f, -DEPTH])
     right_bottom = np.array([half_f, -DEPTH])
-    left_wall_top = np.array([-half_s, -rC])
-    right_wall_top = np.array([half_s, -rC])
+    # G1 leave-points on the fillets (radius ⊥ flare).
+    a_wall_l = math.pi - phi
+    a_wall_r = phi
+    left_wall_top = np.array([fx_l + rC * math.cos(a_wall_l), fy + rC * math.sin(a_wall_l)])
+    right_wall_top = np.array([fx_r + rC * math.cos(a_wall_r), fy + rC * math.sin(a_wall_r)])
 
     tp_l = _tangent_point_crown_fillet(c, left=True)
     tp_r = _tangent_point_crown_fillet(c, left=False)
 
-    a_wall_l = math.pi
     a_crown_l = math.atan2(tp_l[1] - fy, tp_l[0] - fx_l)
     left_fillet = _arc_points(fx_l, fy, rC, a_wall_l, a_crown_l, n_fillet)
     left_fillet[0] = left_wall_top
     left_fillet[-1] = tp_l
 
     a_crown_r = math.atan2(tp_r[1] - fy, tp_r[0] - fx_r)
-    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, 0.0, n_fillet)
+    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, a_wall_r, n_fillet)
     right_fillet[0] = tp_r
     right_fillet[-1] = right_wall_top
 
@@ -314,7 +341,7 @@ def section_plot(crowns: list[Crown], out_path: str) -> None:
     ax.set_xlabel("lateral (mm)")
     ax.set_ylabel("outward from chord (mm)")
     ax.set_title(
-        f"Front A4 — shoulder {TOP_W:.0f} mm, sides out to floor {FLOOR_W:.0f} mm"
+        f"Front A4 — R18 G1 into flare; chord {TOP_W:.0f} → floor {FLOOR_W:.0f} mm"
     )
     ax.legend(loc="lower center", fontsize=8)
     ax.grid(True, alpha=0.3)
@@ -328,18 +355,25 @@ def main() -> None:
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
+    phi = flare_fillet_phi(TOP_W / 2.0, FLOOR_W / 2.0, CORNER_R, DEPTH)
+    # G1 leave-point half-width (slightly under TOP_W/2).
+    jx = (TOP_W / 2.0 - CORNER_R) + CORNER_R * math.cos(phi)
     print(
-        f"SHOULDER outer = {TOP_W:.0f} mm (inner ≈ {TOP_W - 2 * WALL:.0f}); "
-        f"FLOOR outer = {FLOOR_W:.0f} mm (wall {WALL})"
+        f"CHORD/R18 ref = {TOP_W:.0f} mm; G1 junction ≈ {2 * jx:.2f} mm; "
+        f"FLOOR = {FLOOR_W:.0f} mm; flare φ={math.degrees(phi):.2f}°; wall {WALL}"
     )
     crowns = [crown_for(k, v) for k, v in RISES.items()]
     for c in crowns:
         outer = outer_polyline(c)
         inner = offset_inward(outer, WALL)
+        # Tangent kink at fillet→flare: wall dir vs fillet tangent (should be ~0).
+        p0, p1 = outer[0], outer[1]
+        wall_ang = math.atan2(p1[1] - p0[1], p1[0] - p0[0])
         print(
             f"{c.label}: rise={c.rise} R_crown={c.radius:.3f} "
-            f"shoulder={TOP_W:.0f} inner≈{TOP_W - 2 * WALL:.0f} "
-            f"floor_outer={outer[-1, 0] - outer[0, 0]:.1f} length={LENGTH}"
+            f"chord={TOP_W:.0f} junction≈{2 * jx:.2f} "
+            f"floor={outer[-1, 0] - outer[0, 0]:.1f} "
+            f"wall_dir={math.degrees(wall_ang):.2f}° length={LENGTH}"
         )
         tris = solid_shell_tris(c) + label_bump_tris(c.label)
         path = os.path.join(out, f"front_brace_coupon_{c.label}.stl")
