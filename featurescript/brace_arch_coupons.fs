@@ -127,6 +127,26 @@ function makeCoupon(context is Context, id is Id, clearance is number, label is 
                 "targets" : qCreatedBy(id + "out", EntityType.BODY),
                 "operationType" : BooleanOperationType.SUBTRACTION });
 
+    // ID marks: 1/2/3 bars for C0/C1/C2 on the inner handle floor + tyre-face end.
+    const nBar = { "C0" : 1, "C1" : 2, "C2" : 3 }[label];
+    var markQs = [];
+    for (var k = 0; k < nBar; k += 1)
+    {
+        const z0 = 1.2 + k * 2.2;
+        fCuboid(context, id + ("markI" ~ k), {
+                    "corner1" : vector(-10, -DEPTH + WALL, z0) * millimeter,
+                    "corner2" : vector(10, -DEPTH + WALL + 1.2, z0 + 1.4) * millimeter });
+        markQs = append(markQs, qCreatedBy(id + ("markI" ~ k), EntityType.BODY));
+        const x0 = -8 + k * 6;
+        fCuboid(context, id + ("markE" ~ k), {
+                    "corner1" : vector(x0, -DEPTH, -1.2) * millimeter,
+                    "corner2" : vector(x0 + 4, -DEPTH + 1.5, 0) * millimeter });
+        markQs = append(markQs, qCreatedBy(id + ("markE" ~ k), EntityType.BODY));
+    }
+    opBoolean(context, id + "marks", {
+                "tools" : qUnion(append(markQs, qCreatedBy(id + "out", EntityType.BODY))),
+                "operationType" : BooleanOperationType.UNION });
+
     setProperty(context, {
                 "entities" : qCreatedBy(id + "out", EntityType.BODY),
                 "propertyType" : PropertyType.NAME,

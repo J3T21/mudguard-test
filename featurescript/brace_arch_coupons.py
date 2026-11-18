@@ -182,6 +182,55 @@ def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
             f.write(struct.pack("<H", 0))
 
 
+def _box_tris(x0, x1, y0, y1, z0, z1) -> list[np.ndarray]:
+    c = [
+        np.array([x0, y0, z0]),
+        np.array([x1, y0, z0]),
+        np.array([x1, y0, z1]),
+        np.array([x0, y0, z1]),
+        np.array([x0, y1, z0]),
+        np.array([x1, y1, z0]),
+        np.array([x1, y1, z1]),
+        np.array([x0, y1, z1]),
+    ]
+    faces = [
+        (0, 1, 2, 3),
+        (4, 7, 6, 5),
+        (0, 4, 5, 1),
+        (1, 5, 6, 2),
+        (2, 6, 7, 3),
+        (3, 7, 4, 0),
+    ]
+    tris = []
+    for a, b, d, e in faces:
+        tris.append(np.vstack([c[a], c[b], c[d]]))
+        tris.append(np.vstack([c[a], c[d], c[e]]))
+    return tris
+
+
+def id_mark_tris(label: str) -> list[np.ndarray]:
+    """Raised ID marks so C0/C1/C2 are obvious after printing.
+
+    Count = 1/2/3 bars (C0→1 … C2→3) on the inner handle floor, plus matching
+    ridges on the outer tyre-face end (z≈0) so the coupon can be ID'd from outside.
+    """
+    n = {"C0": 1, "C1": 2, "C2": 3}[label]
+    tris: list[np.ndarray] = []
+    # Inner floor of the handle (z = 1..7), raised +y into the U.
+    y0 = -DEPTH + WALL
+    y1 = y0 + 1.2
+    for k in range(n):
+        z0 = 1.2 + k * 2.2
+        z1 = z0 + 1.4
+        tris.extend(_box_tris(-10.0, 10.0, y0, y1, z0, z1))
+    # Outer end-face ridges on the tyre face (z = 0), sticking out -z.
+    for k in range(n):
+        x0 = -8.0 + k * 6.0
+        x1 = x0 + 4.0
+        tris.extend(_box_tris(x0, x1, -DEPTH, -DEPTH + 1.5, -1.2, 0.0))
+    return tris
+
+
 def scan_envelope() -> np.ndarray | None:
     """Levelled underside from the Kiri scan, if the GLB is on disk."""
     glb = os.path.join(os.path.dirname(__file__), "..", "refs", "rear_brace_edit1.glb")
@@ -255,12 +304,13 @@ def main() -> None:
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
     for name, clr in CLEARANCES.items():
-        tris = shell_tris(clr)
+        tris = shell_tris(clr) + id_mark_tris(name)
         path = os.path.join(out, f"brace_coupon_{name}.stl")
         write_stl(path, tris, f"brace_{name}")
+        n_bars = {"C0": 1, "C1": 2, "C2": 3}[name]
         print(
             f"{name}: clearance {clr} tyreW {width_at(0, clr):.1f} seatW {width_at(LENGTH, clr):.1f} "
-            f"length {LENGTH} tris {len(tris)} -> {path}"
+            f"length {LENGTH} idBars {n_bars} tris {len(tris)} -> {path}"
         )
     section_plot(os.path.join(out, "brace_coupon_sections.png"))
 

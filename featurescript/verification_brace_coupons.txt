@@ -34,17 +34,25 @@ Zip slots                  6.0 long × 2.4 wide, centres x = ±11, z = 5 and 15
 Crown                     levelled Kiri underside, 3-point smoothed.
                           About 6 mm of rise, higher toward +x. Not a circular arc.
 
-Variant   extra clearance (per side, and dropped off the crown)
-C0        0
-C1        0.4
-C2        0.8
+Variant   extra clearance (per side, and dropped off the crown)   ID bars
+C0        0                                                      1
+C1        0.4                                                    2
+C2        0.8                                                    3
+
+Verified distinct (2026-11-18 Europe/London)
+-------------------------------------------
+C0: tyreW 58.0 seatW 48.0 peak 6.30  STL sha d90617264038  tris 2552
+C1: tyreW 57.2 seatW 47.2 peak 5.90  STL sha 8d6103a2f944  tris 2568  (Δ −0.8 mm width, −0.4 peak)
+C2: tyreW 56.4 seatW 46.4 peak 5.50  STL sha a31b7c0c4952  tris 2592  (Δ −0.8 mm width, −0.4 peak)
+All three STL binaries differ. ID: 1/2/3 raised bars on the inner handle floor
+plus matching ridges on the tyre-face end (outer).
 
 The dashed line on the section plot is the unsmoothed levelled scan. C0 sits
 on the smoothed curve, 1 mm inside each wall.
 
 How to print / fit
 ------------------
-1. Slice C0.stl first (PETG, P1S). Floor down, crown up.
+1. Slice C0.stl first (PETG, P1S). Floor down, crown up. Count the end ridges: 1=C0, 2=C1, 3=C2.
 2. The narrow end is the seat-tube end. It has to enter first.
 3. If C0 will not start, try C1, then C2.
 4. The crown is asymmetric. If it rocks, the slice used for the crown
