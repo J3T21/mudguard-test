@@ -7,12 +7,16 @@ Offline section: featurescript/v2_19_4_awl_profile.py → out/v2.19.4_awl_sectio
 
 Scope
 -----
-Under-brace zone only (s ≈ -15..+4). Front blade / leg / tail stay the
-v2.19.3.1 rounded-box U. Coupon A4 silhouette:
+Default: under-brace zone only (s ≈ -15..+4). Front blade / leg / tail stay
+the v2.19.3.1 rounded-box U unless **awlFull** is checked — then every
+sculpted station uses the AWL crown (rise + corner R + scaled floor flare).
+
+Coupon A4 silhouette (brace defaults):
 
   awlChord   94 mm   (R18 shoulder chord)
   awlFloorW 100 mm   (G1 flare)
   awlRise     7 mm
+  awlFull   false    (true = whole-guard crown)
   c1Radius   18 mm
   c1Depth 30.49 mm
 

@@ -195,6 +195,7 @@ function buildStations(def is map) returns array
     }
     const awlRiseMm = def.sculpted ? def.awlRise / millimeter : 0;
     const awlFloorMm = def.sculpted ? def.awlFloorW / millimeter : 0;
+    const awlChordMm = def.sculpted ? def.awlChord / millimeter : 1;
     const kickLen = def.kickLen / millimeter;
     const sK = -fL + kickLen;
     var out = [];
@@ -217,13 +218,19 @@ function buildStations(def is map) returns array
         if (size(out) > 0 && s - out[size(out) - 1].s < 8)
             continue; // drop stations squeezed together by a short front blade
         const a = row[1] / 2 - row[2] * tan(row[3] * degree);
-        // AWL crown only under the brace saddle (s -15..+4 in the sculpted table)
-        const useAwl = def.sculpted && awlRiseMm > 0 && s >= -15.5 && s <= 4.5;
+        // AWL crown: brace saddle only, or whole guard when awlFull.
+        const inBrace = s >= -15.5 && s <= 4.5;
+        const useAwl = def.sculpted && awlRiseMm > 0 && (def.awlFull || inBrace);
+        // Full-guard: local station width is the shoulder chord; floor scales like 94→100.
+        const scaleFloor = awlChordMm > 1e-9 ? awlFloorMm / awlChordMm : 1;
+        const floorW = !useAwl ? row[1] : (def.awlFull ? row[1] * scaleFloor : awlFloorMm);
+        // Keep R18 under the brace; elsewhere keep the station corner R (needs R > rise).
+        const rUse = useAwl && inBrace ? def.c1Radius / millimeter : row[4];
         out = append(out, {
-                    "s" : s, "w" : row[1], "d" : row[2], "alpha" : row[3], "r" : row[4], "wall" : row[5],
+                    "s" : s, "w" : row[1], "d" : row[2], "alpha" : row[3], "r" : rUse, "wall" : row[5],
                     "a" : a, "k" : k, "R" : R,
                     "rise" : useAwl ? awlRiseMm : 0,
-                    "floorW" : useAwl ? awlFloorMm : row[1]
+                    "floorW" : floorW
                 });
     }
     return out;
@@ -805,6 +812,8 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
         isLength(definition.awlFloorW, { (millimeter) : [90, 100, 120] } as LengthBoundSpec);
         annotation { "Name" : "AWL crown rise" }
         isLength(definition.awlRise, { (millimeter) : [0, 7, 12] } as LengthBoundSpec);
+        annotation { "Name" : "AWL crown along whole guard (not only under brace)", "Default" : false }
+        definition.awlFull is boolean;
         annotation { "Name" : "Front/tail corner radius" }
         isLength(definition.roundR, { (millimeter) : [6, 20, 26] } as LengthBoundSpec);
         annotation { "Name" : "Front/tail wall angle" }
@@ -1815,5 +1824,5 @@ export const mudguardV2 = defineFeature(function(context is Context, id is Id, d
             "wingFlareDepth" : 20 * millimeter, "wingTipDepth" : 135 * millimeter, "wingCornerR" : 8 * millimeter,
             "wingRow1" : 90 * millimeter, "wingRow2" : 110 * millimeter, "wingRow3" : 125 * millimeter,
             "wingSlotPitch" : 22 * millimeter, "strapChannel" : true, "tieCutDepth" : 20 * millimeter, "teardropAngle" : 90 * degree,
-            "addRib" : false, "addFillets" : true, "smoothJoin" : true, "sculpted" : true, "c1Depth" : 30.49 * millimeter, "c1Radius" : 18 * millimeter, "awlChord" : 94 * millimeter, "awlFloorW" : 100 * millimeter, "awlRise" : 7 * millimeter, "roundR" : 20 * millimeter, "roundAlpha" : 5 * degree, "joinFilletOut" : 4 * millimeter, "joinFilletIn" : 4 * millimeter
+            "addRib" : false, "addFillets" : true, "smoothJoin" : true, "sculpted" : true, "c1Depth" : 30.49 * millimeter, "c1Radius" : 18 * millimeter, "awlChord" : 94 * millimeter, "awlFloorW" : 100 * millimeter, "awlRise" : 7 * millimeter, "awlFull" : false, "roundR" : 20 * millimeter, "roundAlpha" : 5 * degree, "joinFilletOut" : 4 * millimeter, "joinFilletIn" : 4 * millimeter
         });
