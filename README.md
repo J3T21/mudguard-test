@@ -89,3 +89,11 @@ Leg joint rebuilt to Split & Join Planner's plan: the lower 10 mm of the guard w
 v2.19.3's one test failed at the guard + boss merge (BOOLEAN_BAD_INPUT). The guard pieces are now picked up by a history query and merge takes every solid present except the tie-slot cutters. Closing lines and tangencies shared between differently built bodies are moved 0.5 mm apart: the boss bottom (S.d - 0.5), clipY (|y| 49.0), the ear boxes (1 mm past the split) and the R32 end-round cutters (0.5 beyond the end and the side). The joint is unchanged. Full audit in `featurescript/verification_v2.19.3.1.txt`.
 
 Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/ecd92e540acf3ba840fcb13e/e/6d4ce527def8539685e560ec (A 62.84 / B 122.75 cm³, tyre gap 8.86, OD45 1.0 clr). Previews: `out/v2.19.3.1_onshape_*.png`.
+
+## Front under-brace arch coupons (A1–A4)
+
+Fox AWL **front** mudguard fit probes (separate from the rear brace shell). A4 (rise 7.0 mm) fitted best. R18 chord **94 mm**; sides flare to floor **100 mm** with a **G1** leave. **Open U**, no ID markers, extrusion **10 mm**. Generator: `python featurescript/front_underbrace_coupons.py` → `out/front_brace_coupon_A4.stl` (alias `out/brace_coupon_A4.stl`). Notes: `featurescript/verification_front_underbrace.txt`.
+
+## Rear brace shell coupons (C0–C2)
+
+Three short saddles for the photographed **rear** brace. Calipers: 60 mm inside on the tyre face, 50 mm on the seat-tube face, 12 mm thick, 20 mm tall. The cavity is that brace (58→48 mm); the part is the black plastic shell with skirt down the stays. Clearance C0 / C1 / C2: 0 / 0.4 / 0.8 mm. `python featurescript/brace_arch_coupons.py` → `out/brace_coupon_C*.stl`. Scan: `refs/rear_brace_edit2.glb`. Notes: `featurescript/verification_brace_coupons.txt`.

@@ -1,0 +1,71 @@
+Scan-fit brace coupons C0–C2
+============================
+Date: 2026-11-18 (Europe/London)
+Onshape API / MCP calls this change: 0
+Printables: out/brace_coupon_C0.stl .. C2.stl
+Section plot: out/brace_coupon_sections.png
+Generator: featurescript/brace_arch_coupons.py
+Optional Onshape paste: featurescript/brace_arch_coupons.fs (FeatureScript 3112)
+Scan: refs/rear_brace_edit2.glb (Kiri share 8d49fd2b263a4ae78e2003d81a340dde)
+Side-view gate: out/brace_coupon_side.png against refs/brace_side_ref.png
+
+Intent
+------
+The black plastic shell in refs/brace_side_ref.png. The cavity is the brace.
+The shell flares onto the seatstays. The earlier coupons modelled the brace.
+
+Calipers (James)
+----------------
+Tyre-side inner width     60 mm
+Seat-tube inner width     50 mm
+Brace thickness           12 mm front to back
+Brace height              20 mm
+Plastic flap on top of the brace: ignored
+
+Geometry (all mm)
+-----------------
+Cavity, tyre face         58   (1 mm per side inside the 60 mm mouth)
+Cavity, seat face         48   (1 mm per side inside the 50 mm mouth)
+Skirt                     45 down the stay, 20 out past the cavity, each side
+Handle past the tyre face  8   (total length 20)
+Taper                     linear across the 12 mm brace thickness
+Wrap                      16   down the brace, inside the 20 mm height
+Wall                       2.5  between the brace face and the outer skin
+Zip slots                  6.0 long × 2.4 wide, two pairs on the crest
+                          centres x = -16, -8, +4, +11, all at z = 14
+Cavity arch               the brace underside, rise 6.4 mm, crest at 0.43
+
+Variant   extra clearance (per side, and dropped off the crown)   ID bars
+C0        0                                                      1
+C1        0.4                                                    2
+C2        0.8                                                    3
+C4        quick test: C0 crown, flat/cavity +4 mm/side            4
+          tyre cavity 66 / seat 56, length 20, short skirt 8
+
+Verified distinct (2026-11-18 Europe/London)
+-------------------------------------------
+C0: cavity 58.0 STL sha 4b48824416a0  tris 4816
+C1: cavity 57.2 STL sha 707d808f9289  tris 4840
+C2: cavity 56.4 STL sha caa8f33b239b  tris 4868
+C4: cavity 66.0 (+4/side vs C0) length 20 skirt 8  tris 4888  out/brace_coupon_C4.stl
+
+Side-view gate (python featurescript/brace_arch_coupons.py): PASS
+crest 0.43 of the width, outline 0.92 mm from the photo, span 116.3 mm.
+The skirt drops about 50 mm down the stay.
+No vertical wall. A failed check exits non-zero and writes no STLs.
+
+The dotted line on the section plot is the brace face. The solid line is the
+outer skin, flaring past it.
+
+How to print / fit
+------------------
+1. Slice C0.stl first (PETG, P1S). Count the bars on the tyre side: 1=C0, 2=C1, 3=C2, 4=C4.
+2. The cavity faces the brace. The narrow end is the seat-tube end and enters first.
+3. If C0 will not start, try C1, then C2. For a wider flat check, print C4 (66 mm cavity, short skirt).
+4. The flares lap onto the stays (full on C0–C2; C4 is a stub for size only).
+5. The crown comes from the bridge in the cropped scan (scan X 135–158).
+   If it rocks, that was not the contact face and the crown needs another pass.
+
+Onshape economy
+---------------
+STLs are the delivery. FeatureScript is optional paste-only. No Part Studio API.
