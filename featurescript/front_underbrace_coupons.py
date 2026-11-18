@@ -1,8 +1,8 @@
 """Front mudguard under-brace arch coupons (Fox AWL). Offline only — no Onshape.
 
-A4 (rise 7.0 mm, four ID notches) fitted best. Shoulder outer TOP_W = 94 mm
-(−1 mm/side from the 96 mm trial). Sides then angle out to FLOOR_W = 100 mm.
-10 mm extrusion. Inner at shoulder ≈ 89 mm (wall 2.5).
+A4 (rise 7.0 mm) fitted best. Shoulder chord TOP_W = 94 mm (−1 mm/side from
+the 96 mm trial). Sides angle out to FLOOR_W = 100 mm with G1 leave. Open U
+(no spanning floor), 10 mm extrusion. Inner at shoulder ≈ 89 mm (wall 2.5).
 """
 from __future__ import annotations
 
@@ -267,43 +267,6 @@ def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
             f.write(struct.pack("<H", 0))
 
 
-def label_bump_tris(label: str) -> list[np.ndarray]:
-    """1..4 notches along +z on the outer left foot (no floor to sit on)."""
-    idx = {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[label]
-    tris = []
-    # Protrude outward from the left outer foot.
-    x1 = -FLOOR_W / 2.0
-    x0 = x1 - 1.0
-    y0 = -DEPTH + 2.0
-    y1 = y0 + 1.2
-    pitch = min(2.2, (LENGTH - 1.5) / max(idx, 1))
-    bar = min(1.4, pitch * 0.65)
-    for k in range(idx):
-        z0 = 0.5 + k * pitch
-        z1 = z0 + bar
-        corners = [
-            np.array([x0, y0, z0]),
-            np.array([x1, y0, z0]),
-            np.array([x1, y0, z1]),
-            np.array([x0, y0, z1]),
-            np.array([x0, y1, z0]),
-            np.array([x1, y1, z0]),
-            np.array([x1, y1, z1]),
-            np.array([x0, y1, z1]),
-        ]
-        for a, b, d, e in (
-            (0, 1, 2, 3),
-            (4, 7, 6, 5),
-            (0, 4, 5, 1),
-            (1, 5, 6, 2),
-            (2, 6, 7, 3),
-            (3, 7, 4, 0),
-        ):
-            tris.append(np.vstack([corners[a], corners[b], corners[d]]))
-            tris.append(np.vstack([corners[a], corners[d], corners[e]]))
-    return tris
-
-
 def section_plot(crowns: list[Crown], out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
     colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a"]
@@ -365,14 +328,14 @@ def main() -> None:
             f"floor={outer[-1, 0] - outer[0, 0]:.1f} "
             f"wall_dir={math.degrees(wall_ang):.2f}° length={LENGTH}"
         )
-        tris = solid_shell_tris(c) + label_bump_tris(c.label)
+        tris = solid_shell_tris(c)
         path = os.path.join(out, f"front_brace_coupon_{c.label}.stl")
         write_stl(path, tris, f"front_brace_{c.label}")
-        print("wrote", path, "tris", len(tris), "notches", {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[c.label])
+        print("wrote", path, "tris", len(tris))
     a4 = next(c for c in crowns if c.label == "A4")
     write_stl(
         os.path.join(out, "brace_coupon_A4.stl"),
-        solid_shell_tris(a4) + label_bump_tris("A4"),
+        solid_shell_tris(a4),
         "brace_A4",
     )
     print("wrote", os.path.join(out, "brace_coupon_A4.stl"), "(A4 alias)")

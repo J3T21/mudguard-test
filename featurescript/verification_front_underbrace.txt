@@ -19,7 +19,6 @@ Rise                        7.0
 Wall                        2.5
 Depth                        30
 Length                       10
-ID notches                    4
 
-Open U (no floor spanning the feet). ID notches on the outer left foot.
-Print: PETG, P1S. Four notches = A4.
+Open U (no floor spanning the feet). No ID markers.
+Print: PETG, P1S.
