@@ -235,31 +235,20 @@ def solid_shell_tris(c: Crown) -> list[np.ndarray]:
             np.array([i0[0], i0[1], z1]),
         )
 
+    # Open U: no floor spanning left↔right. Cap each foot so the wall thickness closes.
     oL, oR = outer[0], outer[-1]
     iL, iR = inner[0], inner[-1]
     add_quad(
-        np.array([oL[0], -DEPTH, z0]),
-        np.array([oR[0], -DEPTH, z0]),
-        np.array([oR[0], -DEPTH, z1]),
-        np.array([oL[0], -DEPTH, z1]),
+        np.array([oL[0], oL[1], z0]),
+        np.array([iL[0], iL[1], z0]),
+        np.array([iL[0], iL[1], z1]),
+        np.array([oL[0], oL[1], z1]),
     )
     add_quad(
-        np.array([iL[0], -DEPTH + WALL, z0]),
-        np.array([iL[0], -DEPTH + WALL, z1]),
-        np.array([iR[0], -DEPTH + WALL, z1]),
-        np.array([iR[0], -DEPTH + WALL, z0]),
-    )
-    add_quad(
-        np.array([oL[0], -DEPTH, z0]),
-        np.array([iL[0], -DEPTH + WALL, z0]),
-        np.array([iR[0], -DEPTH + WALL, z0]),
-        np.array([oR[0], -DEPTH, z0]),
-    )
-    add_quad(
-        np.array([oL[0], -DEPTH, z1]),
-        np.array([oR[0], -DEPTH, z1]),
-        np.array([iR[0], -DEPTH + WALL, z1]),
-        np.array([iL[0], -DEPTH + WALL, z1]),
+        np.array([oR[0], oR[1], z0]),
+        np.array([oR[0], oR[1], z1]),
+        np.array([iR[0], iR[1], z1]),
+        np.array([iR[0], iR[1], z0]),
     )
     return tris
 
@@ -279,18 +268,19 @@ def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
 
 
 def label_bump_tris(label: str) -> list[np.ndarray]:
-    """1..4 notches along +z, packed to fit in LENGTH."""
+    """1..4 notches along +z on the outer left foot (no floor to sit on)."""
     idx = {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[label]
     tris = []
-    y0 = -DEPTH + WALL
-    y1 = y0 + 1.0
-    # Pitch so four notches sit inside a 10 mm extrusion with a small margin.
+    # Protrude outward from the left outer foot.
+    x1 = -FLOOR_W / 2.0
+    x0 = x1 - 1.0
+    y0 = -DEPTH + 2.0
+    y1 = y0 + 1.2
     pitch = min(2.2, (LENGTH - 1.5) / max(idx, 1))
     bar = min(1.4, pitch * 0.65)
     for k in range(idx):
         z0 = 0.5 + k * pitch
         z1 = z0 + bar
-        x0, x1 = -8.0, -3.0
         corners = [
             np.array([x0, y0, z0]),
             np.array([x1, y0, z0]),

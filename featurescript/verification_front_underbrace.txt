@@ -21,4 +21,5 @@ Depth                        30
 Length                       10
 ID notches                    4
 
-Print: PETG, P1S, floor down. Four notches = A4.
+Open U (no floor spanning the feet). ID notches on the outer left foot.
+Print: PETG, P1S. Four notches = A4.
