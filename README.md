@@ -89,3 +89,7 @@ Leg joint rebuilt to Split & Join Planner's plan: the lower 10 mm of the guard w
 v2.19.3's one test failed at the guard + boss merge (BOOLEAN_BAD_INPUT). The guard pieces are now picked up by a history query and merge takes every solid present except the tie-slot cutters. Closing lines and tangencies shared between differently built bodies are moved 0.5 mm apart: the boss bottom (S.d - 0.5), clipY (|y| 49.0), the ear boxes (1 mm past the split) and the R32 end-round cutters (0.5 beyond the end and the side). The joint is unchanged. Full audit in `featurescript/verification_v2.19.3.1.txt`.
 
 Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/ecd92e540acf3ba840fcb13e/e/6d4ce527def8539685e560ec (A 62.84 / B 122.75 cm³, tyre gap 8.86, OD45 1.0 clr). Previews: `out/v2.19.3.1_onshape_*.png`.
+
+## Under-brace arch coupons (fit test)
+
+Four short printable arches for seating under the Fox AWL brace at tyre-top height before changing C1. Outer width 88 mm (~1 mm/side vs ~90 mm cavity), crown chord 82 mm, wall 2.5 mm, length 50 mm, depth 30 mm. Rises A1–A4: 2.5 / 4.0 / 5.5 / 7.0 mm (circular crown). STLs offline only — zero Onshape API calls: `python featurescript/brace_arch_coupons.py` → `out/brace_coupon_A*.stl`, `out/brace_coupon_sections.png`. Optional paste: `featurescript/brace_arch_coupons.fs`. Notes: `featurescript/verification_brace_coupons.txt`.
