@@ -1,51 +1,54 @@
-Under-brace arch fit coupons A1–A4
-==================================
+Scan-fit brace coupons C0–C2
+============================
 Date: 2026-11-18 (Europe/London)
 Onshape API / MCP calls this change: 0
-Printables: out/brace_coupon_A1.stl .. A4.stl (numpy triangle soup)
+Printables: out/brace_coupon_C0.stl .. C2.stl
 Section plot: out/brace_coupon_sections.png
 Generator: featurescript/brace_arch_coupons.py
 Optional Onshape paste: featurescript/brace_arch_coupons.fs (FeatureScript 3112)
+Scan: refs/rear_brace_edit1.glb (Kiri share cd8c648182ad41c7b9c528ab4939b11e)
 
 Intent
 ------
-Print-fit probes for an arched under-brace section before changing production C1.
-Top corners use production-style R18 fillets with a crown arc tangent to both, so
-wall → fillet → crown is G1 (no sharp lump at the shoulder).
+A short saddle that seats on the photographed rear brace, with four zip slots
+in two pairs. The earlier A1–A4 set (88 mm, circular rises 2.5–7 mm) was a
+guess and is replaced.
+
+Calipers (James)
+----------------
+Tyre-side inner width     60 mm
+Seat-tube inner width     50 mm
+Brace thickness           12 mm front to back
+Brace height              20 mm
+Plastic flap on top of the brace: ignored
 
 Geometry (all mm)
 -----------------
-Outer width          88.0   (vertical walls at ±44; ~1 mm/side vs ~90 mm cavity)
-Corner fillets       18.0   (centres at ±26, y=-18)
-Wall thickness        2.5
-Length (extrusion)   50.0
-Depth (U opening)    30.0
-Crown                circular through (0, rise), internally tangent to both R18 fillets
-                     R = (hx² + (rise+18)² - 18²) / (2·rise),  hx = 26
+Tyre-face outer width     58   (1 mm per side inside the 60 mm mouth)
+Seat-face outer width     48   (1 mm per side inside the 50 mm mouth)
+Handle past the tyre face  8   (so the coupon can be held; total length 20)
+Taper                     linear across the 12 mm brace thickness
+Depth                     16   (inside the 20 mm arch height)
+Wall                       2.5
+Zip slots                  6.0 long × 2.4 wide, centres x = ±11, z = 5 and 15
+Crown                     levelled Kiri underside, 3-point smoothed.
+                          About 6 mm of rise, higher toward +x. Not a circular arc.
 
-Variant  rise   R_crown  ID nubs
-A1         2.5  154.450  1
-A2         4.0  104.500  2
-A3         5.5   82.205  3
-A4         7.0   69.786  4
+Variant   extra clearance (per side, and dropped off the crown)
+C0        0
+C1        0.4
+C2        0.8
 
-Fix notes
----------
-Earlier STLs had a broken crown polyline (arc traversed the wrong way, then
-endpoints snapped), which put a sharp lump at the top corner. Regenerated with
-left→right crown through the peak and vertical walls so wall–fillet is G1.
-
-Offline checks (python featurescript/brace_arch_coupons.py)
------------------------------------------------------------
-A1..A4: peaks match rise; upper path x monotonic; wall–fillet / fillet–crown
-junction turns < 3° (sampling). STLs regenerated.
+The dashed line on the section plot is the unsmoothed levelled scan. C0 sits
+on the smoothed curve, 1 mm inside each wall.
 
 How to print / fit
 ------------------
-1. Slice any A*.stl in Bambu Studio (PETG, P1S). Flat floor on bed.
-2. Seat under the brace at tyre-top height, crown up.
-3. Pick the rise that seats without rocking.
-4. Bake the winning rise into C1 (keep R18); optional paste brace_arch_coupons.fs.
+1. Slice C0.stl first (PETG, P1S). Floor down, crown up.
+2. The narrow end is the seat-tube end. It has to enter first.
+3. If C0 will not start, try C1, then C2.
+4. The crown is asymmetric. If it rocks, the slice used for the crown
+   (scan X ≈ −25 mm) is not the contact face, and the crown needs another pass.
 
 Onshape economy
 ---------------

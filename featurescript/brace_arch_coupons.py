@@ -1,17 +1,20 @@
-"""Printable under-brace arch coupons A1-A4. Offline only — no Onshape.
+"""Brace-fit saddle coupons from the Kiri scan plus James's calipers.
 
-Outer width 88 mm (~1 mm/side vs a 90 mm cavity at tyre-top height).
-Final-style C1 section: vertical walls at ±41 (82 mm), R18 top-corner
-fillets (same as production C1), circular crown tangent to both fillets
-with the given rise at x=0. Wall 2.5 mm. Length 50 mm. Depth 30 mm.
-Rises: 2.5, 4.0, 5.5, 7.0 mm.
+The brace arch is about 60 mm inside on the tyre face and 50 mm on the
+seat-tube face, 12 mm thick front to back, 20 mm tall. A plastic flap on
+top of the brace is ignored. The scanned underside, once the chord is
+levelled, is only a couple of millimetres off a straight line, so the
+crown rise is 2 mm and the corners are R8.
+
+Three coupons, extra clearance 0 / 0.4 / 0.8 mm per side, so one sits
+snug and the others show a tight scan. Four zip-tie slots on the crown.
+Offline only — no Onshape.
 """
 from __future__ import annotations
 
 import math
 import os
 import struct
-from dataclasses import dataclass
 
 import matplotlib
 
@@ -19,165 +22,61 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-OUTER_W = 88.0  # vertical walls at ±44 — seats in ~90 mm brace cavity
-CORNER_R = 18.0  # production C1 corner radius
+# Calipers. Outer coupon is 1 mm per side inside those openings.
+TYRE_OPEN = 60.0
+SEAT_OPEN = 50.0
+TYRE_W = TYRE_OPEN - 2.0
+SEAT_W = SEAT_OPEN - 2.0
+BRACE_THK = 12.0
+HANDLE = 8.0  # sticks out of the tyre face so the coupon can be held
+LENGTH = HANDLE + BRACE_THK  # 20 mm
+DEPTH = 16.0  # inside the 20 mm arch height
 WALL = 2.5
-DEPTH = 30.0
-LENGTH = 50.0
-RISES = {
-    "A1": 2.5,
-    "A2": 4.0,
-    "A3": 5.5,
-    "A4": 7.0,
-}
-# Wall-to-wall equals outer width (no floor flare) so wall→R18 is G1.
-CHORD = OUTER_W
+CORNER_R = 8.0
+# Levelled Kiri underside across the 60 mm tyre-side mouth. y is outward.
+# Heights are a 3-point smooth of the levelled scan, so 1 mm of mesh noise
+# does not print as a ridge. The raw scan is drawn dashed on the section plot.
+SCAN_CROWN = np.array([
+    [-30.12, 4.30], [-27.41, 2.57], [-24.10, 1.45], [-21.82, 0.32],
+    [-19.11, 0.64], [-16.83, 0.95], [-14.55, 1.56], [-12.04, 2.15],
+    [-9.74, 2.62], [-7.38, 2.99], [-4.81, 3.35], [-2.50, 3.33],
+    [0.14, 3.71], [2.42, 3.98], [4.80, 4.71], [7.12, 5.18],
+    [9.58, 5.59], [12.01, 5.78], [14.48, 6.13], [16.83, 6.24],
+    [19.44, 6.30], [21.94, 6.17], [24.42, 5.62], [27.33, 5.01],
+    [29.88, 4.30],
+])
+CLEARANCES = {"C0": 0.0, "C1": 0.4, "C2": 0.8}
+# Two pairs, as in the photo. Long axis lateral, short axis along the bike.
+SLOT_X = 11.0
+SLOT_Z = (5.0, 15.0)
+SLOT_LEN = 6.0
+SLOT_WID = 2.4
 
 
-@dataclass
-class Crown:
-    label: str
-    rise: float
-    radius: float  # crown arc radius (tangent to both R18 fillets)
-    half_chord: float
-    corner_r: float
-
-    @property
-    def center_y(self) -> float:
-        # Peak at (0, rise); centre on the y-axis below the peak.
-        return self.rise - self.radius
-
-    @property
-    def fillet_cx(self) -> float:
-        # Left fillet centre x; right is -fillet_cx. C1-style: wall at -half_chord.
-        return -(self.half_chord - self.corner_r)
-
-    @property
-    def fillet_cy(self) -> float:
-        # Fillet centres sit r below the old flat (y=0), same as C1.
-        return -self.corner_r
+def width_at(z: float, clearance: float) -> float:
+    tyre = TYRE_W - 2.0 * clearance
+    seat = SEAT_W - 2.0 * clearance
+    if z <= HANDLE:
+        return tyre
+    if z >= HANDLE + BRACE_THK:
+        return seat
+    u = (z - HANDLE) / BRACE_THK
+    return tyre + (seat - tyre) * u
 
 
-def crown_radius_tangent_to_fillets(half_chord: float, rise: float, corner_r: float) -> float:
-    """Crown R so the arc through (0, rise) is internally tangent to both R-corner fillets.
-
-    Fillet centres at (±(half_chord - corner_r), -corner_r), radius corner_r.
-    Crown centre at (0, rise - R). Internal tangency: |C - F| = R - corner_r.
-    """
-    hx = half_chord - corner_r  # |fillet centre x|
-    # (hx)^2 + (rise + corner_r - R)^2 = (R - corner_r)^2
-    # hx^2 + (rise + corner_r)^2 - 2(rise+corner_r)R + R^2 = R^2 - 2 corner_r R + corner_r^2
-    # hx^2 + (rise + corner_r)^2 - corner_r^2 = 2(rise + corner_r)R - 2 corner_r R
-    # left = 2 R rise
-    left = hx * hx + (rise + corner_r) ** 2 - corner_r * corner_r
-    # left = 2*R*(rise + corner_r) - 2*corner_r*R = 2*R*rise
-    if abs(rise) < 1e-12:
-        raise ValueError("rise must be > 0")
-    R = left / (2.0 * rise)
-    if R <= corner_r:
-        raise ValueError(f"degenerate crown R={R} <= corner_r={corner_r}")
-    return R
+def outer_section(width: float, clearance: float, n_arc: int = 10) -> np.ndarray:
+    """x lateral, y outward. Crown follows the scan. Walls drop to a fixed floor."""
+    del n_arc
+    scale = width / TYRE_OPEN
+    crown = np.column_stack([SCAN_CROWN[:, 0] * scale, SCAN_CROWN[:, 1] - clearance])
+    floor = float(crown[:, 1].min()) - DEPTH
+    half = width / 2.0
+    left = np.array([[-half, floor], [-half, crown[0, 1]]])
+    right = np.array([[half, crown[-1, 1]], [half, floor]])
+    return np.vstack([left, crown, right])
 
 
-def crown_for(label: str, rise: float) -> Crown:
-    half = CHORD / 2.0
-    radius = crown_radius_tangent_to_fillets(half, rise, CORNER_R)
-    return Crown(
-        label=label,
-        rise=rise,
-        radius=radius,
-        half_chord=half,
-        corner_r=CORNER_R,
-    )
-
-
-def _arc_points(cx: float, cy: float, r: float, a0: float, a1: float, n: int) -> np.ndarray:
-    angs = np.linspace(a0, a1, n)
-    return np.column_stack([cx + r * np.cos(angs), cy + r * np.sin(angs)])
-
-
-def _tangent_point_crown_fillet(c: Crown, left: bool) -> np.ndarray:
-    """Point of internal tangency between crown circle and one corner fillet."""
-    fx = c.fillet_cx if left else -c.fillet_cx
-    fy = c.fillet_cy
-    F = np.array([fx, fy])
-    C = np.array([0.0, c.center_y])
-    # Point from C through F at distance R (internal: F is between C and the point).
-    v = F - C
-    return C + (c.radius / np.linalg.norm(v)) * v
-
-
-def outer_polyline(c: Crown, n_fillet: int = 16, n_crown: int = 48) -> np.ndarray:
-    """Outer path: vertical wall → R18 fillet → crown → R18 → wall (all G1).
-
-    Coordinates: x lateral, y outward (crown +y). Old C1 flat would sit at y=0.
-    """
-    half_w = c.half_chord
-    rC = c.corner_r
-    fy = c.fillet_cy
-    fx_l, fx_r = c.fillet_cx, -c.fillet_cx
-
-    left_bottom = np.array([-half_w, -DEPTH])
-    right_bottom = np.array([half_w, -DEPTH])
-    # Vertical wall meets fillet with shared tangent (both vertical).
-    left_wall_top = np.array([-half_w, -rC])
-    right_wall_top = np.array([half_w, -rC])
-
-    tp_l = _tangent_point_crown_fillet(c, left=True)
-    tp_r = _tangent_point_crown_fillet(c, left=False)
-
-    # Left fillet: wall (angle π) → crown tangency (angle in (π/2, π)).
-    a_wall_l = math.pi
-    a_crown_l = math.atan2(tp_l[1] - fy, tp_l[0] - fx_l)
-    left_fillet = _arc_points(fx_l, fy, rC, a_wall_l, a_crown_l, n_fillet)
-    left_fillet[0] = left_wall_top
-    left_fillet[-1] = tp_l
-
-    # Right fillet: crown tangency → wall (angle 0).
-    a_crown_r = math.atan2(tp_r[1] - fy, tp_r[0] - fx_r)
-    a_wall_r = 0.0
-    right_fillet = _arc_points(fx_r, fy, rC, a_crown_r, a_wall_r, n_fillet)
-    right_fillet[0] = tp_r
-    right_fillet[-1] = right_wall_top
-
-    # Crown: left → right through the peak. Both tangency angles sit in (0, π);
-    # the short upper arc is the decreasing sweep a_l → a_r (e.g. 110° → 70°).
-    cy = c.center_y
-    a_l = math.atan2(tp_l[1] - cy, tp_l[0])
-    a_r = math.atan2(tp_r[1] - cy, tp_r[0])
-    # Ensure we take the arc whose midpoint is the peak (y ≈ rise), not the long way under.
-    if a_l < a_r:
-        # Unusual; force left angle above right by wrapping.
-        a_l += 2 * math.pi
-    mid = 0.5 * (a_l + a_r)
-    if cy + c.radius * math.sin(mid) < c.rise * 0.5:
-        # Midpoint went the wrong way — should not happen with a_l > a_r in (0, π).
-        a_r, a_l = a_l, a_r
-    crown = _arc_points(0.0, cy, c.radius, a_l, a_r, n_crown)
-    crown[0] = tp_l
-    crown[-1] = tp_r
-
-    # Peak must lie on the crown polyline (sanity for the STL / plot).
-    peak_i = int(np.argmax(crown[:, 1]))
-    if abs(crown[peak_i, 1] - c.rise) > 0.05:
-        raise RuntimeError(
-            f"crown peak y={crown[peak_i, 1]:.3f} != rise={c.rise} "
-            f"(a_l={math.degrees(a_l):.1f} a_r={math.degrees(a_r):.1f})"
-        )
-
-    return np.vstack(
-        [
-            left_bottom,
-            left_fillet,
-            crown[1:-1],
-            right_fillet,
-            right_bottom,
-        ]
-    )
-
-
-def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
-    """Offset a downward-opening U toward its interior."""
+def offset_inward(poly: np.ndarray, dist: float, half: float) -> np.ndarray:
     n = len(poly)
     out = np.zeros_like(poly)
     for i in range(n):
@@ -187,173 +86,163 @@ def offset_inward(poly: np.ndarray, dist: float) -> np.ndarray:
             t = poly[-1] - poly[-2]
         else:
             t = poly[i + 1] - poly[i - 1]
-        ln = math.hypot(t[0], t[1]) or 1.0
-        # CW normal (ty, -tx): inward for left→right U path.
+        ln = math.hypot(float(t[0]), float(t[1])) or 1.0
         nx, ny = t[1] / ln, -t[0] / ln
         out[i] = poly[i] + dist * np.array([nx, ny])
-    out[0, 1] = -DEPTH + dist
-    out[-1, 1] = -DEPTH + dist
-    half_inner = OUTER_W / 2.0 - dist
-    out[0, 0] = -half_inner
-    out[-1, 0] = half_inner
+    out[0] = (-(half - dist), -DEPTH + dist)
+    out[-1] = (half - dist, -DEPTH + dist)
     return out
 
 
-def solid_shell_tris(c: Crown) -> list[np.ndarray]:
-    """Triangle soup for a constant-thickness U extruded along z."""
-    outer = outer_polyline(c, n_fillet=10, n_crown=32)
-    inner = offset_inward(outer, WALL)
-    assert len(outer) == len(inner)
+def _in_slot(x: float, z: float) -> bool:
+    for zc in SLOT_Z:
+        if abs(z - zc) <= SLOT_WID / 2.0 and abs(abs(x) - SLOT_X) <= SLOT_LEN / 2.0:
+            return True
+    return False
 
-    z0, z1 = 0.0, LENGTH
+
+def _on_crown(y: float) -> bool:
+    return y > -CORNER_R * 0.35
+
+
+def shell_tris(clearance: float) -> list[np.ndarray]:
+    zs = np.linspace(0.0, LENGTH, 21)
+    outers = []
+    inners = []
+    for z in zs:
+        w = width_at(float(z), clearance)
+        outer = outer_section(w, clearance)
+        inner = offset_inward(outer, WALL, w / 2.0)
+        outers.append(outer)
+        inners.append(inner)
     tris: list[np.ndarray] = []
 
-    def add_quad(p00, p10, p11, p01):
-        tris.append(np.vstack([p00, p10, p11]))
-        tris.append(np.vstack([p00, p11, p01]))
+    def quad(a, b, c, d):
+        tris.append(np.vstack([a, b, c]))
+        tris.append(np.vstack([a, c, d]))
 
-    for i in range(len(outer) - 1):
-        o0, o1 = outer[i], outer[i + 1]
-        i0, i1 = inner[i], inner[i + 1]
-        add_quad(
-            np.array([o0[0], o0[1], z0]),
-            np.array([o1[0], o1[1], z0]),
-            np.array([o1[0], o1[1], z1]),
-            np.array([o0[0], o0[1], z1]),
-        )
-        add_quad(
-            np.array([i0[0], i0[1], z0]),
-            np.array([i0[0], i0[1], z1]),
-            np.array([i1[0], i1[1], z1]),
-            np.array([i1[0], i1[1], z0]),
-        )
-        add_quad(
-            np.array([o0[0], o0[1], z0]),
-            np.array([i0[0], i0[1], z0]),
-            np.array([i1[0], i1[1], z0]),
-            np.array([o1[0], o1[1], z0]),
-        )
-        add_quad(
-            np.array([o0[0], o0[1], z1]),
-            np.array([o1[0], o1[1], z1]),
-            np.array([i1[0], i1[1], z1]),
-            np.array([i0[0], i0[1], z1]),
-        )
+    def P(xy, z):
+        return np.array([xy[0], xy[1], z])
 
-    oL, oR = outer[0], outer[-1]
-    iL, iR = inner[0], inner[-1]
-    add_quad(
-        np.array([oL[0], -DEPTH, z0]),
-        np.array([oR[0], -DEPTH, z0]),
-        np.array([oR[0], -DEPTH, z1]),
-        np.array([oL[0], -DEPTH, z1]),
-    )
-    add_quad(
-        np.array([iL[0], -DEPTH + WALL, z0]),
-        np.array([iL[0], -DEPTH + WALL, z1]),
-        np.array([iR[0], -DEPTH + WALL, z1]),
-        np.array([iR[0], -DEPTH + WALL, z0]),
-    )
-    add_quad(
-        np.array([oL[0], -DEPTH, z0]),
-        np.array([iL[0], -DEPTH + WALL, z0]),
-        np.array([iR[0], -DEPTH + WALL, z0]),
-        np.array([oR[0], -DEPTH, z0]),
-    )
-    add_quad(
-        np.array([oL[0], -DEPTH, z1]),
-        np.array([oR[0], -DEPTH, z1]),
-        np.array([iR[0], -DEPTH + WALL, z1]),
-        np.array([iL[0], -DEPTH + WALL, z1]),
-    )
+    n = len(outers[0])
+    for s in range(len(zs) - 1):
+        z0, z1 = float(zs[s]), float(zs[s + 1])
+        zm = 0.5 * (z0 + z1)
+        for i in range(n - 1):
+            o0, o1 = outers[s][i], outers[s][i + 1]
+            o2, o3 = outers[s + 1][i], outers[s + 1][i + 1]
+            i0, i1 = inners[s][i], inners[s][i + 1]
+            i2, i3 = inners[s + 1][i], inners[s + 1][i + 1]
+            crown = _on_crown(float(o0[1])) and _on_crown(float(o1[1]))
+            xm = 0.5 * (float(o0[0]) + float(o1[0]))
+            punched = crown and _in_slot(xm, zm)
+            if punched:
+                # Tunnel wall: outer edge to inner edge, so the slot is open.
+                quad(P(o0, z0), P(o1, z0), P(i1, z0), P(i0, z0))
+                quad(P(o3, z1), P(o2, z1), P(i2, z1), P(i3, z1))
+                quad(P(o0, z0), P(i0, z0), P(i2, z1), P(o2, z1))
+                quad(P(o1, z0), P(o3, z1), P(i3, z1), P(i1, z0))
+            else:
+                quad(P(o0, z0), P(o1, z0), P(o3, z1), P(o2, z1))
+                quad(P(i0, z0), P(i2, z1), P(i3, z1), P(i1, z0))
+    # End caps and the floor.
+    for end, z, outer, inner in (
+        (0, 0.0, outers[0], inners[0]),
+        (1, LENGTH, outers[-1], inners[-1]),
+    ):
+        for i in range(n - 1):
+            if end == 0:
+                quad(P(outer[i], z), P(inner[i], z), P(inner[i + 1], z), P(outer[i + 1], z))
+            else:
+                quad(P(outer[i], z), P(outer[i + 1], z), P(inner[i + 1], z), P(inner[i], z))
+    # Floor between the wall bottoms.
+    for s in range(len(zs) - 1):
+        z0, z1 = float(zs[s]), float(zs[s + 1])
+        for loop in (outers, inners):
+            a, b = loop[s][0], loop[s][-1]
+            c, d = loop[s + 1][0], loop[s + 1][-1]
+            if loop is outers:
+                quad(P(a, z0), P(d, z1), P(c, z1), P(b, z0))
+            else:
+                quad(P(a, z0), P(b, z0), P(d, z1), P(c, z1))
     return tris
 
 
 def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
     with open(path, "wb") as f:
-        header = name.encode("ascii", "ignore")[:80].ljust(80, b"\0")
-        f.write(header)
+        f.write(name.encode("ascii", "ignore")[:80].ljust(80, b"\0"))
         f.write(struct.pack("<I", len(tris)))
         for t in tris:
             n = np.cross(t[1] - t[0], t[2] - t[0])
             ln = np.linalg.norm(n)
-            if ln < 1e-18:
-                n = np.array([0.0, 0.0, 1.0])
-            else:
-                n = n / ln
+            n = np.array([0.0, 0.0, 1.0]) if ln < 1e-18 else n / ln
             f.write(struct.pack("<3f", *n))
             for v in t:
-                f.write(struct.pack("<3f", *v))
+                f.write(struct.pack("<3f", float(v[0]), float(v[1]), float(v[2])))
             f.write(struct.pack("<H", 0))
 
 
-def label_bump_tris(label: str) -> list[np.ndarray]:
-    """Raised nubs on the inner floor: 1..4 for A1..A4."""
-    idx = {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[label]
-    tris = []
-    y0 = -DEPTH + WALL
-    y1 = y0 + 0.6
-    x0 = -6.0
-    for k in range(idx):
-        z0 = 8.0 + k * 8.0
-        z1 = z0 + 4.0
-        x1 = x0 + 4.0
-        corners = [
-            (x0, y0, z0),
-            (x1, y0, z0),
-            (x1, y0, z1),
-            (x0, y0, z1),
-            (x0, y1, z0),
-            (x1, y1, z0),
-            (x1, y1, z1),
-            (x0, y1, z1),
-        ]
-        c = [np.array(p, dtype=float) for p in corners]
-        faces = [
-            (0, 1, 2, 3),
-            (4, 7, 6, 5),
-            (0, 4, 5, 1),
-            (1, 5, 6, 2),
-            (2, 6, 7, 3),
-            (3, 7, 4, 0),
-        ]
-        for a, b, d, e in faces:
-            tris.append(np.vstack([c[a], c[b], c[d]]))
-            tris.append(np.vstack([c[a], c[d], c[e]]))
-    return tris
+def scan_envelope() -> np.ndarray | None:
+    """Levelled underside from the Kiri scan, if the GLB is on disk."""
+    glb = os.path.join(os.path.dirname(__file__), "..", "refs", "rear_brace_edit1.glb")
+    if not os.path.isfile(glb):
+        return None
+    try:
+        import DracoPy
+    except ImportError:
+        return None
+    data = open(glb, "rb").read()
+    ln = struct.unpack_from("<I", data, 12)[0]
+    import json
+
+    js = json.loads(data[20 : 20 + ln])
+    bin_off = 20 + ln
+    bln = struct.unpack_from("<I", data, bin_off)[0]
+    blob = data[bin_off + 8 : bin_off + 8 + bln]
+    bv = js["bufferViews"][1]
+    chunk = blob[bv["byteOffset"] : bv["byteOffset"] + bv["byteLength"]]
+    mm = np.asarray(DracoPy.decode(chunk).points, dtype=np.float64) * 1000.0
+    sl = mm[(np.abs(mm[:, 0] + 25) < 8) & (mm[:, 2] > 450) & (mm[:, 2] < 545) & (mm[:, 1] > -980) & (mm[:, 1] < -900)]
+    zs = np.linspace(460, 535, 25)
+    rows = []
+    for z in zs:
+        p = sl[np.abs(sl[:, 2] - z) < 4]
+        if len(p) < 2:
+            continue
+        rows.append((z, p[:, 1].min()))
+    if len(rows) < 4:
+        return None
+    env = np.array(rows)
+    # Level the chord and put the mouth on 60 mm, crown up.
+    z0, z1 = env[0, 0], env[-1, 0]
+    y0, y1 = env[0, 1], env[-1, 1]
+    chord = math.hypot(z1 - z0, y1 - y0)
+    ang = math.atan2(y1 - y0, z1 - z0)
+    c, s = math.cos(-ang), math.sin(-ang)
+    rel = env - env[0]
+    xy = np.column_stack([c * rel[:, 0] - s * rel[:, 1], s * rel[:, 0] + c * rel[:, 1]])
+    xy[:, 0] = (xy[:, 0] - xy[:, 0].mean()) * (TYRE_OPEN / chord)
+    xy[:, 1] -= xy[:, 1].min()
+    return xy
 
 
-def section_plot(crowns: list[Crown], out_path: str) -> None:
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
-    colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a"]
-    for c, col in zip(crowns, colors):
-        outer = outer_polyline(c)
-        ax.plot(
-            outer[:, 0],
-            outer[:, 1],
-            color=col,
-            lw=2,
-            label=f"{c.label} rise {c.rise} R={c.radius:.0f} +R{c.corner_r:.0f}",
-        )
-        inner = offset_inward(outer, WALL)
-        ax.plot(inner[:, 0], inner[:, 1], color=col, lw=1, ls="--", alpha=0.7)
-        # Mark fillet centres.
-        ax.plot(
-            [c.fillet_cx, -c.fillet_cx],
-            [c.fillet_cy, c.fillet_cy],
-            "o",
-            color=col,
-            ms=3,
-            alpha=0.5,
-        )
-    ax.axhline(0, color="#888", lw=0.6)
-    ax.axvline(-45, color="#bbb", lw=0.5, ls=":")
-    ax.axvline(45, color="#bbb", lw=0.5, ls=":")
+def section_plot(out_path: str) -> None:
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=130)
+    colors = {"C0": "#1b4f72", "C1": "#b9770e", "C2": "#196f3d"}
+    for name, clr in CLEARANCES.items():
+        w = width_at(0.0, clr)
+        outer = outer_section(w, clr)
+        ax.plot(outer[:, 0], outer[:, 1], color=colors[name], lw=2, label=f"{name} clearance {clr:.1f} mm")
+    env = scan_envelope()
+    if env is not None:
+        ax.plot(env[:, 0], env[:, 1], color="#922b21", lw=1.2, ls="--", label="scan underside, levelled")
+    ax.axvline(-TYRE_OPEN / 2, color="#bbb", lw=0.6, ls=":")
+    ax.axvline(TYRE_OPEN / 2, color="#bbb", lw=0.6, ls=":")
     ax.set_aspect("equal")
-    ax.set_xlabel("y lateral (mm)")
-    ax.set_ylabel("outward from chord (mm)")
-    ax.set_title("Under-brace coupons — R18 corners + arched crown, outer 88 mm")
-    ax.legend(loc="lower center")
+    ax.set_xlabel("lateral (mm)")
+    ax.set_ylabel("outward (mm)")
+    ax.set_title("Brace coupons — 58 mm tyre face, tapering to 48 mm")
+    ax.legend(fontsize=8)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
     fig.savefig(out_path)
@@ -365,19 +254,15 @@ def main() -> None:
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     out = os.path.join(root, "out")
     os.makedirs(out, exist_ok=True)
-    crowns = [crown_for(k, v) for k, v in RISES.items()]
-    for c in crowns:
-        tp = _tangent_point_crown_fillet(c, left=True)
+    for name, clr in CLEARANCES.items():
+        tris = shell_tris(clr)
+        path = os.path.join(out, f"brace_coupon_{name}.stl")
+        write_stl(path, tris, f"brace_{name}")
         print(
-            f"{c.label}: rise={c.rise} R={c.radius:.3f} cornerR={c.corner_r} "
-            f"wall=±{c.half_chord} filletC=({c.fillet_cx:.1f},{c.fillet_cy:.1f}) "
-            f"tp=({tp[0]:.2f},{tp[1]:.2f}) outerW={OUTER_W}"
+            f"{name}: clearance {clr} tyreW {width_at(0, clr):.1f} seatW {width_at(LENGTH, clr):.1f} "
+            f"length {LENGTH} tris {len(tris)} -> {path}"
         )
-        tris = solid_shell_tris(c) + label_bump_tris(c.label)
-        path = os.path.join(out, f"brace_coupon_{c.label}.stl")
-        write_stl(path, tris, f"brace_{c.label}")
-        print("wrote", path, "tris", len(tris))
-    section_plot(crowns, os.path.join(out, "brace_coupon_sections.png"))
+    section_plot(os.path.join(out, "brace_coupon_sections.png"))
 
 
 if __name__ == "__main__":
