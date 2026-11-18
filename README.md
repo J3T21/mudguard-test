@@ -89,3 +89,9 @@ Leg joint rebuilt to Split & Join Planner's plan: the lower 10 mm of the guard w
 v2.19.3's one test failed at the guard + boss merge (BOOLEAN_BAD_INPUT). The guard pieces are now picked up by a history query and merge takes every solid present except the tie-slot cutters. Closing lines and tangencies shared between differently built bodies are moved 0.5 mm apart: the boss bottom (S.d - 0.5), clipY (|y| 49.0), the ear boxes (1 mm past the split) and the R32 end-round cutters (0.5 beyond the end and the side). The joint is unchanged. Full audit in `featurescript/verification_v2.19.3.1.txt`.
 
 Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/ecd92e540acf3ba840fcb13e/e/6d4ce527def8539685e560ec (A 62.84 / B 122.75 cm³, tyre gap 8.86, OD45 1.0 clr). Previews: `out/v2.19.3.1_onshape_*.png`.
+
+## v2.19.4
+
+Fox AWL crown from coupon A4. Default: under the brace only (`s` −15..+4) — chord **94**, rise **7**, R18, G1 flare to floor **100**. Toggle **awlFull** to carry the same crown curve along the whole guard (local width = shoulder chord; floor scales 94→100). Flange embed deepens by the rise; tongue/groove follow the crown. M3 nyloc slots **6.15 × 4.2**. FeatureScript: `featurescript/mudguard_v2.19.4.fs`. Offline: `python featurescript/v2_19_4_awl_profile.py`. Notes: `featurescript/verification_v2.19.4.txt`.
+
+Built: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/303c7c31d1cb051374f5a49c/e/6d4ce527def8539685e560ec (A 64.03 / B 123.42 cm³, tyre gap 8.86, OD45 1.0 clr). Previews: `out/v2.19.4_onshape_*.png`.

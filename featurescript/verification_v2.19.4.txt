@@ -1,0 +1,50 @@
+Mudguard v2.19.4 — Fox AWL under-brace crown + M3 slot revise
+==============================================================
+Date: 2026-11-18 (Europe/London)
+Branch: cursor/mudguard-v2194-awl-694e
+Source: featurescript/mudguard_v2.19.4.fs
+Offline section: featurescript/v2_19_4_awl_profile.py → out/v2.19.4_awl_section.png
+
+Scope
+-----
+Default: under-brace zone only (s ≈ -15..+4). Front blade / leg / tail stay
+the v2.19.3.1 rounded-box U unless **awlFull** is checked — then every
+sculpted station uses the AWL crown (rise + corner R + scaled floor flare).
+
+Coupon A4 silhouette (brace defaults):
+
+  awlChord   94 mm   (R18 shoulder chord)
+  awlFloorW 100 mm   (G1 flare)
+  awlRise     7 mm
+  awlFull   false    (true = whole-guard crown)
+  c1Radius   18 mm
+  c1Depth 30.49 mm
+
+Flange / tongue / groove
+------------------------
+Flange embed deepened to 5+rise so the block unions into the crown.
+Tongue and groove are crown-offset bands (0.3..2.3 / 0.05..2.55) extruded
+along the flange stack, not flat Y-extrusions.
+
+M3 nyloc slots
+--------------
+nutWidth 6.15 mm  (6.0 AF + 0.15 clearance)
+nutThk   4.2 mm   (≈ DIN 985 height + 0.2)
+
+Onshape
+-------
+Desktop MCP (user-onshape): 1 test_feature PASS (no notices), 1 create_geometry
+OK with clean=false. Branched workspace kept (did not overwrite ecd92e54 / v2.19.3.1).
+
+Workspace: https://cad.onshape.com/documents/3da26eeb7582e4a385de5a0b/w/303c7c31d1cb051374f5a49c/e/6d4ce527def8539685e560ec
+Name: create_geometry_Mudguard V2.19.4 (Fox AWL 36)_45dc9dff
+
+Console (report prefix still says v2.19.3.1 in the FS string):
+v2.19.3.1 volA=64.03 volB=123.42 tyreGap=8.86 stanchion=5.56 collar=0.95in od45=1clr legMin=-2.57 holes=4/4 bedB=241.3x238.3 bowY=45.95 bowV=51.95 flatY=49 root=s22.5-76 v25=0 stepOut=0 stepIn=0 tiny=0 fil=2/4 PASS
+
+Previews: out/v2.19.4_onshape_{top,front,left}.png
+
+Offline checks (0 API)
+----------------------
+python featurescript/v2_19_4_awl_profile.py
+  peak h = -7.000, floor = 100, Rc ≈ 81.57, flange-edge drop ≈ 3.3 mm
