@@ -32,6 +32,11 @@ FLARE = 20.0  # how far the skirt reaches out over the stay, each side
 SKIRT = 45.0  # how far the skirt runs down the stay
 FLARE_TURN = math.radians(82)  # ends heading down the stay, not curled back under
 CLEARANCES = {"C0": 0.0, "C1": 0.4, "C2": 0.8}
+# Quick verify: C0-fit crown, cavity +4 mm/side at the flat, 20 mm extrusion, short skirt.
+C4_EXTRA = 4.0  # mm per side wider than C0 at the flat/cavity
+C4_LENGTH = 20.0
+C4_SKIRT = 8.0  # short stay drop — quick print, not the full shell
+C4_FLARE = FLARE + C4_EXTRA  # keep the same stay reach past the wider cavity
 # Two pairs along the crest, so a side view shows four holes. Long axis lateral.
 SLOT_X = (-16.0, -8.0, 4.0, 11.0)
 SLOT_Z = 14.0  # mid-thickness of the brace, past the handle
@@ -39,6 +44,8 @@ SLOT_LEN = 6.0
 SLOT_WID = 2.4
 _CROWN = None
 _RAW = None
+# Optional overrides used while building a one-off coupon (length / skirt / flare).
+_BUILD = {"length": LENGTH, "skirt": SKIRT, "flare": FLARE}
 
 
 def _load_mm(path: str) -> np.ndarray:
@@ -109,14 +116,18 @@ def crown_profile() -> np.ndarray:
     return _CROWN
 
 
-def width_at(z: float, clearance: float) -> float:
-    tyre = TYRE_W - 2.0 * clearance
-    seat = SEAT_W - 2.0 * clearance
-    if z <= HANDLE:
+def width_at(z: float, clearance: float, extra_flat: float = 0.0) -> float:
+    """Cavity width. extra_flat widens both faces by that many mm per side."""
+    tyre = TYRE_W - 2.0 * clearance + 2.0 * extra_flat
+    seat = SEAT_W - 2.0 * clearance + 2.0 * extra_flat
+    length = float(_BUILD["length"])
+    handle = min(HANDLE, length * 0.4)
+    brace = max(length - handle, 0.1)
+    if z <= handle:
         return tyre
-    if z >= HANDLE + BRACE_THK:
+    if z >= handle + brace:
         return seat
-    u = (z - HANDLE) / BRACE_THK
+    u = (z - handle) / brace
     return tyre + (seat - tyre) * u
 
 
@@ -142,7 +153,7 @@ def _flare(origin: np.ndarray, tangent: np.ndarray, side: int, n: int = 16) -> n
     # Clockwise on the right, counterclockwise on the left: both pitch down.
     dth = (-1 if side > 0 else 1) * FLARE_TURN / n
     c, s = math.cos(dth), math.sin(dth)
-    step = (FLARE + SKIRT) / n
+    step = (float(_BUILD["flare"]) + float(_BUILD["skirt"])) / n
     p = origin.astype(float).copy()
     pts = []
     for _ in range(n):
@@ -192,12 +203,13 @@ def _on_crown(y: float) -> bool:
     return y > -1.0
 
 
-def shell_tris(clearance: float) -> list[np.ndarray]:
-    zs = np.linspace(0.0, LENGTH, 21)
+def shell_tris(clearance: float, extra_flat: float = 0.0) -> list[np.ndarray]:
+    length = float(_BUILD["length"])
+    zs = np.linspace(0.0, length, 21)
     outers = []
     inners = []
     for z in zs:
-        w = width_at(float(z), clearance)
+        w = width_at(float(z), clearance, extra_flat=extra_flat)
         outer, inner = shell_section(w, clearance)
         outers.append(outer)
         inners.append(inner)
@@ -235,7 +247,7 @@ def shell_tris(clearance: float) -> list[np.ndarray]:
     # shell can seat on the brace.
     for end, z, outer, inner in (
         (0, 0.0, outers[0], inners[0]),
-        (1, LENGTH, outers[-1], inners[-1]),
+        (1, length, outers[-1], inners[-1]),
     ):
         for i in range(n - 1):
             if end == 0:
@@ -285,20 +297,20 @@ def _box_tris(x0, x1, y0, y1, z0, z1) -> list[np.ndarray]:
     return tris
 
 
-def id_mark_tris(label: str) -> list[np.ndarray]:
-    """1/2/3 bars on the tyre side of the handle, clear of the brace face."""
-    n = {"C0": 1, "C1": 2, "C2": 3}[label]
-    clr = CLEARANCES[label]
-    outer, _ = shell_section(width_at(0.0, clr), clr)
+def id_mark_tris(label: str, clearance: float = 0.0, extra_flat: float = 0.0, n_bars: int | None = None) -> list[np.ndarray]:
+    """Raised bars on the tyre side of the handle. Count marks the variant."""
+    n = n_bars if n_bars is not None else {"C0": 1, "C1": 2, "C2": 3, "C4": 4}[label]
+    clr = CLEARANCES.get(label, clearance)
+    outer, _ = shell_section(width_at(0.0, clr, extra_flat=extra_flat), clr)
     # Crest of the outer skin, near x = 0.
     i = int(np.argmin(np.abs(outer[:, 0])))
     y_out = float(outer[i, 1])
     tris: list[np.ndarray] = []
     for k in range(n):
-        z0 = 1.2 + k * 2.2
-        tris.extend(_box_tris(-6.0, 6.0, y_out - 1.2, y_out + 0.4, z0, z0 + 1.4))
+        z0 = 1.0 + k * 2.0
+        tris.extend(_box_tris(-6.0, 6.0, y_out - 1.2, y_out + 0.4, z0, z0 + 1.2))
     for k in range(n):
-        x0 = -8.0 + k * 6.0
+        x0 = -10.0 + k * 5.5
         tris.extend(_box_tris(x0, x0 + 3.0, y_out - 1.2, y_out + 0.6, -1.2, 0.0))
     return tris
 
@@ -464,6 +476,27 @@ def main() -> None:
             f"{name}: clearance {clr} tyreW {width_at(0, clr):.1f} seatW {width_at(LENGTH, clr):.1f} "
             f"length {LENGTH} idBars {n_bars} tris {len(tris)} -> {path}"
         )
+
+    # Quick verify coupon C4: same C0 crown, flat/cavity +4 mm/side, 20 mm extrusion.
+    _BUILD["length"] = C4_LENGTH
+    _BUILD["skirt"] = C4_SKIRT
+    _BUILD["flare"] = C4_FLARE
+    try:
+        tris = shell_tris(0.0, extra_flat=C4_EXTRA) + id_mark_tris(
+            "C4", clearance=0.0, extra_flat=C4_EXTRA, n_bars=4
+        )
+        path = os.path.join(out, "brace_coupon_C4.stl")
+        write_stl(path, tris, "brace_C4")
+        print(
+            f"C4: quick test tyreW {width_at(0, 0.0, extra_flat=C4_EXTRA):.1f} "
+            f"seatW {width_at(C4_LENGTH, 0.0, extra_flat=C4_EXTRA):.1f} "
+            f"extraFlat +{C4_EXTRA:.0f}/side length {C4_LENGTH:.0f} skirt {C4_SKIRT:.0f} "
+            f"idBars 4 tris {len(tris)} -> {path}"
+        )
+    finally:
+        _BUILD["length"] = LENGTH
+        _BUILD["skirt"] = SKIRT
+        _BUILD["flare"] = FLARE
 
 
 if __name__ == "__main__":
