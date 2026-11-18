@@ -1,25 +1,24 @@
-Front mudguard under-brace coupon A4 (outer 100 mm)
-===================================================
+Front mudguard under-brace coupon A4 (outer 96 mm, 10 mm long)
+==============================================================
 Date: 2026-11-18 (Europe/London)
 Onshape API / MCP calls: 0
 Generator: featurescript/front_underbrace_coupons.py
 STL: out/front_brace_coupon_A4.stl (alias out/brace_coupon_A4.stl)
 Section: out/front_brace_coupon_sections.png
 
-The earlier "88 mm at the R18 / vertical" figure was OUTER wall-to-wall.
-Outer can take 100 mm there, so the crown + R18 curve continues out to
-OUTER 100 mm, then vertical sides (no floor flare).
+100 mm outer was slightly too wide. Backed off 2 mm each side → 96 mm outer
+at the R18 → vertical. Short 10 mm extrusion for a quick print.
 
 Geometry (mm)
 -------------
-Outer at R18 → vertical   100   (±50)
-Inner at that point        ~95   (wall 2.5 each side)
-Floor outer                100   (vertical walls, same as top)
-Corner fillets              18
-Rise                       7.0
-Wall                       2.5
-Depth                     30
-Length                    20
-ID notches                 4
+Outer at R18 → vertical    96   (±48)
+Inner at that point        ~91   (wall 2.5 each side)
+Floor outer                96   (vertical walls)
+Corner fillets             18
+Rise                      7.0
+Wall                      2.5
+Depth                    30
+Length                   10
+ID notches                4
 
 Print: PETG, P1S, floor down. Four notches = A4.

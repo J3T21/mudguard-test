@@ -1,9 +1,8 @@
 """Front mudguard under-brace arch coupons (Fox AWL). Offline only — no Onshape.
 
-A4 (rise 7.0 mm, four ID notches) fitted best. The previous 88 mm figure was
-OUTER wall-to-wall at the R18. Outer can take 100 mm there, so the crown + R18
-curve continues out to TOP_W = 100 mm, then vertical walls (no floor flare).
-Quick verify: 20 mm extrusion. Inner at that point is about 95 mm (wall 2.5).
+A4 (rise 7.0 mm, four ID notches) fitted best. 100 mm outer was a touch wide;
+back off 2 mm each side → TOP_W = 96 mm outer, then vertical walls (no floor
+flare). Quick verify: 10 mm extrusion. Inner ≈ 91 mm (wall 2.5).
 """
 from __future__ import annotations
 
@@ -19,18 +18,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # OUTER wall-to-wall where the R18 meets the vertical side.
-TOP_W = 100.0
+TOP_W = 96.0  # was 100; −2 mm each side
 CORNER_R = 18.0
 WALL = 2.5
 DEPTH = 30.0
-LENGTH = 20.0
+LENGTH = 10.0  # short verify extrusion
 RISES = {
     "A1": 2.5,
     "A2": 4.0,
     "A3": 5.5,
     "A4": 7.0,
 }
-CHORD = TOP_W  # vertical outer walls at ±50 after the R18
+CHORD = TOP_W  # vertical outer walls at ±48 after the R18
 
 
 @dataclass
@@ -245,13 +244,17 @@ def write_stl(path: str, tris: list[np.ndarray], name: str) -> None:
 
 
 def label_bump_tris(label: str) -> list[np.ndarray]:
+    """1..4 notches along +z, packed to fit in LENGTH."""
     idx = {"A1": 1, "A2": 2, "A3": 3, "A4": 4}[label]
     tris = []
     y0 = -DEPTH + WALL
     y1 = y0 + 1.0
+    # Pitch so four notches sit inside a 10 mm extrusion with a small margin.
+    pitch = min(2.2, (LENGTH - 1.5) / max(idx, 1))
+    bar = min(1.4, pitch * 0.65)
     for k in range(idx):
-        z0 = 2.0 + k * 4.0
-        z1 = z0 + 2.5
+        z0 = 0.5 + k * pitch
+        z1 = z0 + bar
         x0, x1 = -8.0, -3.0
         corners = [
             np.array([x0, y0, z0]),
